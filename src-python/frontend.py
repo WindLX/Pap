@@ -1,15 +1,9 @@
-import webview
-import threading
-from config import debug, host, port, title
+from config import debug, host, port, title, dev_host, dev_port
 
 from webview import create_window, start
 
 
-def start_frontend() -> None:
-    window = create_window(
-        title, url=f"http://{host}:{port}")
+def start_frontend(is_dev: bool):
+    url = f"http://{host}:{port}" if not is_dev else f"http://{dev_host}:{dev_port}"
+    create_window(title, url=url)
     start(debug=debug)
-
-
-if __name__ == "__main__":
-    start_frontend()
