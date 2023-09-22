@@ -14,6 +14,6 @@ if __name__ == "__main__":
     frontend_process = Process(target=start_frontend, args=(args.dev,))
     frontend_process.start()
 
-    start_backend()
+    start_backend(args.dev)
     frontend_process.terminate()
     frontend_process.join()

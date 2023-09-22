@@ -64,4 +64,9 @@ if ($Build -and !$Dev) {
 }
 
 Open-Venv
-python src-python/app.py --dev=$Dev
+if ($Dev) {
+    python src-python/app.py --dev=$Dev
+}
+else {
+    python src-python/app.py
+}
