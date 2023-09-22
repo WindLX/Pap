@@ -1,4 +1,4 @@
-import argparse
+from argparse import ArgumentParser
 
 from multiprocessing import Process
 
@@ -7,7 +7,7 @@ from backend import start_backend
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("--dev", type=bool, default=False)
     args = parser.parse_args()
 
