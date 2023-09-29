@@ -37,13 +37,13 @@ done
 
 # Run the development environment
 if [ "$Dev" = true ]; then
-    install_modules()
-    npm run dev &
+    install_modules
+    npm run dev & 
 fi
 
 # Build the frontend (only if not in Dev mode)
 if [ "$Build" = true ] && [ "$Dev" != true ]; then
-    install_modules()
+    install_modules
     npm run build
 fi
 
