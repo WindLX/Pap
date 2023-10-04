@@ -54,6 +54,7 @@ async def get_config(section: str):
     Raises:
         HTTPException: error response 404
     """
+    logger.info(f"GET /api/get_config/{section}")
     data: Optional[SystemConfigModel | PathConfigModel] = None
     match section:
         case "system":
@@ -61,8 +62,10 @@ async def get_config(section: str):
         case "path":
             data = path_config.model
     if data is None:
+        logger.warn(f"{section} not found")
         raise HTTPException(status_code=404, detail=f"{section} not found")
     else:
+
         return data
 
 
@@ -77,17 +80,20 @@ async def set_config(section: str, value: SystemConfigModel | PathConfigModel):
     Raises:
         HTTPException: error response 404
     """
+    logger.info(f"PUT /api/set_config/{section}")
     match section:
         case "system":
             if system_config.model is not None and type(value) == SystemConfigModel:
                 system_config.model = value
             else:
+                logger.warn(f"{section} not found")
                 raise HTTPException(
                     status_code=404, detail=f"{section} not found")
         case "path":
             if path_config.model is not None and type(value) == PathConfigModel:
                 path_config.model = value
             else:
+                logger.warn(f"{section} not found")
                 raise HTTPException(
                     status_code=404, detail=f"{section} not found")
 
