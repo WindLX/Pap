@@ -26,3 +26,6 @@ dist-ssr
 # Python
 pap-venv
 __pycache__
+data/resource
+data/content
+data/tag.toml

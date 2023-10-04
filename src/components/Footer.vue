@@ -1,0 +1,12 @@
+<script setup lang="ts">
+</script>
+
+<template>
+    <div class="footer">Footer</div>
+</template>
+
+<style scoped>
+.footer {
+    grid-area: footer;
+}
+</style>
