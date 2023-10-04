@@ -1,8 +1,11 @@
+from typing import Optional
+
+from model.config import SystemConfigModel, PathConfigModel
 from service.logger import logger
-from service.config import system_config, dev_config
+from service.config import system_config, path_config, dev_config
 
 from uvicorn import run
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,17 +40,56 @@ async def index() -> FileResponse:
     Returns:
         FileResponse: HTML of main page
     """
+    logger.debug("load index page")
     return FileResponse("dist/index.html")
 
 
-@app.get("/hello")
-async def hello() -> str:
-    """hello route, return `hello` to frontend
+@app.get("/api/get_config/{section}", response_model=SystemConfigModel | PathConfigModel)
+async def get_config(section: str):
+    """get all available config to frontend
 
     Returns:
-        str: `hello`
+        SystemConfigModel | PathConfigModel: config or error
+
+    Raises:
+        HTTPException: error response 404
     """
-    return "hello"
+    data: Optional[SystemConfigModel | PathConfigModel] = None
+    match section:
+        case "system":
+            data = system_config.model
+        case "path":
+            data = path_config.model
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"{section} not found")
+    else:
+        return data
+
+
+@app.put("/api/set_config/{section}", status_code=status.HTTP_202_ACCEPTED)
+async def set_config(section: str, value: SystemConfigModel | PathConfigModel):
+    """set all available config
+
+    Args:
+        section (str): section name
+        value (SystemConfigModel | PathConfigModel): new config value
+
+    Raises:
+        HTTPException: error response 404
+    """
+    match section:
+        case "system":
+            if system_config.model is not None and type(value) == SystemConfigModel:
+                system_config.model = value
+            else:
+                raise HTTPException(
+                    status_code=404, detail=f"{section} not found")
+        case "path":
+            if path_config.model is not None and type(value) == PathConfigModel:
+                path_config.model = value
+            else:
+                raise HTTPException(
+                    status_code=404, detail=f"{section} not found")
 
 
 def start_backend(is_dev: bool):

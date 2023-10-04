@@ -1,7 +1,7 @@
 from service.logger import logger
 from service.config import dev_config, system_config
 
-from webview import create_window, start
+from webview import create_window, start  # type: ignore
 
 
 def start_frontend(is_dev: bool):

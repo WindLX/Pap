@@ -1,35 +1,16 @@
 [system]
-# host of backend
 host = "127.0.0.1"
-
-# port of backend
 port = 8000
-
-# title of WebView window
 title = "Pap"
-
-# log level
 log_level = "DEBUG"
 
 [path]
-# resource store directory
 resource_dir = "./data/resource/"
-
-# content store directory
 content_dir = "./data/content/"
-
-# log path
 log_path = "./data/pap.log"
-
-# tag path
 tag_path = "./data/tag.toml"
 
 [dev]
-# debug mode switch
 debug = true
-
-# host of vite when developing
 dev_host = "localhost"
-
-# port of vite when developing
 dev_port = 6173

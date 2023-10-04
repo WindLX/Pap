@@ -1,4 +1,7 @@
 from os import path, mkdir
+from typing import Optional, Any
+
+from model.config import SystemConfigModel, PathConfigModel
 
 from toml import load as toml_load
 from toml import dump as toml_dump
@@ -10,6 +13,11 @@ class ConfigManager:
         self.__config = self.load_config()
 
     def load_config(self) -> dict:
+        """load config file
+
+        Returns:
+            dict: config
+        """
         try:
             with open(self.__config_file, 'r') as file:
                 config = toml_load(file)
@@ -20,13 +28,54 @@ class ConfigManager:
             return {}
 
     def save_config(self) -> None:
+        """save config
+        """
         with open(self.__config_file, 'w') as file:
             toml_dump(self.__config, file)
 
-    def get_value(self, section: str, key: str) -> any:
+    def get_section(self, section: str) -> Optional[dict]:
+        """get section by section name
+
+        Args:
+            section (str): section name
+
+        Returns:
+            Optional(dict): section
+        """
+        return self.__config.get(section, None)
+
+    def get_value(self, section: str, key: str) -> Any:
+        """get value by key of selected section
+
+        Args:
+            section (str): section name
+            key (str): key name
+
+        Returns:
+            Any: value
+        """
         return self.__config.get(section, {}).get(key, None)
 
+    def set_section(self, section: str, value: dict) -> None:
+        """set section data by section name
+
+        Args:
+            section (str): section name
+            value (dict): section value
+        """
+        if section not in self.__config:
+            self.__config[section] = {}
+        self.__config[section] = value
+        self.save_config()
+
     def set_value(self, section: str, key: str, value: str) -> None:
+        """set new value by key of selected section
+
+        Args:
+            section (str): section name
+            key (str): key name
+            value (str): new value
+        """
         if section not in self.__config:
             self.__config[section] = {}
         self.__config[section][key] = value
@@ -38,28 +87,28 @@ class BaseConfig:
     """
 
     def __init__(self, config_manager: ConfigManager, section_name: str) -> None:
-        self.__config_manager = config_manager
-        self.__section_name = section_name
+        self.config_manager = config_manager
+        self.section_name = section_name
 
-    def get_property(self, key: str) -> any:
+    def get_property(self, key: str) -> Any:
         """获取配置属性值
 
         Args:
             key (str): 键名
 
         Returns:
-            any: 键值
+            Any: 键值
         """
-        return self.__config_manager.get_value(self.__section_name, key)
+        return self.config_manager.get_value(self.section_name, key)
 
-    def set_property(self, key: str, value: str):
+    def set_property(self, key: str, value: Any):
         """设置配置属性值
 
         Args:
             key (str): 键名
             value (str): 新键值
         """
-        self.__config_manager.set_value(self.__section_name, key, value)
+        self.config_manager.set_value(self.section_name, key, value)
 
 
 class SystemConfig(BaseConfig):
@@ -120,6 +169,18 @@ class SystemConfig(BaseConfig):
     @log_level.setter
     def log_level(self, value: str) -> None:
         self.set_property("log_level", value)
+
+    @property
+    def model(self) -> Optional[SystemConfigModel]:
+        if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
+            return SystemConfigModel(**data_dict)
+        else:
+            return None
+
+    @model.setter
+    def model(self, value: SystemConfigModel) -> None:
+        new_data = value.model_dump()
+        return self.config_manager.set_section(self.section_name, new_data)
 
 
 class PathConfig(BaseConfig):
@@ -200,6 +261,18 @@ class PathConfig(BaseConfig):
 
         for p in files:
             check_single_file(p)
+
+    @property
+    def model(self) -> Optional[PathConfigModel]:
+        if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
+            return PathConfigModel(**data_dict)
+        else:
+            return None
+
+    @model.setter
+    def model(self, value: PathConfigModel) -> None:
+        new_data = value.model_dump()
+        self.config_manager.set_section(self.section_name, new_data)
 
 
 class DevConfig(BaseConfig):

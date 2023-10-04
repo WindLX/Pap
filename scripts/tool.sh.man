@@ -1,0 +1,28 @@
+NAME
+
+Synopsis
+    This PowerShell script is used for check and test the Pap backend.
+
+DESCRIPTION
+    The tool.sh script is a versatile tool designed to simplify the process of Pap backend test and type check. It offers the following functionality:
+
+    - When executed without any options, it sets up the default environment for running Pap.
+
+    - If the `--test` option is specified, the script will launch the pytest automatically.
+
+    - When the `--check` option is provided, This script automatically performs Python static type checking。
+
+    The script's flexibility allows it to adapt to your specific needs, whether you're focused on development or simply coding.
+
+OPTIONS
+    --check 
+        Whether to run the test.
+    --test
+        Whether to run the static type check.
+
+EXAMPLES
+    To run the test:
+    $ ./tool.sh --test
+
+    To run the static type check:
+    $ ./tool.sh --check

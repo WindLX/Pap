@@ -20,6 +20,10 @@ install_modules() {
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --help)
+            less scripts/run.sh.man
+            shift
+            ;;
         --dev)
             Dev=true
             shift

@@ -2,7 +2,7 @@
 .Synopsis
 This PowerShell script is used for build the developing or running environment automatically and run Pap.
 .Description
-The run.sh script is a versatile tool designed to simplify the process of creating and configuring your development or running environment while seamlessly running Pap. It offers the following functionality:
+The run.ps1 script is a versatile tool designed to simplify the process of creating and configuring your development or running environment while seamlessly running Pap. It offers the following functionality:
 
 - When executed without any options, it sets up the default environment for running Pap.
 
@@ -40,7 +40,7 @@ function Open-Venv {
     else {
         python -m venv pap-venv
         .\pap-venv\Scripts\Activate
-        pip install -r requirements.txt
+        pip install -r requirements_windows.txt
     }
 }
 
@@ -70,3 +70,4 @@ if ($Dev) {
 else {
     python src-python/app.py
 }
+deactivate
