@@ -40,6 +40,7 @@ def test_read_path_config():
 
 def test_write_path_config():
     put_data = {
+        "resource_dir": "./data/resource/",
         "content_dir": "./data/content/",
         "log_path": "./data/paps.log",
         "tag_path": "./data/tags.db"

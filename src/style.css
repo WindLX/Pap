@@ -18,7 +18,3 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
-
-.el-tabs__content {
-  height: 100%;
-}

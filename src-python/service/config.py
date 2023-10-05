@@ -199,6 +199,19 @@ class PathConfig(BaseConfig):
         super().__init__(config_manager, "path")
 
     @property
+    def resource_dir(self) -> str:
+        """资源存储目录
+
+        Returns:
+            str: 资源存储目录
+        """
+        return self.get_property("resource_dir")
+
+    @resource_dir.setter
+    def resource_dir(self, value: str) -> None:
+        self.set_property("resource_dir", value)
+
+    @property
     def content_dir(self) -> str:
         """内容存储目录
 
@@ -238,7 +251,7 @@ class PathConfig(BaseConfig):
         self.set_property("tag_path", value)
 
     def check_path(self) -> None:
-        dirs = [self.content_dir]
+        dirs = [self.resource_dir, self.content_dir]
         files = [self.log_path, self.tag_path]
 
         def check_single_dir(_path: str):

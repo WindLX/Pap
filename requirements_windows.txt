@@ -27,6 +27,7 @@ pydantic==2.3.0
 pydantic_core==2.6.3
 pytest==7.4.2
 python-dotenv==1.0.0
+python-multipart==0.0.6
 pythonnet==3.0.2
 pywebview==4.3.3
 PyYAML==6.0.1

@@ -32,6 +32,7 @@ const middlebarWidth = computed(() => {
     grid-template-areas:
         "sidebar middlebar content"
         "footer footer footer";
+    gap: 1px;
     height: calc(100vh - 16px);
 }
 </style>

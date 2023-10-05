@@ -1,8 +1,19 @@
-import { ITag } from './tag'
-
 export interface IResourceItem {
-    name: string,
-    url: string,
-    tag: Array<ITag>
-    content: Array<string>
+    id: number
+    name: string
+    url: string
+    tags: Array<ITag>
+    contents: Array<IContent>
+}
+
+export interface ITag {
+    id: number
+    name: string
+    color: string
+}
+
+export interface IContent {
+    id: number
+    name: string
+    url: string
 }

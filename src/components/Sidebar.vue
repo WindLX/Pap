@@ -32,7 +32,7 @@ function select(index: string) {
             </el-tooltip>
             <el-tooltip content="时间线" placement="right">
                 <el-menu-item class="menu-item" index="timeline">
-                    <font-awesome-icon :icon="['fas', 'code-branch']" class="icon" />
+                    <font-awesome-icon :icon="['fas', 'route']" class="icon" />
                 </el-menu-item>
             </el-tooltip>
             <el-tooltip content="设置" placement="right">
