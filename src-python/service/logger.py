@@ -5,7 +5,9 @@ from service.config import basic_config, path_config
 logger = logging.getLogger("logger")
 logger.setLevel(basic_config.log_level)
 
+# shell output
 sh = logging.StreamHandler()
+# file output
 fh = logging.FileHandler(filename=path_config.log_path, mode='a')
 
 fmt = logging.Formatter(

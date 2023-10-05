@@ -1,7 +1,7 @@
 from os import path, mkdir
 from typing import Optional, Any
 
-from schemas.config import BasicConfigModel, PathConfigModel
+from schemas.config import BasicConfigSchema, PathConfigSchema
 
 from toml import load as toml_load
 from toml import dump as toml_dump
@@ -179,14 +179,14 @@ class BasicConfig(BaseConfig):
         self.set_property("log_level", value)
 
     @property
-    def model(self) -> Optional[BasicConfigModel]:
+    def model(self) -> Optional[BasicConfigSchema]:
         if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
-            return BasicConfigModel(**data_dict)
+            return BasicConfigSchema(**data_dict)
         else:
             return None
 
     @model.setter
-    def model(self, value: BasicConfigModel) -> None:
+    def model(self, value: BasicConfigSchema) -> None:
         new_data = value.model_dump()
         return self.config_manager.set_section(self.section_name, new_data)
 
@@ -197,19 +197,6 @@ class PathConfig(BaseConfig):
 
     def __init__(self, config_manager: ConfigManager) -> None:
         super().__init__(config_manager, "path")
-
-    @property
-    def resource_dir(self) -> str:
-        """资源存储目录
-
-        Returns:
-            str: 资源存储目录
-        """
-        return self.get_property("resource_dir")
-
-    @resource_dir.setter
-    def resource_dir(self, value: str) -> None:
-        self.set_property("resource_dir", value)
 
     @property
     def content_dir(self) -> str:
@@ -251,7 +238,7 @@ class PathConfig(BaseConfig):
         self.set_property("tag_path", value)
 
     def check_path(self) -> None:
-        dirs = [self.resource_dir, self.content_dir]
+        dirs = [self.content_dir]
         files = [self.log_path, self.tag_path]
 
         def check_single_dir(_path: str):
@@ -271,14 +258,14 @@ class PathConfig(BaseConfig):
             check_single_file(p)
 
     @property
-    def model(self) -> Optional[PathConfigModel]:
+    def model(self) -> Optional[PathConfigSchema]:
         if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
-            return PathConfigModel(**data_dict)
+            return PathConfigSchema(**data_dict)
         else:
             return None
 
     @model.setter
-    def model(self, value: PathConfigModel) -> None:
+    def model(self, value: PathConfigSchema) -> None:
         new_data = value.model_dump()
         self.config_manager.set_section(self.section_name, new_data)
 

@@ -40,20 +40,22 @@ def test_read_path_config():
 
 def test_write_path_config():
     put_data = {
-        "resource_dir": "./data/resource/",
         "content_dir": "./data/content/",
         "log_path": "./data/paps.log",
-        "tag_path": "./data/tags.toml"
+        "tag_path": "./data/tags.db"
     }
     response = client.put("/config/set_config/path", json=put_data)
     assert response.status_code == 202
+    from os import remove
+    remove("./data/tags.db")
+    remove("./data/paps.log")
     path_config_data = jsonable_encoder(path_config.model)
     assert put_data == path_config_data
     put_data_2 = {
         "resource_dir": "./data/resource/",
         "content_dir": "./data/content/",
         "log_path": "./data/pap.log",
-        "tag_path": "./data/tag.toml"
+        "tag_path": "./data/tag.db"
     }
     response_2 = client.put("/config/set_config/path", json=put_data_2)
     assert response_2.status_code == 202

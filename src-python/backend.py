@@ -1,7 +1,8 @@
-from router import config
-
+from router import config, resource, search
+from model.resource_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
+from service.database import engine
 
 from uvicorn import run
 from fastapi import FastAPI
@@ -9,11 +10,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+# system init
 host = system_config.host
 port = system_config.port
 
+# database ORM init
+Base.metadata.create_all(bind=engine)
+
 # FastAPI app
 app = FastAPI(debug=dev_config.debug)
+
 # static files
 app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
 
@@ -32,6 +38,8 @@ app.add_middleware(
 )
 
 app.include_router(config.router)
+app.include_router(resource.router)
+app.include_router(search.router)
 
 
 @app.get("/", include_in_schema=False)

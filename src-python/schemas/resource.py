@@ -1,10 +1,20 @@
-from pydantic import BaseModel
+from .resource_base import ResourceItemSchema
+from .tag_base import TagSchema
+from .content import ContentSchema
 
-from .tag import TagModel
+from pydantic import ConfigDict
 
 
-class ResourceItemModel(BaseModel):
-    name: str
-    url: str
-    tag: list[TagModel]
-    content: list[str]
+class ResourceItemSchemaContent(ResourceItemSchema):
+    """without tags
+    """
+    id: int
+    contents: list[ContentSchema]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResourceItemSchemaRelationship(ResourceItemSchemaContent):
+    """full data
+    """
+    tags: list[TagSchema]

@@ -1,6 +1,12 @@
-from pydantic import BaseModel
+from .tag_base import TagSchema
+from .resource_base import ResourceItemSchema
+
+from pydantic import ConfigDict
 
 
-class TagModel(BaseModel):
-    name: str
-    color: str
+class TagSchemaRelationship(TagSchema):
+    """full data
+    """
+    resources: list[ResourceItemSchema]
+
+    model_config = ConfigDict(from_attributes=True)
