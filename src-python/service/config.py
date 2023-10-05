@@ -1,7 +1,7 @@
 from os import path, mkdir
 from typing import Optional, Any
 
-from model.config import SystemConfigModel, BasicConfigModel, PathConfigModel
+from schemas.config import BasicConfigModel, PathConfigModel
 
 from toml import load as toml_load
 from toml import dump as toml_dump

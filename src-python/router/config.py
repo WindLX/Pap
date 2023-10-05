@@ -1,6 +1,6 @@
 from typing import Optional
 
-from model.config import BasicConfigModel, PathConfigModel
+from schemas.config import BasicConfigModel, PathConfigModel
 from service.config import basic_config, path_config
 from service.logger import logger
 
