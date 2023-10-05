@@ -6,8 +6,10 @@ import Content from "./Content.vue";
 import { computed } from "vue";
 import { useStateStore } from "../store/state";
 
+// state
 const store = useStateStore()
 
+// style
 const middlebarWidth = computed(() => {
     return store.isMiddleBarShow ? '320px' : '0px'
 })

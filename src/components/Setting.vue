@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue'
-import { ElForm, ElFormItem, ElInput, ElTooltip, ElCollapse, ElCollapseItem, ElRadio, ElRadioGroup, ElButton, ElNotification } from 'element-plus';
+import { ref, reactive, onActivated } from 'vue'
+import { ElForm, ElFormItem, ElInput, ElTooltip, ElCollapse, ElCollapseItem, ElButton, ElNotification, ElSlider } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { IBasicConfig, IPathConfig } from '../utils/config'
 import { useStateStore } from '../store/state'
 
+// const
+const marks = reactive<Record<number, string>>({ 0: '调试', 1: '消息', 2: '警告', 3: '错误' })
+const levelStringMap = ["DEBUG", "INFO", "WARNING", "ERROR"];
+const levelMap = new Map([["DEBUG", 0], ["INFO", 1], ["WARNING", 2], ["ERROR", 3]])
+
+// state
 const store = useStateStore()
 
+// data
+let logLevel = ref(0)
 let basicConfig = reactive<IBasicConfig>({
     title: "Pap",
     log_level: "INFO"
@@ -19,8 +27,18 @@ let pathConfig = reactive<IPathConfig>({
     tag_path: "."
 })
 
+// tool function
+function numberToLogLevel(level: number): string {
+    return levelStringMap[level] || "INFO";
+}
+
+function logLevelToNumber(level: string): number {
+    return levelMap.get(level) || 1;
+}
+
+// callback function
 async function onPathSubmit() {
-    const response = await fetch(`${store.backendHost}/api/set_config/path`, {
+    const response = await fetch(`${store.backendHost}/config/set_config/path`, {
         method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(pathConfig)
     })
     if (response.status == 202) {
@@ -28,7 +46,6 @@ async function onPathSubmit() {
             title: '修改成功',
             message: '路径设置修改成功',
             type: 'success',
-            showClose: false,
             duration: 2000
         })
     }
@@ -38,14 +55,14 @@ async function onPathSubmit() {
             title: '修改失败',
             message: `路径设置修改失败:${response.statusText}`,
             type: 'error',
-            showClose: false,
             duration: 2000
         })
     }
 }
 
 async function onBasicSubmit() {
-    const response = await fetch(`${store.backendHost}/api/set_config/basic`, {
+    basicConfig.log_level = numberToLogLevel(logLevel.value)
+    const response = await fetch(`${store.backendHost}/config/set_config/basic`, {
         method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(basicConfig)
     })
     if (response.status == 202) {
@@ -53,7 +70,6 @@ async function onBasicSubmit() {
             title: '修改成功',
             message: '基础设置修改成功,将在应用重启后生效',
             type: 'success',
-            showClose: false,
             duration: 2000
         })
     } else {
@@ -62,14 +78,13 @@ async function onBasicSubmit() {
             title: '修改失败',
             message: `基础设置修改失败:${response.statusText}`,
             type: 'error',
-            showClose: false,
             duration: 2000
         })
     }
 }
 
 async function onPathCancel() {
-    const response = await fetch(`${store.backendHost}/api/get_config/path`, { method: 'GET', mode: 'cors' })
+    const response = await fetch(`${store.backendHost}/config/get_config/path`, { method: 'GET', mode: 'cors' })
     const data = await response.json() as IPathConfig
     pathConfig.content_dir = data.content_dir
     pathConfig.log_path = data.log_path
@@ -78,13 +93,15 @@ async function onPathCancel() {
 }
 
 async function onBasicCancel() {
-    const response = await fetch(`${store.backendHost}/api/get_config/basic`, { method: 'GET', mode: 'cors' })
+    const response = await fetch(`${store.backendHost}/config/get_config/basic`, { method: 'GET', mode: 'cors' })
     const data = await response.json() as IBasicConfig
     basicConfig.log_level = data.log_level
     basicConfig.title = data.title
+    logLevel.value = logLevelToNumber(basicConfig.log_level)
 }
 
-onMounted(() => {
+// hook
+onActivated(() => {
     onBasicCancel()
     onPathCancel()
 })
@@ -105,20 +122,9 @@ onMounted(() => {
                         <el-input v-model="basicConfig.title"></el-input>
                     </el-form-item>
                     <el-form-item label="日志等级">
-                        <el-radio-group v-model="basicConfig.log_level">
-                            <el-tooltip content="调试">
-                                <el-radio label="DEBUG"></el-radio>
-                            </el-tooltip>
-                            <el-tooltip content="消息">
-                                <el-radio label="INFO"></el-radio>
-                            </el-tooltip>
-                            <el-tooltip content="警告">
-                                <el-radio label="WARNING"></el-radio>
-                            </el-tooltip>
-                            <el-tooltip content="错误">
-                                <el-radio label="ERROR"></el-radio>
-                            </el-tooltip>
-                        </el-radio-group>
+                        <el-slider :marks="marks" show-stops :min="0" :max="3" size="small"
+                            style="margin: 12px;margin-top: 0px; margin-bottom: 32px;" v-model="logLevel"
+                            :format-tooltip="numberToLogLevel"></el-slider>
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="onBasicSubmit">提交</el-button>
@@ -134,22 +140,22 @@ onMounted(() => {
                     </div>
                 </template>
                 <el-form class="form" label-position="top">
-                    <el-tooltip content="原始文件存放的路径">
+                    <el-tooltip content="原始文件存放的路径" :offset="6">
                         <el-form-item label="资源路径">
                             <el-input v-model="pathConfig.resource_dir"></el-input>
                         </el-form-item>
                     </el-tooltip>
-                    <el-tooltip content="生成的附加内容存放的路径">
+                    <el-tooltip content="生成的附加内容存放的路径" :offset="6">
                         <el-form-item label="内容路径">
                             <el-input v-model="pathConfig.content_dir"></el-input>
                         </el-form-item>
                     </el-tooltip>
-                    <el-tooltip content="标签存放的路径">
+                    <el-tooltip content="标签存放的路径" :offset="6">
                         <el-form-item label="标签路径">
                             <el-input v-model="pathConfig.tag_path"></el-input>
                         </el-form-item>
                     </el-tooltip>
-                    <el-tooltip content="日志文件存放的路径">
+                    <el-tooltip content="日志文件存放的路径" :offset="6">
                         <el-form-item label="日志路径">
                             <el-input v-model="pathConfig.log_path"></el-input>
                         </el-form-item>

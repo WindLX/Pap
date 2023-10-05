@@ -6,8 +6,10 @@ import Setting from './Setting.vue';
 import Search from './Search.vue';
 import Timeline from './Timeline.vue';
 
+// state
 const store = useStateStore();
 
+// content
 const currentComponent = computed(() => {
     switch (store.sidebarIndex) {
         case SidebarIndex.Resource:
@@ -38,6 +40,7 @@ const currentTitle = computed(() => {
     }
 });
 
+// style
 const isShow = computed(() => store.isMiddleBarShow);
 </script>
 

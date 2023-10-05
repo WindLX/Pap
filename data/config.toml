@@ -4,7 +4,7 @@ port = 8000
 
 [basic]
 title = "Pap"
-log_level = "DEBUG"
+log_level = "INFO"
 
 [path]
 resource_dir = "./data/resource/"

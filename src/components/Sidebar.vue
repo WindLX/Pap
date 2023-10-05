@@ -3,8 +3,10 @@ import { ElMenu, ElMenuItem, ElTooltip } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStateStore, SidebarIndex } from '../store/state';
 
+// state
 const store = useStateStore();
 
+// callback function
 function select(index: string) {
     if (store.sidebarIndex === (index as SidebarIndex)) {
         store.isMiddleBarShow = !store.isMiddleBarShow
