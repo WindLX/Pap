@@ -1,8 +1,8 @@
 from typing import Optional
 
-from model.config import SystemConfigModel, PathConfigModel
+from model.config import BasicConfigModel, PathConfigModel
 from service.logger import logger
-from service.config import system_config, path_config, dev_config
+from service.config import system_config, basic_config, path_config, dev_config
 
 from uvicorn import run
 from fastapi import FastAPI, HTTPException, status
@@ -44,25 +44,25 @@ async def index() -> FileResponse:
     return FileResponse("dist/index.html")
 
 
-@app.get("/api/get_config/{section}", response_model=SystemConfigModel | PathConfigModel)
+@app.get("/api/get_config/{section}", response_model=BasicConfigModel | PathConfigModel)
 async def get_config(section: str):
     """get all available config to frontend
 
     Returns:
-        SystemConfigModel | PathConfigModel: config or error
+        BasicConfigModel | PathConfigModel: config or error
 
     Raises:
         HTTPException: error response 404
     """
     logger.info(f"GET /api/get_config/{section}")
-    data: Optional[SystemConfigModel | PathConfigModel] = None
+    data: Optional[BasicConfigModel | PathConfigModel] = None
     match section:
-        case "system":
-            data = system_config.model
+        case "basic":
+            data = basic_config.model
         case "path":
             data = path_config.model
     if data is None:
-        logger.warn(f"{section} not found")
+        logger.warning(f"{section} not found")
         raise HTTPException(status_code=404, detail=f"{section} not found")
     else:
 
@@ -70,30 +70,31 @@ async def get_config(section: str):
 
 
 @app.put("/api/set_config/{section}", status_code=status.HTTP_202_ACCEPTED)
-async def set_config(section: str, value: SystemConfigModel | PathConfigModel):
+async def set_config(section: str, value: BasicConfigModel | PathConfigModel):
     """set all available config
 
     Args:
         section (str): section name
-        value (SystemConfigModel | PathConfigModel): new config value
+        value (BasicConfigModel | PathConfigModel): new config value
 
     Raises:
         HTTPException: error response 404
     """
     logger.info(f"PUT /api/set_config/{section}")
     match section:
-        case "system":
-            if system_config.model is not None and type(value) == SystemConfigModel:
-                system_config.model = value
+        case "basic":
+            if basic_config.model is not None and type(value) == BasicConfigModel:
+                basic_config.model = value
             else:
-                logger.warn(f"{section} not found")
+                logger.warning(f"{section} not found")
                 raise HTTPException(
                     status_code=404, detail=f"{section} not found")
         case "path":
             if path_config.model is not None and type(value) == PathConfigModel:
                 path_config.model = value
+                path_config.check_path()
             else:
-                logger.warn(f"{section} not found")
+                logger.warning(f"{section} not found")
                 raise HTTPException(
                     status_code=404, detail=f"{section} not found")
 

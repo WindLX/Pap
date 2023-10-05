@@ -1,7 +1,7 @@
 from os import path, mkdir
 from typing import Optional, Any
 
-from model.config import SystemConfigModel, PathConfigModel
+from model.config import SystemConfigModel, BasicConfigModel, PathConfigModel
 
 from toml import load as toml_load
 from toml import dump as toml_dump
@@ -144,6 +144,14 @@ class SystemConfig(BaseConfig):
     def port(self, value: int) -> None:
         self.set_property("port", value)
 
+
+class BasicConfig(BaseConfig):
+    """基础设置
+    """
+
+    def __init__(self, config_manager: ConfigManager) -> None:
+        super().__init__(config_manager, "basic")
+
     @property
     def title(self) -> str:
         """窗口标题
@@ -171,14 +179,14 @@ class SystemConfig(BaseConfig):
         self.set_property("log_level", value)
 
     @property
-    def model(self) -> Optional[SystemConfigModel]:
+    def model(self) -> Optional[BasicConfigModel]:
         if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
-            return SystemConfigModel(**data_dict)
+            return BasicConfigModel(**data_dict)
         else:
             return None
 
     @model.setter
-    def model(self, value: SystemConfigModel) -> None:
+    def model(self, value: BasicConfigModel) -> None:
         new_data = value.model_dump()
         return self.config_manager.set_section(self.section_name, new_data)
 
@@ -312,6 +320,7 @@ class DevConfig(BaseConfig):
 
 config_manager = ConfigManager("./data/config.toml")
 system_config = SystemConfig(config_manager=config_manager)
+basic_config = BasicConfig(config_manager=config_manager)
 path_config = PathConfig(config_manager=config_manager)
 dev_config = DevConfig(config_manager=config_manager)
 path_config.check_path()

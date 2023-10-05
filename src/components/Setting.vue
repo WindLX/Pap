@@ -1,10 +1,184 @@
 <script setup lang="ts">
+import { reactive, onMounted } from 'vue'
+import { ElForm, ElFormItem, ElInput, ElTooltip, ElCollapse, ElCollapseItem, ElRadio, ElRadioGroup, ElButton, ElNotification } from 'element-plus';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { IBasicConfig, IPathConfig } from '../utils/config'
+import { useStateStore } from '../store/state'
+
+const store = useStateStore()
+
+let basicConfig = reactive<IBasicConfig>({
+    title: "Pap",
+    log_level: "INFO"
+})
+
+let pathConfig = reactive<IPathConfig>({
+    resource_dir: ".",
+    content_dir: ".",
+    log_path: ".",
+    tag_path: "."
+})
+
+async function onPathSubmit() {
+    const response = await fetch(`${store.backendHost}/api/set_config/path`, {
+        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(pathConfig)
+    })
+    if (response.status == 202) {
+        ElNotification({
+            title: '修改成功',
+            message: '路径设置修改成功',
+            type: 'success',
+            showClose: false,
+            duration: 2000
+        })
+    }
+    else {
+        onPathCancel()
+        ElNotification({
+            title: '修改失败',
+            message: `路径设置修改失败:${response.statusText}`,
+            type: 'error',
+            showClose: false,
+            duration: 2000
+        })
+    }
+}
+
+async function onBasicSubmit() {
+    const response = await fetch(`${store.backendHost}/api/set_config/basic`, {
+        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(basicConfig)
+    })
+    if (response.status == 202) {
+        ElNotification({
+            title: '修改成功',
+            message: '基础设置修改成功,将在应用重启后生效',
+            type: 'success',
+            showClose: false,
+            duration: 2000
+        })
+    } else {
+        onBasicCancel()
+        ElNotification({
+            title: '修改失败',
+            message: `基础设置修改失败:${response.statusText}`,
+            type: 'error',
+            showClose: false,
+            duration: 2000
+        })
+    }
+}
+
+async function onPathCancel() {
+    const response = await fetch(`${store.backendHost}/api/get_config/path`, { method: 'GET', mode: 'cors' })
+    const data = await response.json() as IPathConfig
+    pathConfig.content_dir = data.content_dir
+    pathConfig.log_path = data.log_path
+    pathConfig.resource_dir = data.resource_dir
+    pathConfig.tag_path = data.tag_path
+}
+
+async function onBasicCancel() {
+    const response = await fetch(`${store.backendHost}/api/get_config/basic`, { method: 'GET', mode: 'cors' })
+    const data = await response.json() as IBasicConfig
+    basicConfig.log_level = data.log_level
+    basicConfig.title = data.title
+}
+
+onMounted(() => {
+    onBasicCancel()
+    onPathCancel()
+})
 </script>
 
 <template>
-    <div>
-        Setting
+    <div class="setting">
+        <el-collapse accordion>
+            <el-collapse-item>
+                <template #title>
+                    <div class="title">
+                        <font-awesome-icon :icon="['fas', 'gears']" class="icon" />
+                        <p>基础</p>
+                    </div>
+                </template>
+                <el-form class="form" label-position="top">
+                    <el-form-item label="窗口标题">
+                        <el-input v-model="basicConfig.title"></el-input>
+                    </el-form-item>
+                    <el-form-item label="日志等级">
+                        <el-radio-group v-model="basicConfig.log_level">
+                            <el-tooltip content="调试">
+                                <el-radio label="DEBUG"></el-radio>
+                            </el-tooltip>
+                            <el-tooltip content="消息">
+                                <el-radio label="INFO"></el-radio>
+                            </el-tooltip>
+                            <el-tooltip content="警告">
+                                <el-radio label="WARNING"></el-radio>
+                            </el-tooltip>
+                            <el-tooltip content="错误">
+                                <el-radio label="ERROR"></el-radio>
+                            </el-tooltip>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="onBasicSubmit">提交</el-button>
+                        <el-button @click="onBasicCancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-collapse-item>
+            <el-collapse-item>
+                <template #title>
+                    <div class="title">
+                        <font-awesome-icon :icon="['fas', 'map']" class="icon" />
+                        <p>路径</p>
+                    </div>
+                </template>
+                <el-form class="form" label-position="top">
+                    <el-tooltip content="原始文件存放的路径">
+                        <el-form-item label="资源路径">
+                            <el-input v-model="pathConfig.resource_dir"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
+                    <el-tooltip content="生成的附加内容存放的路径">
+                        <el-form-item label="内容路径">
+                            <el-input v-model="pathConfig.content_dir"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
+                    <el-tooltip content="标签存放的路径">
+                        <el-form-item label="标签路径">
+                            <el-input v-model="pathConfig.tag_path"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
+                    <el-tooltip content="日志文件存放的路径">
+                        <el-form-item label="日志路径">
+                            <el-input v-model="pathConfig.log_path"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
+                    <el-form-item>
+                        <el-button type="primary" @click="onPathSubmit">提交</el-button>
+                        <el-button @click="onPathCancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-collapse-item>
+        </el-collapse>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.setting .title {
+    display: flex;
+    align-items: center;
+}
+
+.setting .title .icon {
+    font-size: 16px;
+    color: #6d6d6d;
+    margin-left: 12px;
+    margin-right: 6px;
+}
+
+.setting .form {
+    max-width: 80%;
+    margin-left: 20px;
+}
+</style>

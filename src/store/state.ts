@@ -16,6 +16,7 @@ export const useStateStore = defineStore('states', {
         return {
             sidebarIndex: SidebarIndex.Resource,
             isMiddleBarShow: true,
+            backendHost: "http://127.0.0.1:8000",
             tabs: []
         }
     }

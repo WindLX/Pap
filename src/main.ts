@@ -3,10 +3,10 @@ import './style.css'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faSearch, faFolder, faFolderOpen, faGear, faFile, faCodeBranch, faBars } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faFolder, faFolderOpen, faGear, faFile, faCodeBranch, faBars, faGears, faMap } from '@fortawesome/free-solid-svg-icons'
 import { createPinia } from 'pinia'
 
-library.add(faSearch, faFolder, faFolderOpen, faGear, faFile, faCodeBranch, faBars)
+library.add(faSearch, faFolder, faFolderOpen, faGear, faFile, faCodeBranch, faBars, faGears, faMap)
 
 const pinia = createPinia()
 

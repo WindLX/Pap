@@ -4,6 +4,9 @@ from pydantic import BaseModel
 class SystemConfigModel(BaseModel):
     host: str
     port: int
+
+
+class BasicConfigModel(BaseModel):
     title: str
     log_level: str
 
