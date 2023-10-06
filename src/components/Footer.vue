@@ -8,14 +8,13 @@ const store = useTabStore()
 
 // data
 const fileName = computed(() => { return store.current.name })
+
 </script>
 
 <template>
     <div class="footer">
-        <div id="file-name">
-            <font-awesome-icon :icon="['fas', 'box-open']" class="icon" />
-            <span>{{ fileName }}</span>
-        </div>
+        <font-awesome-icon :icon="['fas', 'dolly']" class="icon" />
+        <span class="title">{{ fileName }}</span>
     </div>
 </template>
 
@@ -23,21 +22,19 @@ const fileName = computed(() => { return store.current.name })
 .footer {
     grid-area: footer;
     display: grid;
-    grid-template-columns: 48px 24px 1fr;
+    grid-template-columns: 24px 300px 1fr;
     grid-template-areas:
-        "title title title";
+        "icon title other";
 }
 
-.footer #file-name {
-    margin: 0;
+.footer .title {
     grid-area: title;
     font-size: 14px;
-    display: flex;
-    align-items: center;
 }
 
 .footer .icon {
+    grid-area: icon;
     color: #6d6d6d;
-    margin-right: 6px;
+    margin-top: 2px;
 }
 </style>

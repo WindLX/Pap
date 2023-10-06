@@ -1,4 +1,6 @@
-from model.resource_group import ResourceItemModel
+from os import remove
+
+from model.resource_group import ResourceItemModel, ContentModel
 from schemas.resource_base import ResourceItemSchemaCreate
 from schemas.tag_base import TagSchema
 
@@ -36,4 +38,25 @@ def get_resource_items(db: Session) -> list[ResourceItemModel]:
 
 
 def get_resource_items_by_tags(db: Session, tags: list[TagSchema]) -> list[ResourceItemModel]:
-    pass
+    # TODO Test
+    return db.query(ResourceItemModel).filter(*list(
+        filter(lambda tag: tag.id in list(
+            map(lambda tag: tag.id, ResourceItemModel.tags)), tags)))
+
+
+def delete_resource_item(db: Session, resource_item_id: int):
+    """delete resource item from database by id
+
+    Args:
+        db (Session): database session
+        resource_item_id (int): target resource item id
+    """
+    if (target_resource_item := db.query(ResourceItemModel).filter(
+            ResourceItemModel.id == resource_item_id)).first():
+        remove(target_resource_item.first().url)
+        target_resource_item.delete()
+        if (target_content := db.query(ContentModel).filter(
+                ContentModel.resource_item_id == resource_item_id)).first():
+            remove(target_content.first().url)
+            target_content.delete()
+        db.commit()

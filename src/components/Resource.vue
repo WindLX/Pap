@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElTreeV2, ElAutoResizer, ElButton, ElButtonGroup, ElNotification, TreeNode } from 'element-plus';
+import { ElTreeV2, ElAutoResizer, ElButton, ElButtonGroup, ElNotification, TreeNode, ElPopover, ElInput } from 'element-plus';
 import type { TreeNodeData } from 'element-plus/lib/components/tree/src/tree.type.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, onMounted } from 'vue'
@@ -16,17 +16,21 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const props = {
     value: 'url',
     label: 'name',
-    children: 'content',
+    children: 'contents',
 }
+const visible = ref(false)
 
 // data
 const data = ref<Array<IResourceItem>>([])
+const newContentName = ref<string | null>(null)
 
 // load function
 async function getResource() {
     const response = await fetch(`${store.backendHost}/resource/get_resource`, { method: 'GET', mode: 'cors' })
     if (response.status == 200) {
-        data.value = await response.json() as Array<IResourceItem>
+        const newData = await response.json()
+        console.log(newData)
+        data.value = newData as Array<IResourceItem>
     }
 }
 
@@ -70,6 +74,93 @@ async function handleFileChange(event: Event) {
     }
 }
 
+async function handleCreateContent(id: number) {
+    if (newContentName.value !== null) {
+        const data = {
+            name: newContentName.value,
+            resource_item_id: id
+        }
+        visible.value = false
+        newContentName.value = null
+        const response = await fetch(`${store.backendHost}/resource/create_content`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        if (response.status == 201) {
+            ElNotification({
+                title: '创建成功',
+                message: '内容文件创建成功',
+                type: 'success',
+                duration: 2000
+            })
+            await getResource()
+        } else {
+            ElNotification({
+                title: '创建失败',
+                message: response.statusText,
+                type: 'error',
+                duration: 2000
+            })
+        }
+    } else {
+        ElNotification({
+            title: '创建失败',
+            message: '名称不能为空',
+            type: 'error',
+            duration: 2000
+        })
+        visible.value = false
+    }
+}
+
+async function handleDeleteResourceItem(id: number) {
+    const response = await fetch(`${store.backendHost}/resource/delete_resource_item?resource_item_id=${id}`, {
+        method: 'DELETE',
+        mode: 'cors',
+    })
+    if (response.status == 200) {
+        ElNotification({
+            title: '删除成功',
+            message: '资源文件删除成功',
+            type: 'success',
+            duration: 2000
+        })
+        data.value = data.value.filter((d) => d.id !== id)
+    } else {
+        ElNotification({
+            title: '删除失败',
+            message: response.statusText,
+            type: 'error',
+            duration: 2000
+        })
+    }
+}
+
+async function handleDeleteContent(id: number) {
+    const response = await fetch(`${store.backendHost}/resource/delete_content?content_id=${id}`, {
+        method: 'DELETE',
+        mode: 'cors',
+    })
+    if (response.status == 200) {
+        ElNotification({
+            title: '删除成功',
+            message: '内容文件删除成功',
+            type: 'success',
+            duration: 2000
+        })
+        await getResource()
+    } else {
+        ElNotification({
+            title: '删除失败',
+            message: response.statusText,
+            type: 'error',
+            duration: 2000
+        })
+    }
+}
+
 function onNodeClick(data: TreeNodeData, _node: TreeNode, _e: MouseEvent) {
     tabStore.current.name = data.name
 }
@@ -95,10 +186,23 @@ onMounted(() => {
                                 <font-awesome-icon :icon="['fas', 'file']" class="icon" />{{ node.label }}
                             </span>
                             <el-button-group class="button-group">
-                                <el-button class="button" size="small">
-                                    <font-awesome-icon :icon="['fas', 'file-pen']" />
-                                </el-button>
-                                <el-button class="button" size="small">
+                                <el-popover placement="bottom" :visible="visible" :width="200" trigger="click">
+                                    <p style="margin-top: 0; font-size: 12px;">内容文件名称</p>
+                                    <div style="text-align: center; margin: 0">
+                                        <el-input size="small" style="margin-bottom: 6px;"
+                                            v-model="newContentName"></el-input>
+                                        <el-button size="small" text
+                                            @click="visible = false; newContentName = null">取消</el-button>
+                                        <el-button size="small" type="primary"
+                                            @click="handleCreateContent(data.id)">确认</el-button>
+                                    </div>
+                                    <template #reference>
+                                        <el-button class="button" size="small">
+                                            <font-awesome-icon :icon="['fas', 'file-pen']" @click="visible = true" />
+                                        </el-button>
+                                    </template>
+                                </el-popover>
+                                <el-button class="button" size="small" @click="handleDeleteResourceItem(data.id)">
                                     <font-awesome-icon :icon="['fas', 'trash-can']" />
                                 </el-button>
                             </el-button-group>
@@ -107,8 +211,8 @@ onMounted(() => {
                             <span>
                                 <font-awesome-icon :icon="['fas', 'note-sticky']" class="icon" />{{ node.label }}
                             </span>
-                            <el-button class="button" size="small">
-                                <font-awesome-icon :icon="['fas', 'trash-can']" />
+                            <el-button size="small" style="margin-right: 27px; height: 18px; width: 48px;">
+                                <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteContent(data.id)" />
                             </el-button>
                         </div>
                     </template>

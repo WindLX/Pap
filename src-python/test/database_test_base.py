@@ -2,7 +2,9 @@ from os import remove
 
 from backend import app
 from model.resource_group import Base
+from schemas.resource_base import ResourceItemSchemaCreate
 from service.database import get_db
+from service.crud.resource import create_resource_item
 
 from pytest import fixture
 from sqlalchemy import create_engine
@@ -20,6 +22,10 @@ def context():
                            connect_args={"check_same_thread": False})
     Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    with SessionLocal() as db:
+        create_resource_item(db, ResourceItemSchemaCreate(
+            name="test", url="/path/to/test"))
 
     def override_get_db():
         db = SessionLocal()

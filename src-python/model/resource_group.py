@@ -26,7 +26,8 @@ class ResourceItemModel(Base):
 
     tags = relationship(
         "TagModel", secondary="resource_item_tag_association", back_populates="resource_items")
-    contents = relationship("ContentModel", back_populates="resource_item")
+    contents = relationship(
+        "ContentModel", back_populates="resource_item")
 
     def __repr__(self):
         return "<ResourceItemModel(id='%d', name='%s', url='%s')>" % self.id, self.name, self.url
@@ -62,8 +63,8 @@ class ContentModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(length=15))
     url = Column(String)
-
     resource_item_id = Column(Integer, ForeignKey('resource_items.id'))
+
     resource_item = relationship(
         "ResourceItemModel", back_populates="contents")
 

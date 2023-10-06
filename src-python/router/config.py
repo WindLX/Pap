@@ -10,7 +10,7 @@ router = APIRouter(prefix="/config")
 
 
 @router.get("/get_config/{section}", response_model=BasicConfigSchema | PathConfigSchema)
-async def get_config(section: str):
+async def get_config(section: str) -> BasicConfigSchema | PathConfigSchema:
     """get all available config to frontend
 
     Returns:
@@ -28,7 +28,8 @@ async def get_config(section: str):
             data = path_config.model
     if data is None:
         logger.warning(f"{section} not found")
-        raise HTTPException(status_code=404, detail=f"{section} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"{section} not found")
     else:
 
         return data
@@ -53,7 +54,7 @@ async def set_config(section: str, value: BasicConfigSchema | PathConfigSchema):
             else:
                 logger.warning(f"{section} not found")
                 raise HTTPException(
-                    status_code=404, detail=f"{section} not found")
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"{section} not found")
         case "path":
             if path_config.model is not None and type(value) == PathConfigSchema:
                 path_config.model = value
