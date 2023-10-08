@@ -20,9 +20,6 @@ Base.metadata.create_all(bind=engine)
 # FastAPI app
 app = FastAPI(debug=dev_config.debug)
 
-# static files
-app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-
 # CORS config
 origins = [
     f"http://{dev_config.dev_host}:{dev_config.dev_port}",
@@ -37,6 +34,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# static files
+app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/data", StaticFiles(directory="data"), name="data")
+
+# router
 app.include_router(config.router)
 app.include_router(resource.router)
 app.include_router(search.router)

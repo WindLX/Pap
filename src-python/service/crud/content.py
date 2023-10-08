@@ -1,4 +1,4 @@
-from os import path, remove
+from os import path
 
 from service.config import path_config
 from model.resource_group import ResourceItemModel, ContentModel
@@ -21,8 +21,6 @@ def create_content(db: Session, content: ContentSchemaCreate) -> ResourceItemMod
     if (db_resource_item := db.query(ResourceItemModel).filter(
             ResourceItemModel.id == content.resource_item_id).first()):
         content_path = path.join(path_config.content_dir, f"{content.name}.md")
-        new_content_file = open(content_path, "w")
-        new_content_file.close()
         db_content = ContentModel(
             name=content.name, url=content_path, resource_item_id=content.resource_item_id)
         db.add(db_resource_item)
@@ -40,8 +38,8 @@ def delete_content(db: Session, content_id: int):
         db (Session): database session
         content_id (int): target content id
     """
-    if (target_content := db.query(ContentModel).filter(
-            ContentModel.id == content_id)).first():
-        remove(target_content.first().url)
-        target_content.delete()
+    if target_contents := db.query(ContentModel).filter(
+            ContentModel.id == content_id):
+        for target_content in target_contents:
+            db.delete(target_content)
         db.commit()

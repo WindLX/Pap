@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Middlebar from "./Middlebar.vue";
-import Footer from "./Footer.vue";
 import Sidebar from "./Sidebar.vue";
 import Content from "./Content.vue";
 import { computed } from "vue";
@@ -20,7 +19,6 @@ const middlebarWidth = computed(() => {
         <Sidebar></Sidebar>
         <Middlebar></Middlebar>
         <Content></Content>
-        <Footer></Footer>
     </div>
 </template>
 
@@ -28,10 +26,8 @@ const middlebarWidth = computed(() => {
 .container {
     display: grid;
     grid-template-columns: 48px v-bind(middlebarWidth) 1fr;
-    grid-template-rows: 1fr 16px;
     grid-template-areas:
-        "sidebar middlebar content"
-        "footer footer footer";
+        "sidebar middlebar content";
     gap: 1px;
     height: calc(100vh - 16px);
 }

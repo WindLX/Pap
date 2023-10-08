@@ -1,3 +1,12 @@
+export interface INodeResourceItem {
+    nodeId: string
+    id: number
+    name: string
+    url: string
+    tags: Array<ITag>
+    contents: Array<IContent>
+}
+
 export interface IResourceItem {
     id: number
     name: string

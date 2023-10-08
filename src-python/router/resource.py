@@ -1,5 +1,6 @@
 from os import path
 
+from model.resource_group import ResourceItemModel
 from schemas.resource_base import ResourceItemSchemaCreate
 from schemas.resource import ResourceItemSchemaRelationship
 from schemas.content import ContentSchemaCreate
@@ -23,25 +24,29 @@ def create_resource(file: UploadFile, db: Session = Depends(get_db)):
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
     logger.info("POST /resource/create_resource_item")
-    file_name = file.filename
-    file_data = file.file.read()
-    file_path = path.join(path_config.resource_dir, file_name)
-    with open(file_path, 'wb') as fout:
-        fout.write(file_data)
-        file.file.close()
-    resource_item = ResourceItemSchemaCreate(name=file_name, url=file_path)
-    resource.create_resource_item(db, resource_item=resource_item)
+    file_name, file_extension = path.splitext(file.filename)
+    if file_extension == ".pdf":
+        file_data = file.file.read()
+        assert file_name is not None
+        file_path = path.join(path_config.resource_dir, file.filename)
+        with open(file_path, 'wb') as fout:
+            fout.write(file_data)
+            file.file.close()
+        resource_item = ResourceItemSchemaCreate(name=file_name, url=file_path)
+        resource.create_resource_item(db, resource_item=resource_item)
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
 @router.get("/get_resource", response_model=list[ResourceItemSchemaRelationship])
-def get_resource(db: Session = Depends(get_db)) -> list[ResourceItemSchemaRelationship]:
+def get_resource(db: Session = Depends(get_db)) -> list[ResourceItemModel]:
     """get all resource items
 
     Args:
         db (Session, optional): database session. Defaults to Depends(get_db).
 
     Returns:
-        _type_: _description_
+        list[ResourceItemModel]: query result, all resource items model
     """
     logger.debug("GET /resource/get_resource")
     return resource.get_resource_items(db)

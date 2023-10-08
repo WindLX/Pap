@@ -1,15 +1,19 @@
 import { defineStore } from 'pinia'
 import { IResourceItem, IContent } from '../utils/resource'
 
-export interface TabData {
-
-}
-
 export const useTabStore = defineStore('tabs', {
-    state: () => {
-        return {
-            current: <IContent>{},
-            tabs: <Array<IResourceItem | IContent>>[]
+    state: () => ({
+        currentIndex: 0,
+        tabs: <Array<IResourceItem | IContent>>[]
+    }),
+    getters: {
+        current(state) {
+            return state.tabs[state.currentIndex]
         }
     }
 })
+
+// tool function
+export function isResultItem(node: any) {
+    return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)
+}

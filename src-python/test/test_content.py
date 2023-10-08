@@ -1,3 +1,5 @@
+from os import path
+
 from .database_test_base import context
 
 from pytest import mark
@@ -44,3 +46,4 @@ class TestContentClass:
         )
         content = response_3.json()[0]["contents"]
         assert content == []
+        assert path.exists(response.json()["contents"][0]["url"]) == False

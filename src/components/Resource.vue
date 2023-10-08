@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ElTreeV2, ElAutoResizer, ElButton, ElButtonGroup, ElNotification, TreeNode, ElPopover, ElInput } from 'element-plus';
+import { ElTreeV2, ElAutoResizer, ElButton, ElButtonGroup, ElNotification, ElPopover, ElInput, ElTooltip, ElText } from 'element-plus';
 import type { TreeNodeData } from 'element-plus/lib/components/tree/src/tree.type.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ref, onMounted } from 'vue'
 import { useStateStore } from '../store/state'
-import { useTabStore } from '../store/tab'
-import { IResourceItem } from '../utils/resource'
+import { useTabStore, isResultItem } from '../store/tab'
+import { IContent, IResourceItem, INodeResourceItem } from '../utils/resource'
 
 // state
 const store = useStateStore()
@@ -14,14 +14,14 @@ const tabStore = useTabStore()
 // const
 const fileInput = ref<HTMLInputElement | null>(null)
 const props = {
-    value: 'url',
+    value: 'nodeId',
     label: 'name',
     children: 'contents',
 }
-const visible = ref(false)
+const visible = ref<Array<boolean>>([])
 
 // data
-const data = ref<Array<IResourceItem>>([])
+const data = ref<Array<INodeResourceItem>>([])
 const newContentName = ref<string | null>(null)
 
 // load function
@@ -29,14 +29,14 @@ async function getResource() {
     const response = await fetch(`${store.backendHost}/resource/get_resource`, { method: 'GET', mode: 'cors' })
     if (response.status == 200) {
         const newData = await response.json()
-        console.log(newData)
-        data.value = newData as Array<IResourceItem>
+        data.value = (newData as Array<IResourceItem>).map(d => {
+            return <INodeResourceItem>{
+                nodeId: `${isResultItem(d) ? 'r' : 'c'}${d.id}`,
+                ...d
+            }
+        })
+        visible.value = Array(data.value.length).fill(false)
     }
-}
-
-// tool function
-function isResultItem(node: any) {
-    return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)
 }
 
 // callback function
@@ -63,7 +63,15 @@ async function handleFileChange(event: Event) {
                 duration: 2000
             })
             await getResource()
-        } else {
+        } else if (response.status == 403) {
+            ElNotification({
+                title: '托管失败',
+                message: '不支持的文件格式',
+                type: 'error',
+                duration: 2000
+            })
+        }
+        else {
             ElNotification({
                 title: '托管失败',
                 message: response.statusText,
@@ -80,7 +88,7 @@ async function handleCreateContent(id: number) {
             name: newContentName.value,
             resource_item_id: id
         }
-        visible.value = false
+        visible.value[id] = false
         newContentName.value = null
         const response = await fetch(`${store.backendHost}/resource/create_content`, {
             method: 'POST',
@@ -111,7 +119,7 @@ async function handleCreateContent(id: number) {
             type: 'error',
             duration: 2000
         })
-        visible.value = false
+        visible.value[id] = false
     }
 }
 
@@ -161,8 +169,28 @@ async function handleDeleteContent(id: number) {
     }
 }
 
-function onNodeClick(data: TreeNodeData, _node: TreeNode, _e: MouseEvent) {
-    tabStore.current.name = data.name
+function onNodeClick(nodeData: TreeNodeData) {
+    function judge(t: INodeResourceItem | IContent) {
+        return isResultItem(t) && t.id === data.id
+    }
+    const data = nodeData as INodeResourceItem
+    const flag = tabStore.tabs.find((t) => judge(t))
+    if (flag == undefined) {
+        tabStore.tabs.push(data)
+    }
+    tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
+}
+
+function onLeafClick(nodeData: TreeNodeData) {
+    function judge(t: INodeResourceItem | IContent) {
+        return !isResultItem(t) && t.id === data.id
+    }
+    const data = nodeData as IContent
+    const flag = tabStore.tabs.find((t) => judge(t))
+    if (flag == undefined) {
+        tabStore.tabs.push(data)
+    }
+    tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
 }
 
 // hook
@@ -173,48 +201,53 @@ onMounted(() => {
 
 <template>
     <div class="resource">
-        <input type="file" style="display: none;" ref="fileInput" @change="handleFileChange">
+        <input type="file" accept=".pdf" style="display: none;" ref="fileInput" @change="handleFileChange">
         <el-button class="add" @click="openFilePicker">
             <font-awesome-icon :icon="['fas', 'plus']" class="icon" />
         </el-button>
         <el-auto-resizer>
             <template #default="{ height }">
-                <el-tree-v2 :data="data" :props="props" :height="height" highlight-current @node-click="onNodeClick">
+                <el-tree-v2 :data="data" :props="props" :height="height" highlight-current>
                     <template #default="{ node, data }">
-                        <div class="node" v-if="isResultItem(data)">
-                            <span>
-                                <font-awesome-icon :icon="['fas', 'file']" class="icon" />{{ node.label }}
-                            </span>
-                            <el-button-group class="button-group">
-                                <el-popover placement="bottom" :visible="visible" :width="200" trigger="click">
-                                    <p style="margin-top: 0; font-size: 12px;">内容文件名称</p>
-                                    <div style="text-align: center; margin: 0">
-                                        <el-input size="small" style="margin-bottom: 6px;"
-                                            v-model="newContentName"></el-input>
-                                        <el-button size="small" text
-                                            @click="visible = false; newContentName = null">取消</el-button>
-                                        <el-button size="small" type="primary"
-                                            @click="handleCreateContent(data.id)">确认</el-button>
-                                    </div>
-                                    <template #reference>
-                                        <el-button class="button" size="small">
-                                            <font-awesome-icon :icon="['fas', 'file-pen']" @click="visible = true" />
-                                        </el-button>
-                                    </template>
-                                </el-popover>
-                                <el-button class="button" size="small" @click="handleDeleteResourceItem(data.id)">
-                                    <font-awesome-icon :icon="['fas', 'trash-can']" />
+                        <el-tooltip placement="bottom" :content="node.label">
+                            <div class="node" v-if="isResultItem(data)">
+                                <div class="label" @click="onNodeClick(data)">
+                                    <font-awesome-icon :icon="['fas', 'file']" class="icon" />
+                                    <el-text truncated style="max-width: 90%;">{{ node.label }}</el-text>
+                                </div>
+                                <el-button-group class="button-group">
+                                    <el-popover placement="bottom" :visible="visible[data.id]" :width="200" trigger="click">
+                                        <p style="margin-top: 0; font-size: 12px;">内容文件名称</p>
+                                        <div style="text-align: center; margin: 0">
+                                            <el-input size="small" style="margin-bottom: 6px;"
+                                                v-model="newContentName"></el-input>
+                                            <el-button size="small" text
+                                                @click="visible[data.id] = false; newContentName = null">取消</el-button>
+                                            <el-button size="small" type="primary"
+                                                @click="handleCreateContent(data.id)">确认</el-button>
+                                        </div>
+                                        <template #reference>
+                                            <el-button class="button" size="small">
+                                                <font-awesome-icon :icon="['fas', 'file-pen']"
+                                                    @click="visible.fill(false); visible[data.id] = true" />
+                                            </el-button>
+                                        </template>
+                                    </el-popover>
+                                    <el-button class="button" size="small" @click="handleDeleteResourceItem(data.id)">
+                                        <font-awesome-icon :icon="['fas', 'trash-can']" />
+                                    </el-button>
+                                </el-button-group>
+                            </div>
+                            <div class="node" v-else>
+                                <div class="label" @click="onLeafClick(data)">
+                                    <font-awesome-icon :icon="['fas', 'note-sticky']" class="icon" />
+                                    <el-text truncated style="max-width: 90%;">{{ node.label }}</el-text>
+                                </div>
+                                <el-button size="small" style="margin-right: 27px; height: 18px; width: 48px;">
+                                    <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteContent(data.id)" />
                                 </el-button>
-                            </el-button-group>
-                        </div>
-                        <div class="node" v-else>
-                            <span>
-                                <font-awesome-icon :icon="['fas', 'note-sticky']" class="icon" />{{ node.label }}
-                            </span>
-                            <el-button size="small" style="margin-right: 27px; height: 18px; width: 48px;">
-                                <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteContent(data.id)" />
-                            </el-button>
-                        </div>
+                            </div>
+                        </el-tooltip>
                     </template>
                 </el-tree-v2>
             </template>
@@ -248,8 +281,14 @@ onMounted(() => {
     justify-content: space-between;
 }
 
+.resource .node .label {
+    width: 65%;
+    display: flex;
+    align-items: center;
+}
+
 .resource .node .icon {
-    margin-right: 18px;
+    margin-right: 12px;
 }
 
 .resource .node .button-group {

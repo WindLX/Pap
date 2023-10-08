@@ -1,7 +1,10 @@
+from os import path, remove
+
 from service.database import Base
 
-from sqlalchemy import Column, ForeignKey, Integer, Table, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, Table, String, event
+from sqlalchemy.orm import relationship, Mapper
+from sqlalchemy.engine import Connection
 
 resource_item_tag_association = Table(
     'resource_item_tag_association',
@@ -31,6 +34,19 @@ class ResourceItemModel(Base):
 
     def __repr__(self):
         return "<ResourceItemModel(id='%d', name='%s', url='%s')>" % self.id, self.name, self.url
+
+
+@event.listens_for(ResourceItemModel, 'before_delete')
+def remove_resource_item_file(_mapper: Mapper[ResourceItemModel], _connection: Connection, target: ResourceItemModel):
+    """remove resource item file before delete
+
+    Args:
+        _mapper (Mapper[ResourceItem]): Mapper of ResourceItem
+        _connection (Connection): database connection
+        target (ResourceItem): target instance
+    """
+    if path.exists(target.url):
+        remove(target.url)
 
 
 class TagModel(Base):
@@ -70,3 +86,29 @@ class ContentModel(Base):
 
     def __repr__(self):
         return "<ContentModel(id='%d', name='%s', url='%s')>" % self.id, self.name, self.url
+
+
+@event.listens_for(ContentModel, 'after_insert')
+def create_content_file(_mapper: Mapper[ContentModel], _connection: Connection, target: ContentModel):
+    """create content file after insert
+
+    Args:
+        _mapper (Mapper[ContentModel]): Mapper of ContentModel
+        _connection (Connection): database connection
+        target (ContentModel): target instance
+    """
+    file = open(target.url, "w")
+    file.close()
+
+
+@event.listens_for(ContentModel, 'before_delete')
+def remove_content_file(_mapper: Mapper[ContentModel], _connection: Connection, target: ContentModel):
+    """remove content file before delete
+
+    Args:
+        _mapper (Mapper[ContentModel]): Mapper of ContentModel
+        _connection (Connection): database connection
+        target (ContentModel): target instance
+    """
+    if path.exists(target.url):
+        remove(target.url)

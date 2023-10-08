@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 6173 --clearScreen false",
+    "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },
@@ -13,8 +13,10 @@
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^3.0.3",
     "element-plus": "^2.3.14",
+    "pdfjs-dist": "^3.11.174",
     "pinia": "^2.1.6",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vue-demi": "^0.13.11"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",

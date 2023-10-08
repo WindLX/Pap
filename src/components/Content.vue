@@ -1,58 +1,46 @@
 <script setup lang="ts">
-import { ElTabPane, ElTabs, TabPaneName } from 'element-plus';
+import { ElTabPane, ElTabs, TabPaneName } from 'element-plus'
 import { ref } from 'vue'
+import { useTabStore, isResultItem } from '../store/tab';
+import { useStateStore } from '../store/state';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import PDFViewer from './PDFViewer.vue'
 
-// let tabIndex = 2
-const editableTabsValue = ref('2')
-const editableTabs = ref([
-    {
-        title: 'Tab 1',
-        name: '1',
-        content: 'Tab 1 content',
-    },
-    {
-        title: 'Tab 2',
-        name: '2',
-        content: 'Tab 2 content',
-    },
-])
+// state
+const store = useTabStore()
+const stateStote = useStateStore()
 
-// const addTab = (targetName: string) => {
-//     const newTabName = `${++tabIndex}`
-//     editableTabs.value.push({
-//         title: 'New Tab',
-//         name: newTabName,
-//         content: 'New Tab content',
-//     })
-//     editableTabsValue.value = newTabName
-// }
-const removeTab = (targetName: TabPaneName) => {
-    const tabs = editableTabs.value
-    let activeName = editableTabsValue.value
-    if (activeName === targetName) {
-        tabs.forEach((tab, index) => {
-            if (tab.name === targetName) {
-                const nextTab = tabs[index + 1] || tabs[index - 1]
-                if (nextTab) {
-                    activeName = nextTab.name
-                }
-            }
-        })
-    }
+// data
+let currentTabIndex = ref(store.currentIndex)
+let tabs = ref(store.tabs)
+// const pdfFile = ref()
 
-    editableTabsValue.value = activeName
-    editableTabs.value = tabs.filter((tab) => tab.name !== targetName)
+store.$subscribe((_mutation, state) => {
+    currentTabIndex.value = state.currentIndex
+    tabs.value = state.tabs
+})
+
+// callback function
+async function removeTab(name: TabPaneName) {
+    store.currentIndex = 0
+    store.tabs = tabs.value.filter((_tab, index) => index != name)
 }
 </script>
 
 <template>
     <div class="content">
-        <el-tabs v-model="editableTabsValue" type="border-card" class="demo-tabs" closable @tab-remove="removeTab"
-            style="height: 100%;">
-            <el-tab-pane v-for="item in editableTabs" :key="item.name" :label="item.title" :name="item.name"
-                style="height: 100%;">
-                {{ item.content }}
-                <!-- <embed src="./src/assets/riscv-sbi.pdf" type="application/pdf" width="100%" height="100%" /> -->
+        <el-tabs type="border-card" closable :model-value="currentTabIndex" @tab-remove="removeTab" style="height: 100%;">
+            <el-tab-pane v-for="(item, index) in tabs" :key="index" :label="item.name" :name="index" style="height: 100%;">
+                <template #label>
+                    <span>
+                        <font-awesome-icon :icon="['fas', isResultItem(item) ? 'file' : 'note-sticky']" class="icon" />
+                        <span style="margin-left:9px">{{ item.name }}</span>
+                    </span>
+                </template>
+                <PDFViewer :pdf="`${stateStote.backendHost}/${item.url}`" :id="`${isResultItem(item) ? 'r' : 'c'}${item.id}`"
+                    v-if="isResultItem(item)">
+                </PDFViewer>
+                <!-- <iframe v-else width="100%" height="100%" /> -->
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -63,5 +51,12 @@ const removeTab = (targetName: TabPaneName) => {
     grid-area: content;
     display: flex;
     flex-direction: column;
+    height: inherit;
+}
+</style>
+
+<style>
+.el-tabs__content {
+    height: 90%;
 }
 </style>

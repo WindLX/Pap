@@ -7,10 +7,10 @@ title = "Pap"
 log_level = "DEBUG"
 
 [path]
-resource_dir = "./data/resource/"
-content_dir = "./data/content/"
-log_path = "./data/pap.log"
-tag_path = "./data/tag.db"
+resource_dir = "data/resource/"
+content_dir = "data/content/"
+log_path = "data/pap.log"
+tag_path = "data/tag.db"
 
 [dev]
 debug = true
