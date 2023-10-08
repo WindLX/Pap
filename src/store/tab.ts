@@ -10,7 +10,14 @@ export const useTabStore = defineStore('tabs', {
         current(state) {
             return state.tabs[state.currentIndex]
         }
-    }
+    },
+    actions: {
+        flush(data: IResourceItem | IContent) {
+            this.tabs.filter((t) => {
+                isResultItem(t) && isResultItem(data) && t.id
+            })
+        }
+    },
 })
 
 // tool function

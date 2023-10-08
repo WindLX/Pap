@@ -2,11 +2,11 @@
 
 # Function to activate Python virtual environment
 activate_venv() {
-    if [ -d "pap-venv" ]; then
-        source pap-venv/bin/activate
+    if [ -d ".venv" ]; then
+        source .venv/bin/activate
     else
-        python -m venv pap-venv
-        source pap-venv/bin/activate
+        python -m venv .venv --prompt pap
+        source .venv/bin/activate
         pip install -r requirements.txt
     fi
 }

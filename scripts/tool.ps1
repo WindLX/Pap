@@ -31,12 +31,12 @@ param (
 
 # Function to activate Python virtual environment
 function Open-Venv {
-    if (Test-Path "pap-venv") {
-        .\pap-venv\Scripts\Activate
+    if (Test-Path ".venv") {
+        .\.venv\Scripts\Activate
     }
     else {
-        python -m venv pap-venv
-        .\pap-venv\Scripts\Activate
+        python -m venv .venv --prompt pap
+        .\.venv\Scripts\Activate
         pip install -r requirements_windows.txt
     }
 }
