@@ -1,5 +1,3 @@
-from os import remove
-
 from backend import app
 from model.resource_group import Base
 from schemas.resource_base import ResourceItemSchemaCreate
@@ -37,4 +35,3 @@ def context():
     app.dependency_overrides[get_db] = override_get_db
     client = TestClient(app)
     yield client
-    remove(SQLALCHEMY_DATABASE_URL)

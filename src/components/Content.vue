@@ -1,29 +1,26 @@
 <script setup lang="ts">
-import { ElTabPane, ElTabs, TabPaneName } from 'element-plus'
 import { ref } from 'vue'
-import { useTabStore, isResultItem } from '../store/tab';
-import { useStateStore } from '../store/state';
+import { ElTabPane, ElTabs, TabPaneName } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { useTabStore, TabDataType } from '../store/tab';
 import PDFViewer from './PDFViewer.vue'
 
 // state
-const store = useTabStore()
-const stateStote = useStateStore()
+const tabStore = useTabStore()
 
 // data
-let currentTabIndex = ref(store.currentIndex)
-let tabs = ref(store.tabs)
-// const pdfFile = ref()
+let currentTabIndex = ref(tabStore.currentIndex)
+let tabs = ref(tabStore.tabs)
 
-store.$subscribe((_mutation, state) => {
+tabStore.$subscribe((_mutation, state) => {
     currentTabIndex.value = state.currentIndex
     tabs.value = state.tabs
 })
 
 // callback function
 async function removeTab(name: TabPaneName) {
-    store.currentIndex = 0
-    store.tabs = tabs.value.filter((_tab, index) => index != name)
+    tabStore.currentIndex = 0
+    tabStore.tabs = tabs.value.filter((_tab, index) => index != name)
 }
 </script>
 
@@ -33,12 +30,12 @@ async function removeTab(name: TabPaneName) {
             <el-tab-pane v-for="(item, index) in tabs" :key="index" :label="item.name" :name="index" style="height: 100%;">
                 <template #label>
                     <span>
-                        <font-awesome-icon :icon="['fas', isResultItem(item) ? 'file' : 'note-sticky']" class="icon" />
+                        <font-awesome-icon :icon="['fas', item.typ === TabDataType.ResourceItem ? 'file' : 'note-sticky']"
+                            class="icon" />
                         <span style="margin-left:9px">{{ item.name }}</span>
                     </span>
                 </template>
-                <PDFViewer :pdf="`${stateStote.backendHost}/${item.url}`" :id="`${isResultItem(item) ? 'r' : 'c'}${item.id}`"
-                    v-if="isResultItem(item)">
+                <PDFViewer v-if="item.typ === TabDataType.ResourceItem" :id="item.id">
                 </PDFViewer>
                 <!-- <iframe v-else width="100%" height="100%" /> -->
             </el-tab-pane>

@@ -1,10 +1,20 @@
 import { defineStore } from 'pinia'
-import { IResourceItem, IContent } from '../utils/resource'
+import { INodeResourceItem } from 'resource-types'
+import { TabData } from 'tab-types'
+
+export enum TabDataType {
+    ResourceItem,
+    Content
+}
+
+export function isResourceItem(node: any) {
+    return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)
+}
 
 export const useTabStore = defineStore('tabs', {
     state: () => ({
         currentIndex: 0,
-        tabs: <Array<IResourceItem | IContent>>[]
+        tabs: <Array<TabData>>[]
     }),
     getters: {
         current(state) {
@@ -12,15 +22,19 @@ export const useTabStore = defineStore('tabs', {
         }
     },
     actions: {
-        flush(data: IResourceItem | IContent) {
-            this.tabs.filter((t) => {
-                isResultItem(t) && isResultItem(data) && t.id
-            })
+        flush(data: Array<INodeResourceItem>) {
+            if (data.length === 0) {
+                this.tabs = []
+            } else {
+                this.tabs = this.tabs.filter(item => {
+                    if (item.typ === TabDataType.ResourceItem) {
+                        return data.some(bItem => bItem.id === item.id);
+                    } else {
+                        return data.some(bItem => bItem.contents.some(content => content.id === item.id));
+                    }
+                });
+            }
+            this.currentIndex = 0
         }
     },
 })
-
-// tool function
-export function isResultItem(node: any) {
-    return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)
-}

@@ -1,4 +1,4 @@
-from router import config, resource, search
+from router import config, resource, content, tag, search
 from model.resource_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
@@ -36,12 +36,13 @@ app.add_middleware(
 
 # static files
 app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/data", StaticFiles(directory="data"), name="data")
 
 # router
 app.include_router(config.router)
 app.include_router(resource.router)
+app.include_router(content.router)
+app.include_router(tag.router)
 app.include_router(search.router)
 
 

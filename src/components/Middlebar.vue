@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useStateStore, SidebarIndex } from '../store/state'
 import Resource from './Resource.vue'
 import Setting from './Setting.vue';
-import Search from './Search.vue';
 import Timeline from './Timeline.vue';
 
 // state
@@ -14,8 +13,6 @@ const currentComponent = computed(() => {
     switch (store.sidebarIndex) {
         case SidebarIndex.Resource:
             return Resource
-        case SidebarIndex.Search:
-            return Search
         case SidebarIndex.Timeline:
             return Timeline
         case SidebarIndex.Setting:
@@ -29,8 +26,6 @@ const currentTitle = computed(() => {
     switch (store.sidebarIndex) {
         case SidebarIndex.Resource:
             return '工作区'
-        case SidebarIndex.Search:
-            return '搜索'
         case SidebarIndex.Timeline:
             return '时间线'
         case SidebarIndex.Setting:

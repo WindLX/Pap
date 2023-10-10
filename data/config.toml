@@ -1,18 +1,18 @@
 [system]
 host = "127.0.0.1"
-port = 8000
+port = 8001
 
 [basic]
 title = "Pap"
 log_level = "DEBUG"
 
 [path]
-resource_dir = "data/resource/"
-content_dir = "data/content/"
-log_path = "data/pap.log"
-tag_path = "data/tag.db"
+resource_dir = "./data/resource/"
+content_dir = "./data/content/"
+log_path = "./data/pap.log"
+tag_path = "./data/tag.db"
 
 [dev]
-debug = true
+debug = false
 dev_host = "localhost"
 dev_port = 6173

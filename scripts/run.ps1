@@ -64,10 +64,14 @@ if ($Build -and !$Dev) {
 }
 
 Open-Venv
-if ($Dev) {
-    python src-python/app.py --dev=$Dev
+try {
+    if ($Dev) {
+        python src-python/app.py --dev=$Dev
+    }
+    else {
+        python src-python/app.py
+    }
 }
-else {
-    python src-python/app.py
+finally {
+    deactivate
 }
-deactivate

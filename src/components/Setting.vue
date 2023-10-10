@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, onActivated } from 'vue'
-import { ElForm, ElFormItem, ElInput, ElTooltip, ElCollapse, ElCollapseItem, ElButton, ElNotification, ElSlider } from 'element-plus';
+import {
+    ElForm, ElFormItem, ElInput, ElTooltip,
+    ElCollapse, ElCollapseItem, ElButton,
+    ElNotification, ElSlider
+} from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { IBasicConfig, IPathConfig } from '../utils/config'
+import { IBasicConfig, IPathConfig } from 'config-types'
 import { useStateStore } from '../store/state'
 
 // const
@@ -11,7 +15,7 @@ const levelStringMap = ["DEBUG", "INFO", "WARNING", "ERROR"];
 const levelMap = new Map([["DEBUG", 0], ["INFO", 1], ["WARNING", 2], ["ERROR", 3]])
 
 // state
-const store = useStateStore()
+const stateStore = useStateStore()
 
 // data
 let logLevel = ref(0)
@@ -38,7 +42,7 @@ function logLevelToNumber(level: string): number {
 
 // callback function
 async function onPathSubmit() {
-    const response = await fetch(`${store.backendHost}/config/set_config/path`, {
+    const response = await fetch(`${stateStore.backendHost}/config/set_config/path`, {
         method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(pathConfig)
     })
     if (response.status == 202) {
@@ -62,7 +66,7 @@ async function onPathSubmit() {
 
 async function onBasicSubmit() {
     basicConfig.log_level = numberToLogLevel(logLevel.value)
-    const response = await fetch(`${store.backendHost}/config/set_config/basic`, {
+    const response = await fetch(`${stateStore.backendHost}/config/set_config/basic`, {
         method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(basicConfig)
     })
     if (response.status == 202) {
@@ -84,7 +88,7 @@ async function onBasicSubmit() {
 }
 
 async function onPathCancel() {
-    const response = await fetch(`${store.backendHost}/config/get_config/path`, { method: 'GET', mode: 'cors' })
+    const response = await fetch(`${stateStore.backendHost}/config/get_config/path`, { method: 'GET', mode: 'cors' })
     const data = await response.json() as IPathConfig
     pathConfig.resource_dir = data.resource_dir
     pathConfig.content_dir = data.content_dir
@@ -93,7 +97,7 @@ async function onPathCancel() {
 }
 
 async function onBasicCancel() {
-    const response = await fetch(`${store.backendHost}/config/get_config/basic`, { method: 'GET', mode: 'cors' })
+    const response = await fetch(`${stateStore.backendHost}/config/get_config/basic`, { method: 'GET', mode: 'cors' })
     const data = await response.json() as IBasicConfig
     basicConfig.log_level = data.log_level
     basicConfig.title = data.title

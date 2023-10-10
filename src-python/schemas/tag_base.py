@@ -11,10 +11,10 @@ class TagSchemaBase(BaseModel):
 class TagSchemaCreate(TagSchemaBase):
     """for create
     """
-    pass
+    resource_item_id: int
 
 
-class TagSchema(TagSchemaCreate):
+class TagSchema(TagSchemaBase):
     """without relationship
     """
     id: int

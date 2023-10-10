@@ -9,14 +9,16 @@ import {
     faFile, faRoute, faBars, faGears,
     faMap, faPlus, faTrashCan, faNoteSticky,
     faFilePen, faBoxOpen, faDolly, faMagnifyingGlassPlus,
-    faMagnifyingGlassMinus, faCropSimple
+    faMagnifyingGlassMinus, faCropSimple, faCheck, faXmark,
+    faTag, faPen
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faSearch, faFolder, faFolderOpen, faGear,
     faFile, faRoute, faBars, faGears,
     faMap, faPlus, faTrashCan, faNoteSticky,
     faFilePen, faBoxOpen, faDolly, faMagnifyingGlassMinus,
-    faMagnifyingGlassPlus, faCropSimple)
+    faMagnifyingGlassPlus, faCropSimple, faCheck,
+    faTag, faPen, faXmark)
 
 const pinia = createPinia()
 

@@ -7,6 +7,6 @@ from pydantic import ConfigDict
 class TagSchemaRelationship(TagSchema):
     """full data
     """
-    resources: list[ResourceItemSchema]
+    resource_items: list[ResourceItemSchema]
 
     model_config = ConfigDict(from_attributes=True)

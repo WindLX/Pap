@@ -120,7 +120,7 @@ class SystemConfig(BaseConfig):
 
     @property
     def host(self) -> str:
-        """webview 监听的 host 地址
+        """frontend 监听的 host 地址
 
         Returns:
             str: 主机地址
@@ -133,7 +133,7 @@ class SystemConfig(BaseConfig):
 
     @property
     def port(self) -> int:
-        """webview 监听的 port 端口
+        """frontend 监听的 port 端口
 
         Returns:
             int: 端口
@@ -143,6 +143,11 @@ class SystemConfig(BaseConfig):
     @port.setter
     def port(self, value: int) -> None:
         self.set_property("port", value)
+
+    def set_env(self) -> None:
+        """set environment value
+        """
+        pass
 
 
 class BasicConfig(BaseConfig):

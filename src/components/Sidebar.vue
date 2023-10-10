@@ -4,15 +4,15 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStateStore, SidebarIndex } from '../store/state';
 
 // state
-const store = useStateStore();
+const stateStore = useStateStore();
 
 // callback function
 function select(index: string) {
-    if (store.sidebarIndex === (index as SidebarIndex)) {
-        store.isMiddleBarShow = !store.isMiddleBarShow
+    if (stateStore.sidebarIndex === (index as SidebarIndex)) {
+        stateStore.isMiddleBarShow = !stateStore.isMiddleBarShow
     } else {
-        store.sidebarIndex = (index as SidebarIndex)
-        store.isMiddleBarShow = true
+        stateStore.sidebarIndex = (index as SidebarIndex)
+        stateStore.isMiddleBarShow = true
     }
 }
 </script>
@@ -23,11 +23,6 @@ function select(index: string) {
             <el-tooltip content="工作区" placement="right">
                 <el-menu-item class="menu-item" index="resource">
                     <font-awesome-icon :icon="['fas', 'file']" class="icon" />
-                </el-menu-item>
-            </el-tooltip>
-            <el-tooltip content="搜索" placement="right">
-                <el-menu-item class="menu-item" index="search">
-                    <font-awesome-icon :icon="['fas', 'search']" class="icon" />
                 </el-menu-item>
             </el-tooltip>
             <el-tooltip content="时间线" placement="right">

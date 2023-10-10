@@ -3,11 +3,10 @@ from os import path
 from model.resource_group import ResourceItemModel
 from schemas.resource_base import ResourceItemSchemaCreate
 from schemas.resource import ResourceItemSchemaRelationship
-from schemas.content import ContentSchemaCreate
 from service.config import path_config
 from service.logger import logger
 from service.database import get_db
-from service.crud import resource, content
+from service.crud import resource, tag
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
@@ -15,30 +14,41 @@ from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
 router = APIRouter(prefix="/resource")
 
 
-@router.post("/create_resource_item", status_code=status.HTTP_201_CREATED)
+@router.post("/create_resource_item", status_code=status.HTTP_201_CREATED, include_in_schema=True)
 def create_resource(file: UploadFile, db: Session = Depends(get_db)):
     """create a new resource item from upload file
 
     Args:
         file (UploadFile): upload file from frontend
         db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: error response 403
     """
     logger.info("POST /resource/create_resource_item")
-    file_name, file_extension = path.splitext(file.filename)
-    if file_extension == ".pdf":
-        file_data = file.file.read()
-        assert file_name is not None
-        file_path = path.join(path_config.resource_dir, file.filename)
-        with open(file_path, 'wb') as fout:
-            fout.write(file_data)
-            file.file.close()
-        resource_item = ResourceItemSchemaCreate(name=file_name, url=file_path)
-        resource.create_resource_item(db, resource_item=resource_item)
+    if (raw_filename := file.filename) is not None:
+        file_name, file_extension = path.splitext(raw_filename)
+        if file_extension == ".pdf":
+            file_data = file.file.read()
+            assert file_name is not None
+            file_path = path.join(path_config.resource_dir, raw_filename)
+            with open(file_path, 'wb') as fout:
+                fout.write(file_data)
+                file.file.close()
+            resource_item = ResourceItemSchemaCreate(
+                name=file_name, url=file_path)
+            resource.create_resource_item(db, resource_item=resource_item)
+        else:
+            logger.warning("invalid file extension")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=f"`{file_extension}` 无效的文件后缀")
     else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        logger.warning("invalid file name")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"不存在的文件名")
 
 
-@router.get("/get_resource", response_model=list[ResourceItemSchemaRelationship])
+@router.get("/get_resource", response_model=list[ResourceItemSchemaRelationship], status_code=status.HTTP_200_OK, include_in_schema=True)
 def get_resource(db: Session = Depends(get_db)) -> list[ResourceItemModel]:
     """get all resource items
 
@@ -52,7 +62,22 @@ def get_resource(db: Session = Depends(get_db)) -> list[ResourceItemModel]:
     return resource.get_resource_items(db)
 
 
-@router.delete("/delete_resource_item", status_code=status.HTTP_200_OK)
+@router.get("/get_resource_item", response_model=ResourceItemSchemaRelationship, status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_resource_item(resource_item_id: int, db: Session = Depends(get_db)) -> ResourceItemModel:
+    """get target resource item (with relationship)
+
+    Args:
+        resource_item_id (int): target resource item id
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Returns:
+        ResourceItemModel: query result
+    """
+    logger.debug("GET /resource/get_resource_item")
+    return resource.get_resource_item(db, resource_item_id)
+
+
+@router.delete("/delete_resource_item", status_code=status.HTTP_200_OK, include_in_schema=True)
 def delete_resource_item(resource_item_id: int, db: Session = Depends(get_db)):
     """delete resource item by resource item id
 
@@ -64,34 +89,14 @@ def delete_resource_item(resource_item_id: int, db: Session = Depends(get_db)):
     resource.delete_resource_item(db, resource_item_id)
 
 
-@router.post("/create_content", response_model=ResourceItemSchemaRelationship, status_code=status.HTTP_201_CREATED)
-def create_content(new_content: ContentSchemaCreate, db: Session = Depends(get_db)) -> ResourceItemSchemaRelationship:
-    """create a new content to a resource item
+@router.put("/remove_resource_item", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+def remove_resource_item(tag_id: int, resource_item_id: int, db: Session = Depends(get_db)):
+    """remove resource item by resource item id(only remove relationship)
 
     Args:
-        new_content (ContentSchemaCreate): new content data
-        db (Session, optional): database session. Defaults to Depends(get_db).
-
-    Raises:
-        HTTPException: 404 for not find the target resource item
-
-    Returns:
-        ResourceItemSchemaRelationship: updated resource item
-    """
-    logger.info("POST /resource/create_content")
-    if updated_resource_item := content.create_content(db, new_content):
-        return updated_resource_item
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-
-@router.delete("/delete_content", status_code=status.HTTP_200_OK)
-def delete_content(content_id: int, db: Session = Depends(get_db)):
-    """delete content by content id
-
-    Args:
-        content_id (int): target id
+        tag_id (int): related tag id
+        resource_item_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /resource/delete_content")
-    content.delete_content(db, content_id)
+    logger.info("PUT /resource/remove_resource_item")
+    tag.remove_resource_item(db, tag_id, resource_item_id)

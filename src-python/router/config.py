@@ -9,7 +9,7 @@ from fastapi import HTTPException, status, APIRouter
 router = APIRouter(prefix="/config")
 
 
-@router.get("/get_config/{section}", response_model=BasicConfigSchema | PathConfigSchema)
+@router.get("/get_config/{section}", response_model=BasicConfigSchema | PathConfigSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
 async def get_config(section: str) -> BasicConfigSchema | PathConfigSchema:
     """get all available config to frontend
 
@@ -29,13 +29,13 @@ async def get_config(section: str) -> BasicConfigSchema | PathConfigSchema:
     if data is None:
         logger.warning(f"{section} not found")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"{section} not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"`{section}` 查找失败")
     else:
 
         return data
 
 
-@router.put("/set_config/{section}", status_code=status.HTTP_202_ACCEPTED)
+@router.put("/set_config/{section}", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
 async def set_config(section: str, value: BasicConfigSchema | PathConfigSchema):
     """set all available config
 
@@ -54,7 +54,7 @@ async def set_config(section: str, value: BasicConfigSchema | PathConfigSchema):
             else:
                 logger.warning(f"{section} not found")
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail=f"{section} not found")
+                    status_code=status.HTTP_404_NOT_FOUND, detail=f"`{section}` 查找失败")
         case "path":
             if path_config.model is not None and type(value) == PathConfigSchema:
                 path_config.model = value
@@ -62,4 +62,4 @@ async def set_config(section: str, value: BasicConfigSchema | PathConfigSchema):
             else:
                 logger.warning(f"{section} not found")
                 raise HTTPException(
-                    status_code=404, detail=f"{section} not found")
+                    status_code=404, detail=f"`{section}` 查找失败")

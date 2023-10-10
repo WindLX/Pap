@@ -35,6 +35,19 @@ def get_resource_items(db: Session) -> list[ResourceItemModel]:
     return db.query(ResourceItemModel).all()
 
 
+def get_resource_item(db: Session, resource_item_id: int) -> ResourceItemModel:
+    """get target resource item
+
+    Args:
+        db (Session): database session
+        resource_item_id (int): target resource item id
+
+    Returns:
+        ResourceItemModel: query result
+    """
+    return db.query(ResourceItemModel).get(resource_item_id)
+
+
 def get_resource_items_by_tags(db: Session, tags: list[TagSchema]) -> list[ResourceItemModel]:
     # TODO Test
     return db.query(ResourceItemModel).filter(*list(
@@ -49,12 +62,10 @@ def delete_resource_item(db: Session, resource_item_id: int):
         db (Session): database session
         resource_item_id (int): target resource item id
     """
-    if target_resource_items := db.query(ResourceItemModel).filter(
-            ResourceItemModel.id == resource_item_id):
-        for target_resource_item in target_resource_items:
-            db.delete(target_resource_item)
-            if target_contents := db.query(ContentModel).filter(
-                    ContentModel.resource_item_id == target_resource_item.id):
-                for target_content in target_contents:
-                    db.delete(target_content)
+    if target_resource_item := db.query(ResourceItemModel).get(resource_item_id):
+        db.delete(target_resource_item)
+        if target_contents := db.query(ContentModel).filter(
+                ContentModel.resource_item_id == target_resource_item.id):
+            for target_content in target_contents:
+                db.delete(target_content)
         db.commit()

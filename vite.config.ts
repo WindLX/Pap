@@ -11,8 +11,21 @@ export default defineConfig({
       '/data': {
         target: 'http://127.0.0.1:8000/',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/data/, '') // 不可以省略rewrite
+        rewrite: (path) => path.replace(/^\/data/, '')
+      },
+      '/resource': {
+        target: 'http://127.0.0.1:8000/',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/resource/, '')
       }
+    }
+  },
+  resolve: {
+    alias: {
+      'tab-types': '/src/@types/tab-types.d.ts',
+      'config-types': '/src/@types/config-types.d.ts',
+      'pdfjs-dist-types': '/src/@types/pdfjs-dist-types.d.ts',
+      'resource-types': '/src/@types/resource-types.d.ts'
     }
   },
   build: {
@@ -25,20 +38,21 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             const arr = id.toString().split('node_modules/')[1].split('/')
             switch (arr[0]) {
-              case '@vue':
-              case 'pinia':
-              case 'pdfjs-dist':
               case 'element-plus':
                 return '_' + arr[0]
-                break
+              case 'pdfjs-dist':
+                if (id.includes('pdf.worker')) {
+                  return '_pdfjs_worker';
+                }
+                return '_pdfjs';
               default:
-                return '__vendor'
-                break
+                return '_vendor'
             }
           }
         }
       }
     },
+    chunkSizeWarningLimit: 1100,
   },
   optimizeDeps: {
     include: ['pdfjs-dist'],
