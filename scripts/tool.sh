@@ -29,6 +29,7 @@ pack() {
     cp src-python PapPack/src-python -r
     cp README.md PapPack/
     cp scripts/requirements_release.txt PapPack/
+    cp scripts/pap.ps1 PapPack/
     cp scripts/pap.sh PapPack/
     cp scripts/pap.sh.man PapPack/
     rm PapPack/src-python/test -r

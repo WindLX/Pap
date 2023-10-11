@@ -21,7 +21,7 @@ PS .\pap.ps1 -Dev
 
 [CmdletBinding()]
 param (
-    [switch] $Update,
+    [switch] $Update
 )
 
 # Function to activate Python virtual environment
@@ -36,9 +36,36 @@ function Open-Venv {
     }
 }
 
-if ($Update) {
-    if (Test-Path ".venv") {
-        Remove-Item -Path .\.venv -Recurse -Force
+if ($Update -eq $true) {
+    $latestRelease = Invoke-WebRequest -Uri "https://api.github.com/repos/WindLX/Pap/releases/latest" | ConvertFrom-Json
+    $downloadUrl = ($latestRelease.assets | Where-Object { $_.name -eq "PapPack.tar.gz" }).browser_download_url
+
+    if (-z $downloadUrl) {
+        Write-Error "Error: Unable to find download URL for Pap in the latest release."
+        exit 1
+    }
+
+    Write-Output "Downloading PapPack.tar.gz..."
+    Invoke-WebRequest -Uri $downloadUrl -OutFile "PapPack.tar.gz"
+
+    Write-Output "Extracting PapPack.tar.gz..."
+    Expand-Archive -Path "PapPack.tar.gz" -DestinationPath .\
+
+    Remove-Item .\dist -Recurse -Force
+    Remove-Item .\src-python -Recurse -Force
+    Remove-Item .\README.md -Force
+    Remove-Item .\requirements_release.txt -Force
+
+    Move-Item .\PapPack\dist .\dist
+    Move-Item .\PapPack\src-python .\src-python
+    Move-Item .\PapPack\README.md .\README.md
+    Move-Item .\PapPack\requirements_release.txt .\requirements_release.txt
+
+    Remove-Item .\PapPack -Recurse -Force
+    Remove-Item .\PapPack.tar.gz -Force
+
+    if (Test-Path -Path ".venv") {
+        Remove-Item .\.venv -Recurse -Force
     }
 }
 
