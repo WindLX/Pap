@@ -30,6 +30,9 @@ __pycache__
 .mypy_cache
 .pytest_cache
 
+# Rust
+target
+
 # data
 data
 !data/config.toml
