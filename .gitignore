@@ -33,3 +33,8 @@ __pycache__
 # data
 data
 !data/config.toml
+
+# release
+PapPack
+*.tar.gz
+*.zip

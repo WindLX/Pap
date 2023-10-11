@@ -1,6 +1,6 @@
 [system]
-host = "127.0.0.1"
-port = 8001
+host = "172.17.0.2"
+port = 13956
 
 [basic]
 title = "Pap"

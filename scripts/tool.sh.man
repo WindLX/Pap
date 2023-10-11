@@ -1,24 +1,49 @@
 NAME
+    tool.sh - This script is used for python type check, test the Pap backend, build the Pap frontend, pack the whole project.
 
-Synopsis
-    This PowerShell script is used for check and test the Pap backend.
+SYNOPSIS
+    tool.sh [--check | --test | --build | --pack | --help]
 
 DESCRIPTION
-    The tool.sh script is a versatile tool designed to simplify the process of Pap backend test and type check. It offers the following functionality:
+    The tool.sh script is a versatile tool designed to simplify the process of Pap backend test, type check, build and pack. It offers the following functionality:
 
-    - When executed without any options, it sets up the default environment for running Pap.
+    - When executed without any options, it will DO NOTHING.
 
     - If the `--test` option is specified, the script will launch the pytest automatically.
 
-    - When the `--check` option is provided, This script automatically performs Python static type checking。
+    - When the `--check` option is provided, This script automatically performs Python static type checking.
+
+    - When the `--build` option is provided, This script will build the frontend part.
+    
+    - When the `--pack` option is provided, This script will pack the whole project.
+    
+    - When the `--docker-pack` option is provided, This script will pack the whole project and create docker image.
+    
+    - When the `--help` option is provided, it will show help document for this script.
 
     The script's flexibility allows it to adapt to your specific needs, whether you're focused on development or simply coding.
 
 OPTIONS
     --check 
         Whether to run the test.
+
     --test
         Whether to run the static type check.
+
+    --build
+        Whether to build the frontend.
+
+    --build
+        Whether to build the frontend.
+
+    --pack
+        Whether to pack the whole project.
+
+    --docker-pack
+        Whether to pack the whole project and create the docker image
+
+    --help
+        To get the help.
 
 EXAMPLES
     To run the test:
@@ -26,3 +51,12 @@ EXAMPLES
 
     To run the static type check:
     $ ./tool.sh --check
+
+    To run the build:
+    $ ./tool.sh --build
+
+    To run the pack:
+    $ ./tool.sh --pack
+
+    To run the docker pack:
+    $ ./tool.sh --docker-pack

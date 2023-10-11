@@ -18,3 +18,9 @@ class TagSchema(TagSchemaBase):
     """without relationship
     """
     id: int
+
+
+class TagSetSchema(BaseModel):
+    """from filter
+    """
+    tags_id: list[int]

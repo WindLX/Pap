@@ -1,0 +1,30 @@
+NAME
+    pap.sh - Automate the setup of a running environment and execute Pap and update.
+
+SYNOPSIS
+    pap.sh [--update | --help]
+
+DESCRIPTION
+    The pap.sh script is a versatile tool designed to simplify the process of creating and updating your running environment while seamlessly running Pap. It offers the following functionality:
+
+    - When executed without any options, it sets up the default environment for running Pap.
+
+    - If the `--update` option is specified, the script update the version of Pap from remote repository
+
+    - When the `--help` option is provided, it will show help document for this script
+
+    The script's flexibility allows it to adapt to your specific needs, whether you're focused on development or simply running Pap.
+
+OPTIONS
+    --update
+        Specifies whether to update.
+        
+    --help
+        To get the help.
+
+EXAMPLES
+    To run the script with default settings (no development environment and no frontend build):
+    $ ./run.sh
+
+    To update the version of Pap before running:
+    $ ./run.sh --update

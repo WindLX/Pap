@@ -9,12 +9,12 @@ export default defineConfig({
     port: 6173,
     proxy: {
       '/data': {
-        target: 'http://127.0.0.1:8000/',
+        target: 'http://127.0.0.1:13956/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/data/, '')
       },
       '/resource': {
-        target: 'http://127.0.0.1:8000/',
+        target: 'http://127.0.0.1:13956/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/resource/, '')
       }
@@ -22,10 +22,12 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      'custom-types': '/src/@types/custom-types.d.ts',
       'tab-types': '/src/@types/tab-types.d.ts',
       'config-types': '/src/@types/config-types.d.ts',
       'pdfjs-dist-types': '/src/@types/pdfjs-dist-types.d.ts',
-      'resource-types': '/src/@types/resource-types.d.ts'
+      'resource-types': '/src/@types/resource-types.d.ts',
+      'event-types': '/src/@types/event-types.d.ts'
     }
   },
   build: {

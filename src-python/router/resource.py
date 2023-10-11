@@ -3,6 +3,7 @@ from os import path
 from model.resource_group import ResourceItemModel
 from schemas.resource_base import ResourceItemSchemaCreate
 from schemas.resource import ResourceItemSchemaRelationship
+from schemas.tag_base import TagSetSchema
 from service.config import path_config
 from service.logger import logger
 from service.database import get_db
@@ -62,6 +63,21 @@ def get_resource(db: Session = Depends(get_db)) -> list[ResourceItemModel]:
     return resource.get_resource_items(db)
 
 
+@router.post("/get_resource_by_tags", response_model=list[ResourceItemSchemaRelationship], status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_resource_by_tags(tags_id: TagSetSchema, db: Session = Depends(get_db)) -> list[ResourceItemModel]:
+    """get resource items by tags
+
+    Args:
+        tags_id (TagSetSchema): id of filter tags
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Returns:
+        list[ResourceItemModel]: query result, all resource items model
+    """
+    logger.debug("GET /resource/get_resource_by_tags")
+    return resource.get_resource_items_by_tags(db, tags_id)
+
+
 @router.get("/get_resource_item", response_model=ResourceItemSchemaRelationship, status_code=status.HTTP_200_OK, include_in_schema=True)
 def get_resource_item(resource_item_id: int, db: Session = Depends(get_db)) -> ResourceItemModel:
     """get target resource item (with relationship)
@@ -70,11 +86,18 @@ def get_resource_item(resource_item_id: int, db: Session = Depends(get_db)) -> R
         resource_item_id (int): target resource item id
         db (Session, optional): database session. Defaults to Depends(get_db).
 
+    Raises:
+        HTTPException: 404 for not find the target resource item
+
     Returns:
         ResourceItemModel: query result
     """
     logger.debug("GET /resource/get_resource_item")
-    return resource.get_resource_item(db, resource_item_id)
+    if (data := resource.get_resource_item(db, resource_item_id)):
+        return data
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="目标资源文件查找失败")
 
 
 @router.delete("/delete_resource_item", status_code=status.HTTP_200_OK, include_in_schema=True)

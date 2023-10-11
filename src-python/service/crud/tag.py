@@ -27,7 +27,7 @@ def create_tag(db: Session, tag: TagSchemaCreate) -> TagModel | None:
         TagModel | None: created tag, return None if target tag doesn't exist
     """
 
-    if db_resource_item := db.query(ResourceItemModel).get(tag.resource_item_id):
+    if db_resource_item := db.get(ResourceItemModel, tag.resource_item_id):
         db_tag = TagModel(name=tag.name, color=tag.color)
         db.add(db_tag)
         db.commit()
@@ -51,7 +51,7 @@ def add_tag(db: Session, tag_id: int, resource_item_id: int) -> ResourceItemMode
         ResourceItemModel | None: updated resource item, return None if target tag or resource item doesn't exist
     """
 
-    if (db_resource_item := db.query(ResourceItemModel).get(resource_item_id)) and (db_tag := db.query(TagModel).get(tag_id)):
+    if (db_resource_item := db.get(ResourceItemModel, resource_item_id)) and (db_tag := db.get(TagModel, tag_id)):
         db_resource_item.tags.append(db_tag)
         db.commit()
         db.refresh(db_resource_item)
@@ -69,7 +69,7 @@ def update_tag(db: Session, tag: TagSchema) -> TagModel | None:
     Returns:
         TagModel | None: created tag, return None if target tag doesn't exist
     """
-    if db_tag := db.query(TagModel).get(tag.id):
+    if db_tag := db.get(TagModel, tag.id):
         db.query(TagModel).filter(
             TagModel.id == tag.id).update({
                 TagModel.name: tag.name,
@@ -87,7 +87,7 @@ def delete_tag(db: Session, tag_id: int):
         db (Session): database session
         tag_id (int): target tag id
     """
-    if target_content := db.query(TagModel).get(tag_id):
+    if target_content := db.get(TagModel, tag_id):
         db.delete(target_content)
         db.commit()
 
@@ -100,7 +100,7 @@ def remove_tag(db: Session, tag_id: int, resource_item_id: int):
         tag_id (int): target tag id
         resource_item_id (int): target tag id
     """
-    if (db_resource_item := db.query(ResourceItemModel).get(resource_item_id)) and ((db_tag := db.query(TagModel).get(tag_id))):
+    if (db_resource_item := db.get(ResourceItemModel, resource_item_id)) and ((db_tag := db.get(TagModel, tag_id))):
         db_resource_item.tags.remove(db_tag)
         db.commit()
     return None
@@ -114,7 +114,7 @@ def remove_resource_item(db: Session, tag_id: int, resource_item_id: int):
         tag_id (int): target tag id
         resource_item_id (int): target tag id
     """
-    if (db_resource_item := db.query(ResourceItemModel).get(resource_item_id)) and ((db_tag := db.query(TagModel).get(tag_id))):
+    if (db_resource_item := db.get(ResourceItemModel, resource_item_id)) and ((db_tag := db.get(TagModel, tag_id))):
         db_tag.resource_items.remove(db_resource_item)
         db.commit()
     return None

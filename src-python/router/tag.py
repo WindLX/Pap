@@ -22,7 +22,7 @@ def get_tags(db: Session = Depends(get_db)) -> list[TagModel]:
     Returns:
         list[TagModel]: query result, all tags model
     """
-    logger.debug("GET /resource/get_tags")
+    logger.debug("GET /tag/get_tags")
     return tag.get_tags(db)
 
 
@@ -40,7 +40,7 @@ def create_tag(new_tag: TagSchemaCreate, db: Session = Depends(get_db)) -> TagMo
     Returns:
         TagSchema: created tag item
     """
-    logger.info("POST /resource/create_tag")
+    logger.info("POST /tag/create_tag")
     if created_tag := tag.create_tag(db, new_tag):
         return created_tag
     else:
@@ -64,7 +64,7 @@ def add_tag(tag_id: int, resource_item_id: int, db: Session = Depends(get_db)) -
     Returns:
         TagSchema: created tag item
     """
-    logger.info("PUT /resource/add_tag")
+    logger.info("PUT /tag/add_tag")
     if updated_resource_item := tag.add_tag(db, tag_id, resource_item_id):
         return updated_resource_item
     else:
@@ -87,7 +87,7 @@ def update_tag(new_tag: TagSchema, db: Session = Depends(get_db)) -> TagModel:
     Returns:
         TagSchema: updated tag item
     """
-    logger.info("PUT /resource/update_tag")
+    logger.info("PUT /tag/update_tag")
     if updated_tag := tag.update_tag(db, new_tag):
         return updated_tag
     else:
@@ -104,7 +104,7 @@ def delete_tag(tag_id: int, db: Session = Depends(get_db)):
         tag_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /resource/delete_tag")
+    logger.info("DELETE /tag/delete_tag")
     tag.delete_tag(db, tag_id)
 
 
@@ -117,5 +117,5 @@ def remove_tag(tag_id: int, resource_item_id: int, db: Session = Depends(get_db)
         resource_item_id (int): related resource item id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("PUT /resource/remove_tag")
+    logger.info("PUT /tag/remove_tag")
     tag.remove_tag(db, tag_id, resource_item_id)

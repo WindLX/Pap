@@ -22,14 +22,11 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --help)
             less scripts/run.sh.man
+            exit 0
             shift
             ;;
         --dev)
             Dev=true
-            shift
-            ;;
-        --build)
-            Build=true
             shift
             ;;
         *)
@@ -43,12 +40,6 @@ done
 if [ "$Dev" = true ]; then
     install_modules
     npm run dev & 
-fi
-
-# Build the frontend (only if not in Dev mode)
-if [ "$Build" = true ] && [ "$Dev" != true ]; then
-    install_modules
-    npm run build
 fi
 
 activate_venv

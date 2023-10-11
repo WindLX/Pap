@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { CustomWindow } from 'custom-types'
 
 export enum SidebarIndex {
     Resource = "resource",
@@ -12,7 +13,11 @@ export const useStateStore = defineStore('states', {
         return {
             sidebarIndex: SidebarIndex.Resource,
             isMiddleBarShow: true,
-            backendHost: "http://127.0.0.1:8001",
+            host: (window as unknown as CustomWindow).host,
+            port: (window as unknown as CustomWindow).port
         }
+    },
+    getters: {
+        backendHost: (state) => `http://${state.host}:${state.port}`
     }
 })

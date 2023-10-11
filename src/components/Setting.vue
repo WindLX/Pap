@@ -3,10 +3,10 @@ import { ref, reactive, onActivated } from 'vue'
 import {
     ElForm, ElFormItem, ElInput, ElTooltip,
     ElCollapse, ElCollapseItem, ElButton,
-    ElNotification, ElSlider
+    ElNotification, ElSlider, ElInputNumber
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { IBasicConfig, IPathConfig } from 'config-types'
+import { ISystemConfig, IBasicConfig, IPathConfig } from 'config-types'
 import { useStateStore } from '../store/state'
 
 // const
@@ -19,11 +19,14 @@ const stateStore = useStateStore()
 
 // data
 let logLevel = ref(0)
+let systemConfig = reactive<ISystemConfig>({
+    host: stateStore.host,
+    port: stateStore.port
+})
 let basicConfig = reactive<IBasicConfig>({
     title: "Pap",
     log_level: "INFO"
 })
-
 let pathConfig = reactive<IPathConfig>({
     resource_dir: ".",
     content_dir: ".",
@@ -41,6 +44,28 @@ function logLevelToNumber(level: string): number {
 }
 
 // callback function
+async function onSystemSubmit() {
+    const response = await fetch(`${stateStore.backendHost}/config/set_config/system`, {
+        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(systemConfig)
+    })
+    if (response.status == 202) {
+        ElNotification({
+            title: '修改成功',
+            message: '系统设置修改成功,将在应用重启后生效',
+            type: 'success',
+            duration: 2000
+        })
+    } else {
+        onBasicCancel()
+        ElNotification({
+            title: '修改失败',
+            message: `系统设置修改失败:${response.statusText}`,
+            type: 'error',
+            duration: 2000
+        })
+    }
+}
+
 async function onPathSubmit() {
     const response = await fetch(`${stateStore.backendHost}/config/set_config/path`, {
         method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(pathConfig)
@@ -87,6 +112,11 @@ async function onBasicSubmit() {
     }
 }
 
+async function onSystemCancel() {
+    systemConfig.host = stateStore.host
+    systemConfig.port = stateStore.port
+}
+
 async function onPathCancel() {
     const response = await fetch(`${stateStore.backendHost}/config/get_config/path`, { method: 'GET', mode: 'cors' })
     const data = await response.json() as IPathConfig
@@ -106,6 +136,7 @@ async function onBasicCancel() {
 
 // hook
 onActivated(() => {
+    onSystemCancel()
     onBasicCancel()
     onPathCancel()
 })
@@ -114,6 +145,26 @@ onActivated(() => {
 <template>
     <div class="setting">
         <el-collapse accordion>
+            <el-collapse-item>
+                <template #title>
+                    <div class="title">
+                        <font-awesome-icon :icon="['fas', 'gears']" class="icon" />
+                        <p>系统</p>
+                    </div>
+                </template>
+                <el-form class="form" label-position="top">
+                    <el-form-item label="主机地址">
+                        <el-input v-model="systemConfig.host"></el-input>
+                    </el-form-item>
+                    <el-form-item label="端口">
+                        <el-input-number v-model="systemConfig.port"></el-input-number>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="onSystemSubmit">提交</el-button>
+                        <el-button @click="onSystemCancel">取消</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-collapse-item>
             <el-collapse-item>
                 <template #title>
                     <div class="title">

@@ -17,7 +17,7 @@ class TestTagClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_tag", json=post_data)
+            "/tag/create_tag", json=post_data)
         assert response.status_code == 201
         assert response.json()["name"] == post_data["name"]
         assert response.json()["color"] == post_data["color"]
@@ -31,7 +31,7 @@ class TestTagClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_tag", json=post_data)
+            "/tag/create_tag", json=post_data)
         assert response.status_code == 201
         post_data = {
             "name": "test_new_tag",
@@ -39,7 +39,7 @@ class TestTagClass:
             "id": 1
         }
         response = context.put(
-            "/resource/update_tag", json=post_data)
+            "/tag/update_tag", json=post_data)
         assert response.status_code == 202
         assert response.json()["name"] == post_data["name"]
         assert response.json()["color"] == post_data["color"]
@@ -51,12 +51,12 @@ class TestTagClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_tag", json=post_data)
+            "/tag/create_tag", json=post_data)
         assert response.status_code == 201
         response = context.put(
-            "/resource/remove_tag?tag_id=1&resource_item_id=1")
+            "/tag/remove_tag?tag_id=1&resource_item_id=1")
         assert response.status_code == 202
-        response = context.get("/resource/get_tags")
+        response = context.get("/tag/get_tags")
         assert response.status_code == 200
         assert response.json()[0]["id"] == 1
         response = context.get("/resource/get_resource")
@@ -70,11 +70,11 @@ class TestTagClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_tag", json=post_data)
+            "/tag/create_tag", json=post_data)
         assert response.status_code == 201
-        response = context.delete("/resource/delete_tag?tag_id=1")
+        response = context.delete("/tag/delete_tag?tag_id=1")
         assert response.status_code == 200
-        response = context.get("/resource/get_tags")
+        response = context.get("/tag/get_tags")
         assert response.status_code == 200
         assert len(response.json()) == 0
         response = context.get("/resource/get_resource")

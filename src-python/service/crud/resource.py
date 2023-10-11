@@ -1,7 +1,8 @@
-from model.resource_group import ResourceItemModel, ContentModel
+from model.resource_group import ResourceItemModel, TagModel, ContentModel, resource_item_tag_association
 from schemas.resource_base import ResourceItemSchemaCreate
-from schemas.tag_base import TagSchema
+from schemas.tag_base import TagSetSchema
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 
@@ -35,7 +36,7 @@ def get_resource_items(db: Session) -> list[ResourceItemModel]:
     return db.query(ResourceItemModel).all()
 
 
-def get_resource_item(db: Session, resource_item_id: int) -> ResourceItemModel:
+def get_resource_item(db: Session, resource_item_id: int) -> ResourceItemModel | None:
     """get target resource item
 
     Args:
@@ -43,16 +44,28 @@ def get_resource_item(db: Session, resource_item_id: int) -> ResourceItemModel:
         resource_item_id (int): target resource item id
 
     Returns:
-        ResourceItemModel: query result
+        ResourceItemModel | None: query result
     """
-    return db.query(ResourceItemModel).get(resource_item_id)
+    return db.get(ResourceItemModel, resource_item_id)
 
 
-def get_resource_items_by_tags(db: Session, tags: list[TagSchema]) -> list[ResourceItemModel]:
-    # TODO Test
-    return db.query(ResourceItemModel).filter(*list(
-        filter(lambda tag: tag.id in list(
-            map(lambda tag: tag.id, ResourceItemModel.tags)), tags))).all()
+def get_resource_items_by_tags(db: Session, tags_id: TagSetSchema) -> list[ResourceItemModel]:
+    """get target resource item by tags
+
+    Args:
+        db (Session): database session
+        tags_id (TagSetSchema): target tags id set
+
+    Returns:
+        list[ResourceItemModel]: query result
+    """
+    query = db.query(ResourceItemModel)\
+        .join(resource_item_tag_association,
+              ResourceItemModel.id == resource_item_tag_association.c.resource_item_id)\
+        .where(resource_item_tag_association.c.tag_id.in_(tags_id.tags_id))\
+        .group_by(ResourceItemModel.id)\
+        .having(func.count() == len(tags_id.tags_id))
+    return query.all()
 
 
 def delete_resource_item(db: Session, resource_item_id: int):
@@ -62,7 +75,7 @@ def delete_resource_item(db: Session, resource_item_id: int):
         db (Session): database session
         resource_item_id (int): target resource item id
     """
-    if target_resource_item := db.query(ResourceItemModel).get(resource_item_id):
+    if target_resource_item := db.get(ResourceItemModel, resource_item_id):
         db.delete(target_resource_item)
         if target_contents := db.query(ContentModel).filter(
                 ContentModel.resource_item_id == target_resource_item.id):

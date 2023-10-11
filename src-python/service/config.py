@@ -1,7 +1,8 @@
 from os import path, mkdir
-from typing import Optional, Any
+from abc import ABC, abstractmethod
+from typing import Optional, Any, TypeVar, Generic, Type
 
-from schemas.config import BasicConfigSchema, PathConfigSchema
+from schemas.config import BaseConfigSchema, SystemConfigSchema, BasicConfigSchema, PathConfigSchema
 
 from toml import load as toml_load
 from toml import dump as toml_dump
@@ -82,7 +83,10 @@ class ConfigManager:
         self.save_config()
 
 
-class BaseConfig:
+T = TypeVar('T', bound='BaseConfigSchema')
+
+
+class BaseConfig(ABC, Generic[T]):
     """设置的基础类
     """
 
@@ -110,8 +114,25 @@ class BaseConfig:
         """
         self.config_manager.set_value(self.section_name, key, value)
 
+    @property
+    def model(self) -> Optional[T]:
+        data_dict = self.config_manager.get_section(self.section_name)
+        if data_dict is not None:
+            return self._create_schema_instance(data_dict)
+        else:
+            return None
 
-class SystemConfig(BaseConfig):
+    @model.setter
+    def model(self, value: T) -> None:
+        new_data = value.model_dump()
+        self.config_manager.set_section(self.section_name, new_data)
+
+    @abstractmethod
+    def _create_schema_instance(self, data_dict) -> T:
+        pass
+
+
+class SystemConfig(BaseConfig[SystemConfigSchema]):
     """系统设置
     """
 
@@ -144,13 +165,11 @@ class SystemConfig(BaseConfig):
     def port(self, value: int) -> None:
         self.set_property("port", value)
 
-    def set_env(self) -> None:
-        """set environment value
-        """
-        pass
+    def _create_schema_instance(self, data_dict) -> SystemConfigSchema:
+        return SystemConfigSchema(**data_dict)
 
 
-class BasicConfig(BaseConfig):
+class BasicConfig(BaseConfig[BasicConfigSchema]):
     """基础设置
     """
 
@@ -183,20 +202,11 @@ class BasicConfig(BaseConfig):
     def log_level(self, value: str) -> None:
         self.set_property("log_level", value)
 
-    @property
-    def model(self) -> Optional[BasicConfigSchema]:
-        if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
-            return BasicConfigSchema(**data_dict)
-        else:
-            return None
-
-    @model.setter
-    def model(self, value: BasicConfigSchema) -> None:
-        new_data = value.model_dump()
-        return self.config_manager.set_section(self.section_name, new_data)
+    def _create_schema_instance(self, data_dict) -> BasicConfigSchema:
+        return BasicConfigSchema(**data_dict)
 
 
-class PathConfig(BaseConfig):
+class PathConfig(BaseConfig[PathConfigSchema]):
     """路径配置
     """
 
@@ -275,20 +285,11 @@ class PathConfig(BaseConfig):
         for p in files:
             check_single_file(p)
 
-    @property
-    def model(self) -> Optional[PathConfigSchema]:
-        if (data_dict := self.config_manager.get_section(self.section_name)) is not None:
-            return PathConfigSchema(**data_dict)
-        else:
-            return None
-
-    @model.setter
-    def model(self, value: PathConfigSchema) -> None:
-        new_data = value.model_dump()
-        self.config_manager.set_section(self.section_name, new_data)
+    def _create_schema_instance(self, data_dict) -> PathConfigSchema:
+        return PathConfigSchema(**data_dict)
 
 
-class DevConfig(BaseConfig):
+class DevConfig(BaseConfig[BaseConfigSchema]):
     """开发配置
     """
 
@@ -321,6 +322,9 @@ class DevConfig(BaseConfig):
             int: 端口号
         """
         return self.get_property("dev_port")
+
+    def _create_schema_instance(self, data_dict) -> BaseConfigSchema:
+        return BaseConfigSchema(**data_dict)
 
 
 config_manager = ConfigManager("./data/config.toml")

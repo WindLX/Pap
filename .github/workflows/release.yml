@@ -1,0 +1,56 @@
+name: Release Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.17.0
+
+    - name: Run custom script to pack files
+      run: |
+        chmod +x scripts/tool.sh
+        ./scripts/tool.sh --pack
+      env:
+        NODE_VERSION: 18.17.0
+    
+    - name: Get Version
+      id: get_version
+      run: |
+        version=$(jq -r '.version' package.json)
+        echo "VERSION=v${version}" >> $GITHUB_ENV
+
+    - name: Set Git Config
+      run: |
+        git config --global user.name 'windlx'
+        git config --global user.email '1418043337@qq.com'
+
+    - name: Create Tag
+      uses: negz/create-tag@v1
+      with:
+        token: "${{ secrets.GITHUB_TOKEN }}"
+        version: ${{ env.VERSION }}
+      env:
+        VERSION: ${{ env.VERSION }}
+
+    - name: Upload release
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: ${{ env.VERSION }}
+        title: ${{ env.VERSION }}
+        prerelease: false
+        files: |
+          PapPack.tar.gz
+

@@ -24,7 +24,7 @@ def create_content(new_content: ContentSchemaCreate, db: Session = Depends(get_d
     Returns:
         ResourceItemSchemaRelationship: updated resource item
     """
-    logger.info("POST /resource/create_content")
+    logger.info("POST /content/create_content")
     if updated_resource_item := content.create_content(db, new_content):
         return updated_resource_item
     else:
@@ -41,5 +41,5 @@ def delete_content(content_id: int, db: Session = Depends(get_db)):
         content_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /resource/delete_content")
+    logger.info("DELETE /content/delete_content")
     content.delete_content(db, content_id)

@@ -1,19 +1,58 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, Ref, onMounted, watch } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import type { TreeNodeData } from 'element-plus/lib/components/tree/src/tree.type.js'
 import {
     ElTreeV2, ElAutoResizer, ElButton, ElButtonGroup,
-    ElNotification, ElPopover, ElInput, ElTooltip, ElText
+    ElNotification, ElPopover, ElInput, ElTooltip,
+    ElText, ElScrollbar, ElTree
 } from 'element-plus'
-import { IContent, IResourceItem, INodeResourceItem } from 'resource-types'
-import { TabData } from 'tab-types';
+import { IContent, IResourceItem, INodeResourceItem, ITag } from 'resource-types'
+import { TagEvent } from 'event-types'
+import { TabData } from 'tab-types'
+import Tag from './Tag.vue'
 import { useStateStore } from '../store/state'
 import { useTabStore, TabDataType, isResourceItem } from '../store/tab'
+import { useTagStore } from '../store/tag'
 
 // state
 const stateStore = useStateStore()
 const tabStore = useTabStore()
+const tagStore = useTagStore()
+
+tagStore.$onAction(
+    ({
+        name: name,
+        after: after,
+    }) => {
+        after((result) => {
+            switch (name) {
+                case "onUpdate":
+                    const index = filterTags.value.findIndex((t) => t.id == (result as number))
+                    filterTags.value[index] = result as ITag
+                    break;
+                case "onAdd":
+                    getResource()
+                    break;
+                case "onRemove":
+                    getResource()
+                    break;
+                case "onDelete":
+                    filterTags.value = filterTags.value.filter((t) => t.id !== (result as number))
+                    break;
+                case "onChoose":
+                    const e = result as TagEvent
+                    if (e.filterId === -1) {
+                        filterTags.value = filterTags.value.filter((t) => t.id !== e.tag.id)
+                        filterTags.value.push(e.tag)
+                    }
+                    break;
+                default:
+                    break;
+            }
+        })
+    }
+)
 
 // const
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -27,10 +66,30 @@ const visible = ref<Array<boolean>>([])
 // data
 const data = ref<Array<INodeResourceItem>>([])
 const newContentName = ref<string | null>(null)
+const filterText = ref<string>("")
+let filterTags: Ref<Array<ITag>> = ref([])
+
+// component ref
+const treeRef = ref<InstanceType<typeof ElTree>>()
 
 // load function
 async function getResource() {
-    const response = await fetch(`${stateStore.backendHost}/resource/get_resource`, { method: 'GET', mode: 'cors' })
+    let response
+    if (filterTags.value.length === 0) {
+        response = await fetch(`${stateStore.backendHost}/resource/get_resource`, { method: 'GET', mode: 'cors' })
+    }
+    else {
+        const tagsData = filterTags.value.map((t) => { return t.id })
+        const json = {
+            tags_id: tagsData
+        }
+        response = await fetch(`${stateStore.backendHost}/resource/get_resource_by_tags`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(json)
+        })
+    }
     if (response.status == 200) {
         const newData = await response.json()
         data.value = (newData as Array<IResourceItem>).map(d => {
@@ -199,8 +258,38 @@ function onLeafClick(nodeData: TreeNodeData) {
     tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
 }
 
+function handleShowTag() {
+    tagStore.show = true
+    tagStore.editable = true
+    tagStore.filterId = -1
+}
+
+function handleClose(id: number) {
+    filterTags.value = filterTags.value.filter((t) => t.id !== id)
+}
+
+// tool function
+function filterName(_value: string, data: TreeNodeData): boolean {
+    if (filterText.value !== '') {
+        const target = data.name
+        const source = filterText.value
+        const regex = new RegExp(source, 'i');
+        return regex.test(target)
+    }
+    else
+        return true
+}
+
 // hook
 onMounted(() => {
+    getResource()
+})
+
+watch(filterText, (val) => {
+    treeRef.value!.filter(val)
+})
+
+watch(filterTags, () => {
     getResource()
 })
 </script>
@@ -211,9 +300,25 @@ onMounted(() => {
         <el-button class="add" @click="openFilePicker">
             <font-awesome-icon :icon="['fas', 'plus']" class="icon" />
         </el-button>
+        <el-input style="height: 24px; width: 90%;" v-model="filterText">
+            <template #append>
+                <el-button @click="handleShowTag">
+                    <font-awesome-icon :icon="['fas', 'tag']" class="icon" />
+                </el-button>
+            </template>
+        </el-input>
+        <el-scrollbar style="height: 24px; margin: 8px;" v-if="filterTags.length != 0">
+            <div style="display: flex; margin-bottom: 18px; max-width: 50vw;">
+                <tag v-for="tag in filterTags" :key="tag.id" :color="tag.color" closable :disable="false"
+                    @close="handleClose(tag.id)">
+                    {{ tag.name }}
+                </tag>
+            </div>
+        </el-scrollbar>
         <el-auto-resizer>
             <template #default="{ height }">
-                <el-tree-v2 :data="data" :props="props" :height="height" highlight-current>
+                <el-tree-v2 ref="treeRef" :data="data" :props="props" :height="height" highlight-current
+                    :filter-method="filterName">
                     <template #default="{ node, data }">
                         <el-tooltip placement="bottom" :content="node.label" :hide-after="0">
                             <div class="node" v-if="isResourceItem(data)">

@@ -2,7 +2,7 @@ NAME
     run.sh - Automate the setup of a development or running environment and execute Pap.
 
 SYNOPSIS
-    run.sh [--dev] [--build]
+    run.sh [--dev | --help]
 
 DESCRIPTION
     The run.sh script is a versatile tool designed to simplify the process of creating and configuring your development or running environment while seamlessly running Pap. It offers the following functionality:
@@ -11,23 +11,20 @@ DESCRIPTION
 
     - If the `--dev` option is specified, the script configures and launches a specialized development environment tailored for Pap development. This includes any necessary tools, libraries, and configurations.
 
-    - When the `--build` option is provided (only applicable when `--dev` is not enabled), the script initiates the frontend build process. This step is crucial for generating the necessary frontend assets for your Pap application.
+    - When the `--help` option is provided, it will show help document for this script.
 
     The script's flexibility allows it to adapt to your specific needs, whether you're focused on development or simply running Pap.
 
 OPTIONS
     --dev
         Specifies whether to run the development environment.
-
-    --build
-        Specifies whether to build the frontend part. This option is only valid if -Dev is not enabled.
+    
+    --help
+        To get the help.
 
 EXAMPLES
     To run the script with default settings (no development environment and no frontend build):
     $ ./run.sh
 
     To run the development environment:
-    $ ./run.sh -Dev
-
-    To build the frontend part (only valid if -Dev is not enabled):
-    $ ./run.sh -Build
+    $ ./run.sh --dev

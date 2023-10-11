@@ -1,4 +1,9 @@
 declare module "config-types" {
+    export interface ISystemConfig {
+        host: string
+        port: int
+    }
+
     export interface IBasicConfig {
         title: string
         log_level: string

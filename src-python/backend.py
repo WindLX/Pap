@@ -1,4 +1,4 @@
-from router import config, resource, content, tag, search
+from router import config, resource, content, tag
 from model.resource_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
@@ -6,9 +6,11 @@ from service.database import engine
 
 from uvicorn import run
 from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.requests import Request
 
 # system init
 host = system_config.host
@@ -19,6 +21,9 @@ Base.metadata.create_all(bind=engine)
 
 # FastAPI app
 app = FastAPI(debug=dev_config.debug)
+
+# templates
+templates = Jinja2Templates(directory="dist")
 
 # CORS config
 origins = [
@@ -43,18 +48,17 @@ app.include_router(config.router)
 app.include_router(resource.router)
 app.include_router(content.router)
 app.include_router(tag.router)
-app.include_router(search.router)
 
 
 @app.get("/", include_in_schema=False)
-async def index() -> FileResponse:
+async def index(request: Request):
     """index route, main page
 
     Returns:
-        FileResponse: HTML of main page
+        _TemplateResponse : HTML of main page
     """
     logger.debug("load index page")
-    return FileResponse("dist/index.html")
+    return templates.TemplateResponse("index.html", {"request": request, "host": host, "port": port})
 
 
 def start_backend(is_dev: bool):

@@ -29,11 +29,6 @@ declare module "resource-types" {
         resource_items: Array<IResourceItem>
     }
 
-    export interface ITagEvent {
-        tag: ITag
-        filterId: number
-    }
-
     export interface IContent {
         id: number
         name: string

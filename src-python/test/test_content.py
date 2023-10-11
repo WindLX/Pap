@@ -16,7 +16,7 @@ class TestContentClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_content", json=post_data)
+            "/content/create_content", json=post_data)
         assert response.status_code == 201
         resource_item_data = jsonable_encoder({
             "name": "test",
@@ -34,11 +34,11 @@ class TestContentClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_content", json=post_data)
+            "/content/create_content", json=post_data)
         assert response.status_code == 201
         delete_data = f"content_id={1}"
         response_2 = context.delete(
-            f"/resource/delete_content?{delete_data}"
+            f"/content/delete_content?{delete_data}"
         )
         assert response_2.status_code == 200
         response_3 = context.get(

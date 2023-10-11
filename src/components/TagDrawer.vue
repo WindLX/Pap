@@ -170,7 +170,7 @@ async function handleDeleteTag(tagId: number) {
         })
     } else {
         loadAllTags()
-        tagStore.onDelete()
+        tagStore.onDelete(tagId)
         ElNotification({
             title: '删除成功',
             message: '标签删除成功',
@@ -187,7 +187,7 @@ async function handleRemoveResourceItem(tagId: number, resourceItemId: number) {
     })
     if (response.status == 202) {
         loadAllTags()
-        tagStore.onRemove()
+        tagStore.onRemove(tagId, resourceItemId)
         ElNotification({
             title: '移除成功',
             message: '标签关联对象移除成功',
@@ -257,13 +257,16 @@ onMounted(async () => {
             <el-collapse>
                 <el-collapse-item v-for="tag in filterTags" :key="tag.id" :name="tag.id">
                     <template #title>
-                        <tag :color="tag.color" :closable="false" :disable="!isChoosable(tag.id)"
-                            @click="handleShowChooseDialog(tag)">
+                        <tag :color="tag.color" :closable="false" :disable="!isChoosable(tag.id)">
                             {{ tag.name }}
                         </tag>
                     </template>
                     <template #default>
                         <el-button-group style="margin-bottom: 12px; margin-left: 2px;">
+                            <el-button size="small" @click="handleShowChooseDialog(tag)" class="button"
+                                :disabled="!isChoosable(tag.id)">
+                                <font-awesome-icon :icon="['fas', 'hand']" class="icon" />
+                            </el-button>
                             <el-button size="small" @click="handleShowDialog(tag)" class="button" :disabled="!editable">
                                 <font-awesome-icon :icon="['fas', 'pen']" class="icon" />
                             </el-button>

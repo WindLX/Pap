@@ -31,7 +31,7 @@ class TestResourceClass:
             "resource_item_id": 1
         }
         response = context.post(
-            "/resource/create_content", json=post_data)
+            "/content/create_content", json=post_data)
         assert response.status_code == 201
         delete_data = f"resource_item_id={1}"
         response_2 = context.delete(

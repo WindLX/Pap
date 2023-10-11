@@ -9,7 +9,8 @@ import {
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Arrayable } from 'element-plus/es/utils/typescript.mjs';
-import { ITag, IResourceItem, ITagEvent } from 'resource-types';
+import { ITag, IResourceItem } from 'resource-types';
+import { TagEvent } from 'event-types';
 import Tag from './Tag.vue';
 import { useStateStore } from '../store/state';
 import { useTagStore } from '../store/tag';
@@ -40,9 +41,9 @@ tagStore.$onAction(
                     loadResourceItem()
                     break;
                 case "onChoose":
-                    const e = result as ITagEvent
+                    const e = result as TagEvent
                     if (e.filterId === props.id) {
-                        handleAddTag(result as ITagEvent)
+                        handleAddTag(result as TagEvent)
                     }
                     break;
                 default:
@@ -110,7 +111,7 @@ async function handleClose(tagId: number) {
     })
     if (response.status == 202) {
         dynamicTags.value.splice(dynamicTags.value.findIndex((t) => t.id === tagId), 1)
-        tagStore.onRemove()
+        tagStore.onRemove(tagId, props.id)
     } else {
         ElNotification({
             title: '移除失败',
@@ -162,7 +163,7 @@ function handleShowTag() {
     tagStore.filterId = props.id
 }
 
-async function handleAddTag(tag: ITagEvent) {
+async function handleAddTag(tag: TagEvent) {
     const response = await fetch(`${stateStore.backendHost}/tag/add_tag?tag_id=${tag.tag.id}&resource_item_id=${props.id}`, {
         method: 'PUT',
         mode: 'cors'
@@ -286,8 +287,8 @@ onActivated(async () => {
                     </tag>
                 </div>
             </el-scrollbar>
-            <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" class="item" size="small" style="width: 48px;"
-                @keyup.enter="handleInputConfirm" @blur="handleInputConfirm">
+            <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" class="item" size="small"
+                style="width: 48px;">
             </el-input>
             <el-color-picker v-if="inputVisible" size="small" ref="ColorRef" v-model="colorValue"
                 :predefine="predefineColors" />
