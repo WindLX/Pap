@@ -3,8 +3,9 @@ import { computed } from "vue";
 import { useStateStore } from "../store/state";
 import Middlebar from "./Middlebar.vue";
 import Sidebar from "./Sidebar.vue";
-import Content from "./Content.vue";
+// import Content from "./Content.vue";
 import TagDrawer from "./TagDrawer.vue";
+import Editor from "./Editor.vue";
 
 // state
 const store = useStateStore()
@@ -19,7 +20,8 @@ const middlebarWidth = computed(() => {
     <div class="container">
         <Sidebar></Sidebar>
         <Middlebar></Middlebar>
-        <Content></Content>
+        <Editor></Editor>
+        <!-- <Content></Content> -->
     </div>
     <TagDrawer></TagDrawer>
 </template>

@@ -1,5 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
+import 'katex/dist/katex.css'
+import 'katex/dist/katex.min.css'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
 import { createPinia } from 'pinia'
@@ -10,7 +12,9 @@ import {
     faMap, faPlus, faTrashCan, faNoteSticky,
     faFilePen, faBoxOpen, faDolly, faMagnifyingGlassPlus,
     faMagnifyingGlassMinus, faCropSimple, faCheck, faXmark,
-    faTag, faPen, faHand
+    faTag, faPen, faHand, faQuoteLeft, faInfinity,
+    faCode, faSquare, faSquareCheck, faLink,
+    faBookmark, faCircleChevronRight
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faSearch, faFolder, faFolderOpen, faGear,
@@ -18,7 +22,10 @@ library.add(faSearch, faFolder, faFolderOpen, faGear,
     faMap, faPlus, faTrashCan, faNoteSticky,
     faFilePen, faBoxOpen, faDolly, faMagnifyingGlassMinus,
     faMagnifyingGlassPlus, faCropSimple, faCheck,
-    faTag, faPen, faXmark, faHand)
+    faTag, faPen, faXmark, faHand, faQuoteLeft,
+    faInfinity, faCode, faSquare, faSquareCheck,
+    faLink, faBookmark, faCircleChevronRight
+)
 
 const pinia = createPinia()
 

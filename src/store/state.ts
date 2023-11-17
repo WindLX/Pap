@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { CustomWindow } from 'custom-types'
+import { CustomWindow } from '@/types/custom-types'
 
 export enum SidebarIndex {
     Resource = "resource",

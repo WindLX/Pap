@@ -2,7 +2,8 @@
 import { ref } from 'vue'
 import { ElTabPane, ElTabs, TabPaneName } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useTabStore, TabDataType } from '../store/tab';
+import { useTabStore } from '../store/tab';
+import { TabDataType } from '../types/tab-types';
 import PDFViewer from './PDFViewer.vue'
 
 // state

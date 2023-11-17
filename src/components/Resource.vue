@@ -7,12 +7,12 @@ import {
     ElNotification, ElPopover, ElInput, ElTooltip,
     ElText, ElScrollbar, ElTree
 } from 'element-plus'
-import { IContent, IResourceItem, INodeResourceItem, ITag } from 'resource-types'
-import { TagEvent } from 'event-types'
-import { TabData } from 'tab-types'
+import { IContent, IResourceItem, INodeResourceItem, ITag } from '../types/resource-types'
+import { TagEvent } from '../types/event-types'
+import { TabData, TabDataType } from '../types/tab-types'
 import Tag from './Tag.vue'
 import { useStateStore } from '../store/state'
-import { useTabStore, TabDataType, isResourceItem } from '../store/tab'
+import { useTabStore, isResourceItem } from '../store/tab'
 import { useTagStore } from '../store/tag'
 
 // state

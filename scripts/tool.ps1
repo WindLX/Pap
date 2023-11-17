@@ -56,6 +56,13 @@ function Open-Venv {
     }
 }
 
+function Build-Rust {
+    Set-Location .\md\md_wasm
+    cargo build --release
+    wasm-pack build
+    Set-Location ..\..
+}
+
 if ($Test) {
     Open-Venv
     pytest -o "python_paths=src-python/"
@@ -65,6 +72,7 @@ if ($Test) {
     mypy src-python/
     deactivate
 } elseif ($Build) {
+    Build-Rust
     Open-Node
     npm run build
 } else {

@@ -1,0 +1,3 @@
+[workspace]
+members = ["md_parser", "md_wasm", "md_encoder"]
+resolver = "2"

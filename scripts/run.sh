@@ -18,6 +18,13 @@ install_modules() {
     fi
 }
 
+build_rust() {
+    cd md/md_wasm
+    cargo build --release
+    wasm-pack build
+    cd ../..
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help)
@@ -38,6 +45,7 @@ done
 
 # Run the development environment
 if [ "$Dev" = true ]; then
+    build_rust
     install_modules
     npm run dev & 
 fi

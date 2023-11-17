@@ -6,7 +6,7 @@ import {
     ElNotification, ElSlider, ElInputNumber
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { ISystemConfig, IBasicConfig, IPathConfig } from 'config-types'
+import type { ISystemConfig, IBasicConfig, IPathConfig } from '../types/config-types'
 import { useStateStore } from '../store/state'
 
 // const

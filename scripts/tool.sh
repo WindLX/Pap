@@ -18,6 +18,13 @@ install_modules() {
     fi
 }
 
+build_rust() {
+    cd md/md_wasm
+    cargo build --release
+    wasm-pack build
+    cd ../..
+}
+
 pack() {
     if [ -d "PapPack" ]; then
         rm PapPack -r
@@ -88,12 +95,14 @@ fi
 
 # build frontend
 if [ "$Build" = true ]; then
+    build_rust
     install_modules
     npm run build
     exit 0
 fi
 
 if [ "$DockerBuild" = true ]; then
+    build_rust
     install_modules
     npm run build
     pack
@@ -104,6 +113,7 @@ fi
 
 # pack the whole project
 if [ "$Pack" = true ]; then
+    build_rust
     install_modules
     npm run build
     pack

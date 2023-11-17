@@ -18,3 +18,9 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
+.katex {
+  font-size: 1.1em;
+  text-indent: 0;
+  text-rendering: auto;
+}

@@ -7,7 +7,7 @@ import {
     ElNotification, ElCollapse, ElCollapseItem, ElForm, ElFormItem,
     ElButtonGroup, ElPopconfirm
 } from 'element-plus';
-import { ITag, ITagRelationship } from 'resource-types';
+import type { ITag, ITagRelationship } from '../types/resource-types';
 import Tag from './Tag.vue';
 import { useStateStore } from '../store/state';
 import { useTagStore } from '../store/tag';

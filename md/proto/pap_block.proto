@@ -1,0 +1,92 @@
+syntax = "proto3";
+package pap_proto;
+
+message Block {
+  oneof block {
+    Title title = 1;
+    Paragraph paragraph = 2;
+    Quote quote = 3;
+    ListItem list_item = 4;
+    CodeBlock code_block = 5;
+    Image image = 6;
+    Line line = 7;
+    MathBlock math_block = 8;
+    TableBlock table_block = 9;
+    TodoItem todo_item = 10;
+    Footer footer = 11;
+  }
+}
+
+message Title {
+  enum TitleLevel {
+    H1 = 0;
+    H2 = 1;
+    H3 = 2;
+    H4 = 3;
+    H5 = 4;
+    H6 = 5;
+  }
+  TitleLevel level = 1;
+  Paragraph content = 2;
+}
+
+message Paragraph { repeated Sentence sentences = 1; }
+
+message Quote { repeated Sentence sentences = 1; }
+
+message ListItem {
+  uint32 level = 1;
+  optional uint32 index = 2;
+  Paragraph content = 3;
+}
+
+message CodeBlock {
+  optional string language = 1;
+  string code = 2;
+}
+
+message Image {
+  optional string title = 1;
+  optional string src = 2;
+}
+
+message Line {}
+
+message MathBlock { string math = 1; }
+
+message TableBlock {}
+
+message TodoItem {
+  bool is_finished = 1;
+  Paragraph content = 2;
+}
+
+message Footer {
+  FooterIndex index = 1;
+  Paragraph content = 2;
+}
+
+message Sentence {
+  oneof sentence {
+    Text text = 1;
+    Link link = 2;
+    string code = 3;
+    string math = 4;
+    string emoji = 5;
+    FooterIndex footer_index = 6;
+  }
+}
+
+message FooterIndex { string index = 1; }
+
+message Text {
+  string content = 1;
+  bool is_bold = 2;
+  bool is_italic = 3;
+  bool is_strike = 4;
+}
+
+message Link {
+  string content = 1;
+  optional string href = 2;
+}

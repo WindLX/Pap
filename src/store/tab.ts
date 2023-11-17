@@ -1,11 +1,6 @@
 import { defineStore } from 'pinia'
-import { INodeResourceItem } from 'resource-types'
-import { TabData } from 'tab-types'
-
-export enum TabDataType {
-    ResourceItem,
-    Content
-}
+import { INodeResourceItem } from '../types/resource-types'
+import { TabData, TabDataType } from '../types/tab-types'
 
 export function isResourceItem(node: any) {
     return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)

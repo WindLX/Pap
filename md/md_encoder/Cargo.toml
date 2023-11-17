@@ -1,0 +1,26 @@
+[package]
+name = "md_encoder"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+bench = false
+name = "mdencoder"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+md_parser = { path = "../md_parser", features = ["parallel"] }
+libc = "0.2.150"
+prost = "0.12.1"
+
+[build-dependencies]
+prost-build = "0.12.1"
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "proto_benchmark"
+harness = false

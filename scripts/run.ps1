@@ -43,8 +43,16 @@ function Open-Node {
     }
 }
 
+function Build-Rust {
+    Set-Location .\md\md_wasm
+    cargo build --release
+    wasm-pack build
+    Set-Location ..\..
+}
+
 # Run the development environment
 if ($Dev) {
+    Build-Rust
     Open-Node
     Start-Process npm -ArgumentList "run dev" -NoNewWindow
 }

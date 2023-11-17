@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite'
+import topLevelAwait from "vite-plugin-top-level-await"
 import vue from '@vitejs/plugin-vue'
+import wasm from "vite-plugin-wasm"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), wasm(), topLevelAwait()],
   clearScreen: false,
   server: {
     port: 6173,
@@ -22,12 +24,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'custom-types': '/src/@types/custom-types.d.ts',
-      'tab-types': '/src/@types/tab-types.d.ts',
-      'config-types': '/src/@types/config-types.d.ts',
       'pdfjs-dist-types': '/src/@types/pdfjs-dist-types.d.ts',
-      'resource-types': '/src/@types/resource-types.d.ts',
-      'event-types': '/src/@types/event-types.d.ts'
     }
   },
   build: {
@@ -58,5 +55,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['pdfjs-dist'],
+    exclude: ['md_wasm'],
   },
 })

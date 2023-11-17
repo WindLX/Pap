@@ -9,8 +9,8 @@ import {
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Arrayable } from 'element-plus/es/utils/typescript.mjs';
-import { ITag, IResourceItem } from 'resource-types';
-import { TagEvent } from 'event-types';
+import type { ITag, IResourceItem } from '../types/resource-types';
+import type { TagEvent } from '../types/event-types';
 import Tag from './Tag.vue';
 import { useStateStore } from '../store/state';
 import { useTagStore } from '../store/tag';
@@ -268,7 +268,7 @@ async function renderPage(pdfDoc: pdfjs.PDFDocumentProxy, num: number) {
 onMounted(async () => {
     await loadResourceItem()
     loadFile(pdf!)
-    canvasItem.value?.focus()
+    // canvasItem.value?.focus()
 })
 
 onActivated(async () => {

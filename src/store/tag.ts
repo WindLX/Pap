@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ITag } from 'resource-types'
-import { TagEvent, TagRemoveEvent } from 'event-types'
+import { ITag } from '@/types/resource-types'
+import { TagEvent, TagRemoveEvent } from '@/types/event-types'
 
 export enum ChooseSource {
     Search,
