@@ -1,4 +1,4 @@
-from model.resource_group import ResourceItemModel, TagModel, ContentModel, resource_item_tag_association
+from model.resource_group import ResourceItemModel, ContentModel, resource_item_tag_association
 from schemas.resource_base import ResourceItemSchemaCreate
 from schemas.tag_base import TagSetSchema
 

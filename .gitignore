@@ -37,6 +37,8 @@ target
 # data
 data
 !data/config.toml
+!data/style.toml
+!data/emoji.db
 
 # release
 PapPack

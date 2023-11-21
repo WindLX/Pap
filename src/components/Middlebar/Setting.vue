@@ -3,11 +3,12 @@ import { ref, reactive, onActivated } from 'vue'
 import {
     ElForm, ElFormItem, ElInput, ElTooltip,
     ElCollapse, ElCollapseItem, ElButton,
-    ElNotification, ElSlider, ElInputNumber
+    ElSlider, ElInputNumber
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import type { ISystemConfig, IBasicConfig, IPathConfig } from '../types/config-types'
-import { useStateStore } from '../store/state'
+import type { ISystemConfig, IBasicConfig, IPathConfig } from '@/types/config-types'
+import { state } from '@store'
+import pFetch from '@/utils/fetch';
 
 // const
 const marks = reactive<Record<number, string>>({ 0: '调试', 1: '消息', 2: '警告', 3: '错误' })
@@ -15,7 +16,7 @@ const levelStringMap = ["DEBUG", "INFO", "WARNING", "ERROR"];
 const levelMap = new Map([["DEBUG", 0], ["INFO", 1], ["WARNING", 2], ["ERROR", 3]])
 
 // state
-const stateStore = useStateStore()
+const stateStore = state.useStateStore()
 
 // data
 let logLevel = ref(0)
@@ -30,8 +31,10 @@ let basicConfig = reactive<IBasicConfig>({
 let pathConfig = reactive<IPathConfig>({
     resource_dir: ".",
     content_dir: ".",
+    note_dir: ".",
     log_path: ".",
-    tag_path: "."
+    tag_path: ".",
+    emoji_path: "."
 })
 
 // tool function
@@ -43,102 +46,67 @@ function logLevelToNumber(level: string): number {
     return levelMap.get(level) || 1;
 }
 
+async function setHandler(router: string, data: any, successText: string) {
+    await pFetch(`/config/set_config/${router}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        successMsg: successText
+    })
+}
+
+async function getHandler(router: string, callback: (res: Response) => Promise<void>) {
+    await pFetch(`/config/get_config/${router}`, {
+        successCallback: async (response) => {
+            await callback(response)
+        }
+    })
+}
+
 // callback function
-async function onSystemSubmit() {
-    const response = await fetch(`${stateStore.backendHost}/config/set_config/system`, {
-        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(systemConfig)
-    })
-    if (response.status == 202) {
-        ElNotification({
-            title: '修改成功',
-            message: '系统设置修改成功,将在应用重启后生效',
-            type: 'success',
-            duration: 2000
-        })
-    } else {
-        onBasicCancel()
-        ElNotification({
-            title: '修改失败',
-            message: `系统设置修改失败:${response.statusText}`,
-            type: 'error',
-            duration: 2000
-        })
-    }
+async function onSystemSubmitAsync() {
+    await setHandler('system', systemConfig, '系统设置修改成功,将在应用重启后生效')
 }
 
-async function onPathSubmit() {
-    const response = await fetch(`${stateStore.backendHost}/config/set_config/path`, {
-        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(pathConfig)
-    })
-    if (response.status == 202) {
-        ElNotification({
-            title: '修改成功',
-            message: '路径设置修改成功',
-            type: 'success',
-            duration: 2000
-        })
-    }
-    else {
-        onPathCancel()
-        ElNotification({
-            title: '修改失败',
-            message: `路径设置修改失败:${response.statusText}`,
-            type: 'error',
-            duration: 2000
-        })
-    }
+async function onPathSubmitAsync() {
+    await setHandler('path', pathConfig, '路径设置修改成功')
 }
 
-async function onBasicSubmit() {
+async function onBasicSubmitAsync() {
     basicConfig.log_level = numberToLogLevel(logLevel.value)
-    const response = await fetch(`${stateStore.backendHost}/config/set_config/basic`, {
-        method: 'PUT', mode: 'cors', headers: { 'content-type': 'application/json' }, body: JSON.stringify(basicConfig)
-    })
-    if (response.status == 202) {
-        ElNotification({
-            title: '修改成功',
-            message: '基础设置修改成功,将在应用重启后生效',
-            type: 'success',
-            duration: 2000
-        })
-    } else {
-        onBasicCancel()
-        ElNotification({
-            title: '修改失败',
-            message: `基础设置修改失败:${response.statusText}`,
-            type: 'error',
-            duration: 2000
-        })
-    }
+    setHandler('basic', basicConfig, '基本设置修改成功,将在应用重启后生效')
 }
 
-async function onSystemCancel() {
+async function onSystemCancelAsync() {
     systemConfig.host = stateStore.host
     systemConfig.port = stateStore.port
 }
 
-async function onPathCancel() {
-    const response = await fetch(`${stateStore.backendHost}/config/get_config/path`, { method: 'GET', mode: 'cors' })
-    const data = await response.json() as IPathConfig
-    pathConfig.resource_dir = data.resource_dir
-    pathConfig.content_dir = data.content_dir
-    pathConfig.log_path = data.log_path
-    pathConfig.tag_path = data.tag_path
+async function onPathCancelAsync() {
+    await getHandler('path', async (response) => {
+        const data = await response.json() as IPathConfig
+        pathConfig.resource_dir = data.resource_dir
+        pathConfig.content_dir = data.content_dir
+        pathConfig.note_dir = data.note_dir
+        pathConfig.log_path = data.log_path
+        pathConfig.tag_path = data.tag_path
+        pathConfig.emoji_path = data.emoji_path
+    })
 }
 
-async function onBasicCancel() {
-    const response = await fetch(`${stateStore.backendHost}/config/get_config/basic`, { method: 'GET', mode: 'cors' })
-    const data = await response.json() as IBasicConfig
-    basicConfig.log_level = data.log_level
-    basicConfig.title = data.title
-    logLevel.value = logLevelToNumber(basicConfig.log_level)
+async function onBasicCancelAsync() {
+    await getHandler('basic', async (response) => {
+        const data = await response.json() as IBasicConfig
+        basicConfig.log_level = data.log_level
+        basicConfig.title = data.title
+        logLevel.value = logLevelToNumber(basicConfig.log_level)
+    })
 }
 
 // hook
 onActivated(() => {
-    onSystemCancel()
-    onBasicCancel()
-    onPathCancel()
+    onSystemCancelAsync()
+    onBasicCancelAsync()
+    onPathCancelAsync()
 })
 </script>
 
@@ -148,7 +116,7 @@ onActivated(() => {
             <el-collapse-item>
                 <template #title>
                     <div class="title">
-                        <font-awesome-icon :icon="['fas', 'gears']" class="icon" />
+                        <font-awesome-icon :icon="['fas', 'shield-halved']" class="icon" />
                         <p>系统</p>
                     </div>
                 </template>
@@ -160,8 +128,8 @@ onActivated(() => {
                         <el-input-number v-model="systemConfig.port"></el-input-number>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onSystemSubmit">提交</el-button>
-                        <el-button @click="onSystemCancel">取消</el-button>
+                        <el-button type="primary" @click="onSystemSubmitAsync">提交</el-button>
+                        <el-button @click="onSystemCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>
@@ -182,8 +150,8 @@ onActivated(() => {
                             :format-tooltip="numberToLogLevel"></el-slider>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onBasicSubmit">提交</el-button>
-                        <el-button @click="onBasicCancel">取消</el-button>
+                        <el-button type="primary" @click="onBasicSubmitAsync">提交</el-button>
+                        <el-button @click="onBasicCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>
@@ -205,6 +173,11 @@ onActivated(() => {
                             <el-input v-model="pathConfig.content_dir"></el-input>
                         </el-form-item>
                     </el-tooltip>
+                    <el-tooltip content="笔记存放的路径" :offset="6">
+                        <el-form-item label="笔记路径">
+                            <el-input v-model="pathConfig.note_dir"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
                     <el-tooltip content="数据库存放的路径" :offset="6">
                         <el-form-item label="数据库路径">
                             <el-input v-model="pathConfig.tag_path"></el-input>
@@ -215,17 +188,35 @@ onActivated(() => {
                             <el-input v-model="pathConfig.log_path"></el-input>
                         </el-form-item>
                     </el-tooltip>
+                    <el-tooltip content="emoji数据库存放的路径" :offset="6">
+                        <el-form-item label="emoji路径">
+                            <el-input v-model="pathConfig.emoji_path"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
                     <el-form-item>
-                        <el-button type="primary" @click="onPathSubmit">提交</el-button>
-                        <el-button @click="onPathCancel">取消</el-button>
+                        <el-button type="primary" @click="onPathSubmitAsync">提交</el-button>
+                        <el-button @click="onPathCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
+            </el-collapse-item>
+            <el-collapse-item>
+                <template #title>
+                    <div class="title">
+                        <font-awesome-icon :icon="['fas', 'paintbrush']" class="icon" />
+                        <p>主题</p>
+                    </div>
+                </template>
+                <!-- todo -->
             </el-collapse-item>
         </el-collapse>
     </div>
 </template>
 
 <style scoped>
+.setting {
+    margin-top: 10px;
+}
+
 .setting .title {
     display: flex;
     align-items: center;

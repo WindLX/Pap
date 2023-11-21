@@ -2,16 +2,24 @@ import { defineStore } from 'pinia'
 import { CustomWindow } from '@/types/custom-types'
 
 export enum SidebarIndex {
+    House = 'house',
+    Note = 'note',
     Resource = "resource",
-    Search = "search",
     Timeline = "timeline",
-    Setting = "setting"
+    Setting = "setting",
+}
+
+export enum ContentIndex {
+    House = 'house',
+    Note = 'note',
+    Resource = "resource",
 }
 
 export const useStateStore = defineStore('states', {
     state: () => {
         return {
-            sidebarIndex: SidebarIndex.Resource,
+            sidebarIndex: SidebarIndex.House,
+            contentIndex: ContentIndex.House,
             isMiddleBarShow: true,
             host: (window as unknown as CustomWindow).host,
             port: (window as unknown as CustomWindow).port

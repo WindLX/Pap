@@ -1,9 +1,7 @@
-<script setup lang="ts">
-import Main from './components/Main.vue';
-</script>
-
 <template>
-  <Main></Main>
+  <router-view v-slot="{ Component }">
+    <keep-alive>
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
 </template>
-
-<style scoped></style>

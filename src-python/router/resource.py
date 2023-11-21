@@ -33,6 +33,8 @@ def create_resource(file: UploadFile, db: Session = Depends(get_db)):
             file_data = file.file.read()
             assert file_name is not None
             file_path = path.join(path_config.resource_dir, raw_filename)
+            if path.exists(file_path):
+                file_path = f"{file_path}.other"
             with open(file_path, 'wb') as fout:
                 fout.write(file_data)
                 file.file.close()

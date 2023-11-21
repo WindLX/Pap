@@ -4,17 +4,16 @@ import { ref, Ref, onMounted, reactive, computed, ComputedRef } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
     ElButton, ElDrawer, ElInput, ElColorPicker, ElDialog,
-    ElNotification, ElCollapse, ElCollapseItem, ElForm, ElFormItem,
+    ElCollapse, ElCollapseItem, ElForm, ElFormItem,
     ElButtonGroup, ElPopconfirm
 } from 'element-plus';
 import type { ITag, ITagRelationship } from '../types/resource-types';
+import { tag } from '@store';
+import pFetch from '@utils/fetch';
 import Tag from './Tag.vue';
-import { useStateStore } from '../store/state';
-import { useTagStore } from '../store/tag';
 
 // state
-const stateStore = useStateStore()
-const tagStore = useTagStore()
+const tagStore = tag.useTagStore()
 
 // style
 const show = ref(tagStore.show)
@@ -37,13 +36,13 @@ tagStore.$onAction(
         after(() => {
             switch (name) {
                 case "onCreate":
-                    loadAllTags()
+                    loadAllTagsAsync()
                     break;
                 case "onAdd":
-                    loadAllTags()
+                    loadAllTagsAsync()
                     break;
                 case "onRemove":
-                    loadAllTags()
+                    loadAllTagsAsync()
                     break;
                 default:
                     break;
@@ -84,38 +83,24 @@ let targetTag: ReactiveVariable<ITag> = reactive(defaultTag)
 let inputValue: Ref<string> = ref("")
 
 // callback function
-async function handleUpdateConfirm() {
+async function handleUpdateConfirmAsync() {
     if (targetTag) {
         const tagUpdateData = {
             name: targetTag.name,
             color: targetTag.color,
             id: targetTag.id
         }
-        const response = await fetch(`${stateStore.backendHost}/tag/update_tag`, {
+        await pFetch('/tag/update_tag', {
             method: 'PUT',
-            mode: 'cors',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(tagUpdateData)
+            body: JSON.stringify(tagUpdateData),
+            successMsg: '标签更新成功',
+            successCallback: async (res) => {
+                const data = await res.json() as ITagRelationship
+                const index = allTags.value.findIndex((t) => { return t.id === data.id })
+                allTags.value[index] = data
+                tagStore.onUpdate(data)
+            }
         })
-        if (response.status != 202) {
-            ElNotification({
-                title: '更新失败',
-                message: response.statusText,
-                type: 'error',
-                duration: 2000
-            })
-        } else {
-            const data = await response.json() as ITagRelationship
-            const index = allTags.value.findIndex((t) => { return t.id === data.id })
-            allTags.value[index] = data
-            tagStore.onUpdate(data)
-            ElNotification({
-                title: '更新成功',
-                message: '标签更新成功',
-                type: 'success',
-                duration: 2000
-            })
-        }
     }
     inputVisible.value = false
     targetTag = defaultTag
@@ -156,52 +141,26 @@ function handleChooseConfirm() {
     targetTag = defaultTag
 }
 
-async function handleDeleteTag(tagId: number) {
-    const response = await fetch(`${stateStore.backendHost}/tag/delete_tag?tag_id=${tagId}`, {
+async function handleDeleteTagAsync(tagId: number) {
+    await pFetch(`/tag/delete_tag?tag_id=${tagId}`, {
         method: 'DELETE',
-        mode: 'cors',
+        successMsg: '标签删除成功',
+        successCallback: async (_res) => {
+            await loadAllTagsAsync()
+            tagStore.onDelete(tagId)
+        }
     })
-    if (response.status != 200) {
-        ElNotification({
-            title: '删除失败',
-            message: response.statusText,
-            type: 'error',
-            duration: 2000
-        })
-    } else {
-        loadAllTags()
-        tagStore.onDelete(tagId)
-        ElNotification({
-            title: '删除成功',
-            message: '标签删除成功',
-            type: 'success',
-            duration: 2000
-        })
-    }
 }
 
-async function handleRemoveResourceItem(tagId: number, resourceItemId: number) {
-    const response = await fetch(`${stateStore.backendHost}/resource/remove_resource_item?tag_id=${tagId}&resource_item_id=${resourceItemId}`, {
+async function handleRemoveResourceItemAsync(tagId: number, resourceItemId: number) {
+    await pFetch(`/resource/remove_resource_item?tag_id=${tagId}&resource_item_id=${resourceItemId}`, {
         method: 'PUT',
-        mode: 'cors',
+        successMsg: '标签关联对象移除成功',
+        successCallback: async (_response) => {
+            await loadAllTagsAsync()
+            tagStore.onRemove(tagId, resourceItemId)
+        }
     })
-    if (response.status == 202) {
-        loadAllTags()
-        tagStore.onRemove(tagId, resourceItemId)
-        ElNotification({
-            title: '移除成功',
-            message: '标签关联对象移除成功',
-            type: 'success',
-            duration: 2000
-        })
-    } else {
-        ElNotification({
-            title: '移除失败',
-            message: response.statusText,
-            type: 'error',
-            duration: 2000
-        })
-    }
 }
 
 function handleClose() {
@@ -211,22 +170,13 @@ function handleClose() {
 }
 
 // load function
-async function loadAllTags() {
-    const response = await fetch(`${stateStore.backendHost}/tag/get_tags`, {
-        method: 'GET',
-        mode: 'cors',
+async function loadAllTagsAsync() {
+    await pFetch('/tag/get_tags', {
+        successCallback: async (res) => {
+            const data = await res.json()
+            allTags.value = data as Array<ITagRelationship>
+        }
     })
-    if (response.status != 200) {
-        ElNotification({
-            title: '查找失败',
-            message: response.statusText,
-            type: 'error',
-            duration: 2000
-        })
-    } else {
-        const data = await response.json()
-        allTags.value = data as Array<ITagRelationship>
-    }
 }
 
 function isChoosable(id: number) {
@@ -240,7 +190,7 @@ function isChoosable(id: number) {
 
 // hook
 onMounted(async () => {
-    loadAllTags()
+    await loadAllTagsAsync()
 })
 </script>
 
@@ -271,7 +221,7 @@ onMounted(async () => {
                                 <font-awesome-icon :icon="['fas', 'pen']" class="icon" />
                             </el-button>
                             <el-popconfirm title="确认删除此标签吗?" confirm-button-text="确认" cancel-button-text="取消"
-                                @confirm="handleDeleteTag(tag.id)" :hide-after="0">
+                                @confirm="handleDeleteTagAsync(tag.id)" :hide-after="0">
                                 <template #reference>
                                     <el-button size="small" class="button" :disabled="!editable">
                                         <font-awesome-icon :icon="['fas', 'trash-can']" class="icon" />
@@ -285,7 +235,7 @@ onMounted(async () => {
                                 {{ resource.name }}
                             </span>
                             <el-popconfirm title="确认删除此资源与此标签的关联吗?" confirm-button-text="确认" cancel-button-text="取消"
-                                @confirm="handleRemoveResourceItem(tag.id, resource.id)" :hide-after="0">
+                                @confirm="handleRemoveResourceItemAsync(tag.id, resource.id)" :hide-after="0">
                                 <template #reference>
                                     <el-button size="small" :disabled="!editable">
                                         <font-awesome-icon :icon="['fas', 'trash-can']" class="icon" />
@@ -316,7 +266,7 @@ onMounted(async () => {
                         取消
                     </span>
                 </el-button>
-                <el-button size="small" type="primary" @click="handleUpdateConfirm" class="button">
+                <el-button size="small" type="primary" @click="handleUpdateConfirmAsync" class="button">
                     <font-awesome-icon :icon="['fas', 'check']" class="icon" />
                     <span style="margin-left: 8px;">
                         确认

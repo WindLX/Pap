@@ -1,6 +1,6 @@
 from os import path, mkdir
 from abc import ABC, abstractmethod
-from typing import Optional, Any, TypeVar, Generic, Type
+from typing import Optional, Any, TypeVar, Generic
 
 from schemas.config import BaseConfigSchema, SystemConfigSchema, BasicConfigSchema, PathConfigSchema
 
@@ -240,6 +240,19 @@ class PathConfig(BaseConfig[PathConfigSchema]):
         self.set_property("content_dir", value)
 
     @property
+    def note_dir(self) -> str:
+        """笔记存储目录
+
+        Returns:
+            str: 笔记存储目录
+        """
+        return self.get_property("note_dir")
+
+    @note_dir.setter
+    def note_dir(self, value: str) -> None:
+        self.set_property("note_dir", value)
+
+    @property
     def log_path(self) -> str:
         """日志文件路径
 
@@ -264,6 +277,19 @@ class PathConfig(BaseConfig[PathConfigSchema]):
     @tag_path.setter
     def tag_path(self, value: str) -> None:
         self.set_property("tag_path", value)
+
+    @property
+    def emoji_path(self) -> str:
+        """emoji数据库路径
+
+        Returns:
+            str: emoji数据库路径
+        """
+        return self.get_property("emoji_path")
+
+    @emoji_path.setter
+    def emoji_path(self, value: str) -> None:
+        self.set_property("emoji_path", value)
 
     def check_path(self) -> None:
         dirs = [self.resource_dir, self.content_dir]

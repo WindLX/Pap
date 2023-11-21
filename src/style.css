@@ -24,3 +24,13 @@
   text-indent: 0;
   text-rendering: auto;
 }
+
+@media print {
+  .line-num {
+    display: none;
+  }
+
+  .edit {
+    display: none;
+  }
+}

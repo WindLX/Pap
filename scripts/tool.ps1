@@ -57,6 +57,7 @@ function Open-Venv {
 }
 
 function Build-Rust {
+    cargo install wasm-pack
     Set-Location .\md\md_wasm
     cargo build --release
     wasm-pack build

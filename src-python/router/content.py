@@ -1,11 +1,15 @@
+from os import path
+
+from model.resource_group import ContentModel
 from schemas.resource import ResourceItemSchemaRelationship
-from schemas.content import ContentSchemaCreate
+from schemas.content import ContentSchemaCreate, ContentSchema
+from service.config import path_config
 from service.logger import logger
 from service.database import get_db
 from service.crud import content
 
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status, APIRouter, Depends
+from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
 
 router = APIRouter(prefix="/content")
 
@@ -31,6 +35,52 @@ def create_content(new_content: ContentSchemaCreate, db: Session = Depends(get_d
         logger.warning("fail to find target resource item")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"目标资源文件查找失败")
+
+
+@router.get("/get_content", response_model=ContentSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_content(content_id: int, db: Session = Depends(get_db)) -> ContentModel:
+    """get content by id
+
+    Args:
+        content_id (int): content id 
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: 404 for not find the target resource item
+
+    Returns:
+        ContentModel: query result, content model
+    """
+    logger.debug("GET /resource/get_resource")
+    if (data := content.get_content(db, content_id)):
+        return data
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="目标资源文件查找失败")
+
+
+@router.post("/save_content", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+def save_content(content_id: int, file: UploadFile, db: Session = Depends(get_db)):
+    """save content by id
+
+    Args:
+        content_id (int): content id 
+        file (UploadFile): upload file from frontend
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: 404 for not find the target resource item
+    """
+    logger.debug("POST /resource/save_resource")
+    if (data := content.get_content(db, content_id)):
+        file_data = file.file.read()
+        file_path = path.join(path_config.content_dir, data.name)
+        with open(f"{file_path}.md", 'wb') as fout:
+            fout.write(file_data)
+            file.file.close()
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="目标资源文件查找失败")
 
 
 @router.delete("/delete_content", status_code=status.HTTP_200_OK, include_in_schema=True)

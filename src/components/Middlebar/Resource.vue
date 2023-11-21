@@ -7,18 +7,16 @@ import {
     ElNotification, ElPopover, ElInput, ElTooltip,
     ElText, ElScrollbar, ElTree
 } from 'element-plus'
-import { IContent, IResourceItem, INodeResourceItem, ITag } from '../types/resource-types'
-import { TagEvent } from '../types/event-types'
-import { TabData, TabDataType } from '../types/tab-types'
-import Tag from './Tag.vue'
-import { useStateStore } from '../store/state'
-import { useTabStore, isResourceItem } from '../store/tab'
-import { useTagStore } from '../store/tag'
+import { IContent, IResourceItem, INodeResourceItem, ITag } from '@/types/resource-types'
+import { TagEvent } from '@/types/event-types'
+import { TabData, TabDataType, TabState } from '@/types/tab-types'
+import Tag from '../Tag.vue'
+import { tab, tag } from '@store'
+import pFetch from '@/utils/fetch'
 
 // state
-const stateStore = useStateStore()
-const tabStore = useTabStore()
-const tagStore = useTagStore()
+const tabStore = tab.useResourceTabStore()
+const tagStore = tag.useTagStore()
 
 tagStore.$onAction(
     ({
@@ -32,10 +30,10 @@ tagStore.$onAction(
                     filterTags.value[index] = result as ITag
                     break;
                 case "onAdd":
-                    getResource()
+                    getResourceAsync()
                     break;
                 case "onRemove":
-                    getResource()
+                    getResourceAsync()
                     break;
                 case "onDelete":
                     filterTags.value = filterTags.value.filter((t) => t.id !== (result as number))
@@ -73,20 +71,18 @@ let filterTags: Ref<Array<ITag>> = ref([])
 const treeRef = ref<InstanceType<typeof ElTree>>()
 
 // load function
-async function getResource() {
+async function getResourceAsync() {
     let response
     if (filterTags.value.length === 0) {
-        response = await fetch(`${stateStore.backendHost}/resource/get_resource`, { method: 'GET', mode: 'cors' })
+        response = await pFetch(`/resource/get_resource`)
     }
     else {
         const tagsData = filterTags.value.map((t) => { return t.id })
         const json = {
             tags_id: tagsData
         }
-        response = await fetch(`${stateStore.backendHost}/resource/get_resource_by_tags`, {
+        response = await pFetch(`/resource/get_resource_by_tags`, {
             method: 'POST',
-            mode: 'cors',
-            headers: { 'content-type': 'application/json' },
             body: JSON.stringify(json)
         })
     }
@@ -94,7 +90,7 @@ async function getResource() {
         const newData = await response.json()
         data.value = (newData as Array<IResourceItem>).map(d => {
             return <INodeResourceItem>{
-                nodeId: `${isResourceItem(d) ? 'r' : 'c'}${d.id}`,
+                nodeId: `${tab.isResourceItem(d) ? 'r' : 'c'}${d.id}`,
                 ...d
             }
         })
@@ -107,45 +103,25 @@ function openFilePicker() {
     (fileInput.value as HTMLInputElement).click();
 }
 
-async function handleFileChange(event: Event) {
+async function handleFileChangeAsync(event: Event) {
     const inputElement = event.target as HTMLInputElement;
     const selectedFile = inputElement.files ? inputElement.files[0] : null;
     if (selectedFile) {
         const formData = new FormData();
         formData.append('file', selectedFile);
-        const response = await fetch(`${stateStore.backendHost}/resource/create_resource_item`, {
+        await pFetch(`/resource/create_resource_item`, {
             method: 'POST',
-            mode: 'cors',
             body: formData,
+            isForm: true,
+            successMsg: '文件托管成功',
+            successCallback: async () => {
+                await getResourceAsync()
+            }
         })
-        if (response.status == 201) {
-            ElNotification({
-                title: '托管成功',
-                message: '文件托管成功',
-                type: 'success',
-                duration: 2000
-            })
-            await getResource()
-        } else if (response.status == 403) {
-            ElNotification({
-                title: '托管失败',
-                message: '不支持的文件格式',
-                type: 'error',
-                duration: 2000
-            })
-        }
-        else {
-            ElNotification({
-                title: '托管失败',
-                message: response.statusText,
-                type: 'error',
-                duration: 2000
-            })
-        }
     }
 }
 
-async function handleCreateContent(id: number) {
+async function handleCreateContentAsync(id: number) {
     if (newContentName.value !== null) {
         const data = {
             name: newContentName.value,
@@ -153,28 +129,14 @@ async function handleCreateContent(id: number) {
         }
         visible.value[id] = false
         newContentName.value = null
-        const response = await fetch(`${stateStore.backendHost}/content/create_content`, {
+        await pFetch(`/content/create_content`, {
             method: 'POST',
-            mode: 'cors',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            successMsg: '内容文件创建成功',
+            successCallback: async () => {
+                await getResourceAsync()
+            }
         })
-        if (response.status == 201) {
-            ElNotification({
-                title: '创建成功',
-                message: '内容文件创建成功',
-                type: 'success',
-                duration: 2000
-            })
-            await getResource()
-        } else {
-            ElNotification({
-                title: '创建失败',
-                message: response.statusText,
-                type: 'error',
-                duration: 2000
-            })
-        }
     } else {
         ElNotification({
             title: '创建失败',
@@ -186,52 +148,26 @@ async function handleCreateContent(id: number) {
     }
 }
 
-async function handleDeleteResourceItem(id: number) {
-    const response = await fetch(`${stateStore.backendHost}/resource/delete_resource_item?resource_item_id=${id}`, {
+async function handleDeleteResourceItemAsync(id: number) {
+    await pFetch(`/resource/delete_resource_item?resource_item_id=${id}`, {
         method: 'DELETE',
-        mode: 'cors',
+        successMsg: '资源文件删除成功',
+        successCallback: async () => {
+            data.value = data.value.filter((d) => d.id !== id)
+            tabStore.flush(data.value)
+        }
     })
-    if (response.status == 200) {
-        ElNotification({
-            title: '删除成功',
-            message: '资源文件删除成功',
-            type: 'success',
-            duration: 2000
-        })
-        data.value = data.value.filter((d) => d.id !== id)
-        tabStore.flush(data.value)
-    } else {
-        ElNotification({
-            title: '删除失败',
-            message: response.statusText,
-            type: 'error',
-            duration: 2000
-        })
-    }
 }
 
-async function handleDeleteContent(id: number) {
-    const response = await fetch(`${stateStore.backendHost}/content/delete_content?content_id=${id}`, {
+async function handleDeleteContentAsync(id: number) {
+    await pFetch(`/content/delete_content?content_id=${id}`, {
         method: 'DELETE',
-        mode: 'cors',
+        successMsg: '内容文件删除成功',
+        successCallback: async () => {
+            await getResourceAsync()
+            tabStore.flush(data.value)
+        }
     })
-    if (response.status == 200) {
-        ElNotification({
-            title: '删除成功',
-            message: '内容文件删除成功',
-            type: 'success',
-            duration: 2000
-        })
-        await getResource()
-        tabStore.flush(data.value)
-    } else {
-        ElNotification({
-            title: '删除失败',
-            message: response.statusText,
-            type: 'error',
-            duration: 2000
-        })
-    }
 }
 
 function onNodeClick(nodeData: TreeNodeData) {
@@ -241,7 +177,7 @@ function onNodeClick(nodeData: TreeNodeData) {
     const data = nodeData as INodeResourceItem
     const flag = tabStore.tabs.find((t) => judge(t))
     if (flag == undefined) {
-        tabStore.tabs.push(<TabData>{ typ: TabDataType.ResourceItem, id: data.id, name: data.name })
+        tabStore.tabs.push(<TabData>{ typ: TabDataType.ResourceItem, id: data.id, name: data.name, state: new Set([TabState.Save]) })
     }
     tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
 }
@@ -253,7 +189,7 @@ function onLeafClick(nodeData: TreeNodeData) {
     const data = nodeData as IContent
     const flag = tabStore.tabs.find((t) => judge(t))
     if (flag == undefined) {
-        tabStore.tabs.push(<TabData>{ typ: TabDataType.Content, id: data.id, name: data.name })
+        tabStore.tabs.push(<TabData>{ typ: TabDataType.Content, id: data.id, name: data.name, state: new Set([TabState.Save]) })
     }
     tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
 }
@@ -282,7 +218,7 @@ function filterName(_value: string, data: TreeNodeData): boolean {
 
 // hook
 onMounted(() => {
-    getResource()
+    getResourceAsync()
 })
 
 watch(filterText, (val) => {
@@ -290,13 +226,13 @@ watch(filterText, (val) => {
 })
 
 watch(filterTags, () => {
-    getResource()
+    getResourceAsync()
 })
 </script>
 
 <template>
     <div class="resource">
-        <input type="file" accept=".pdf" style="display: none;" ref="fileInput" @change="handleFileChange">
+        <input type="file" accept=".pdf" style="display: none;" ref="fileInput" @change="handleFileChangeAsync">
         <el-button class="add" @click="openFilePicker">
             <font-awesome-icon :icon="['fas', 'plus']" class="icon" />
         </el-button>
@@ -321,9 +257,9 @@ watch(filterTags, () => {
                     :filter-method="filterName">
                     <template #default="{ node, data }">
                         <el-tooltip placement="bottom" :content="node.label" :hide-after="0">
-                            <div class="node" v-if="isResourceItem(data)">
+                            <div class="node" v-if="tab.isResourceItem(data)">
                                 <div class="label" @click="onNodeClick(data)">
-                                    <font-awesome-icon :icon="['fas', 'file']" class="icon" />
+                                    <font-awesome-icon :icon="['fas', 'book']" class="icon" />
                                     <el-text truncated>{{ node.label }}</el-text>
                                 </div>
                                 <el-button-group class="button-group">
@@ -335,7 +271,7 @@ watch(filterTags, () => {
                                             <el-button size="small" text
                                                 @click="visible[data.id] = false; newContentName = null">取消</el-button>
                                             <el-button size="small" type="primary"
-                                                @click="handleCreateContent(data.id)">确认</el-button>
+                                                @click="handleCreateContentAsync(data.id)">确认</el-button>
                                         </div>
                                         <template #reference>
                                             <el-button class="button" size="small">
@@ -344,18 +280,19 @@ watch(filterTags, () => {
                                             </el-button>
                                         </template>
                                     </el-popover>
-                                    <el-button class="button" size="small" @click="handleDeleteResourceItem(data.id)">
+                                    <el-button class="button" size="small" @click="handleDeleteResourceItemAsync(data.id)">
                                         <font-awesome-icon :icon="['fas', 'trash-can']" />
                                     </el-button>
                                 </el-button-group>
                             </div>
                             <div class="node" v-else>
                                 <div class="label" @click="onLeafClick(data)">
-                                    <font-awesome-icon :icon="['fas', 'note-sticky']" class="icon" />
+                                    <font-awesome-icon :icon="['fas', 'file']" class="icon" />
                                     <el-text truncated style="max-width: 90%;">{{ node.label }}</el-text>
                                 </div>
                                 <el-button size="small" class="leaf" style="height: 18px; width: 72px">
-                                    <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteContent(data.id)" />
+                                    <font-awesome-icon :icon="['fas', 'trash-can']"
+                                        @click="handleDeleteContentAsync(data.id)" />
                                 </el-button>
                             </div>
                         </el-tooltip>
@@ -410,4 +347,4 @@ watch(filterTags, () => {
 .resource .node .button-group .button {
     height: 18px;
 }
-</style>
+</style>../store/workspaceTab

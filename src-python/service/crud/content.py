@@ -19,7 +19,10 @@ def create_content(db: Session, content: ContentSchemaCreate) -> ResourceItemMod
     """
 
     if (db_resource_item := db.get(ResourceItemModel, content.resource_item_id)):
-        content_path = path.join(path_config.content_dir, f"{content.name}.md")
+        content_path = path.join(
+            path_config.content_dir, f"{db_resource_item.id}_{content.name}.md")
+        if path.exists(content_path):
+            content_path = f"{content_path}.other"
         db_content = ContentModel(
             name=content.name, url=content_path, resource_item_id=content.resource_item_id)
         db.add(db_resource_item)
@@ -28,6 +31,19 @@ def create_content(db: Session, content: ContentSchemaCreate) -> ResourceItemMod
         db.refresh(db_resource_item)
         return db_resource_item
     return None
+
+
+def get_content(db: Session, content_id: int) -> ContentModel | None:
+    """get target content
+
+    Args:
+        db (Session): database session
+        content_id (int): target content id
+
+    Returns:
+        ContentModel | None: query result
+    """
+    return db.get(ContentModel, content_id)
 
 
 def delete_content(db: Session, content_id: int):

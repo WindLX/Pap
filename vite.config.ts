@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig } from 'vite'
 import topLevelAwait from "vite-plugin-top-level-await"
 import vue from '@vitejs/plugin-vue'
@@ -24,6 +25,12 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, 'src'),
+      '@utils': path.resolve(__dirname, 'src/utils'),
+      '@store': path.resolve(__dirname, 'src/store'),
+      '@types': path.resolve(__dirname, 'src/types'),
+      '@components': path.resolve(__dirname, 'src/components'),
+      '@views': path.resolve(__dirname, 'src/views'),
       'pdfjs-dist-types': '/src/@types/pdfjs-dist-types.d.ts',
     }
   },

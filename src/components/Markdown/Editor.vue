@@ -1,10 +1,27 @@
 <script setup lang="ts">
-// import * as md_wasm from "md_wasm";
-import { nextTick, ref } from "vue";
+import { JsGenerator } from "md_wasm";
+import { nextTick, onMounted, ref } from "vue";
 import MdBlock from "./MdBlock.vue";
 import { ElScrollbar } from "element-plus";
 
-// const generator = md_wasm.JsGenerator.new(1000);
+const props = defineProps<{
+    mdData: string,
+}>();
+
+const emits = defineEmits<{
+    (e: 'update:mdData', value: string): void,
+    (e: 'onEdit'): void,
+}>();
+
+defineExpose({
+    saveData: () => {
+        const newData = saveData()
+        emits('update:mdData', newData)
+    },
+})
+
+const generator = JsGenerator.new();
+
 // element
 const container = ref<HTMLDivElement | null>(null);
 const blocks = ref<Array<InstanceType<typeof MdBlock>>>([]);
@@ -12,6 +29,19 @@ const blocks = ref<Array<InstanceType<typeof MdBlock>>>([]);
 // data
 let rawDataSet = ref<Array<string>>([""])
 
+function handleKeyDown(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        const newData = saveData();
+        emits('update:mdData', newData);
+    }
+}
+
+function saveData(): string {
+    return rawDataSet.value.join('\n')
+}
+
+// edit    
 function appendLine(lineNum: number, data: string) {
     if (lineNum + 1 < rawDataSet.value.length) {
         rawDataSet.value.splice(lineNum + 1, 0, data);
@@ -56,13 +86,25 @@ function downLine(lineNum: number) {
         blocks.value[lineNum + 1].focus()
     }
 }
+
+function updateRawData(lineNum: number, data: string) {
+    rawDataSet.value[lineNum] = data
+    emits("onEdit")
+}
+
+onMounted(async () => {
+    rawDataSet.value = await Promise.resolve(generator.split(props.mdData))
+    if (rawDataSet.value.length === 0) {
+        rawDataSet.value = [''];
+    }
+})
 </script>
 
 <template>
-    <div class="editor" ref="container">
+    <div class="editor" ref="container" @keydown="handleKeyDown" id="md-print">
         <el-scrollbar>
             <MdBlock v-for="(rawData, index) in rawDataSet" :key="index" :raw-data="rawData" :line-num="index" ref="blocks"
-                @update:raw-data="(newValue) => rawDataSet[index] = newValue" @append-line="appendLine"
+                @update:raw-data="(newValue: string) => updateRawData(index, newValue)" @append-line="appendLine"
                 @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine" @down-line="downLine">
             </MdBlock>
         </el-scrollbar>
@@ -75,8 +117,9 @@ function downLine(lineNum: number) {
     grid-area: content;
     display: flex;
     flex-direction: column;
-    height: inherit;
     border: 1px solid #ccc;
     position: relative;
+    border-radius: 10px;
+    padding: 10px 0;
 }
 </style>

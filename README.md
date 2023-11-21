@@ -27,8 +27,18 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 ## TODO
 
 - [x] Markdown Parser
-- [ ] Markdown Editor
+- [x] Markdown Editor
+- [x] File Lock
+- [x] Not save tip
+- [ ] Note Folder
+- [ ] Private Lock
+- [ ] HousePage
+- [ ] Style
+- [ ] Help
 - [ ] Timeline
+- [ ] Markdown Grep
+- [ ] Markdown Ref net
+- [ ] Table
 - [ ] OCR
 - [ ] PDF information extraction function
 - [ ] More powerful PDF browsing and editing functions

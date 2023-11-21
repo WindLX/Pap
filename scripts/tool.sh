@@ -19,6 +19,7 @@ install_modules() {
 }
 
 build_rust() {
+    cargo install wasm-pack
     cd md/md_wasm
     cargo build --release
     wasm-pack build

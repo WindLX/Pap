@@ -42,8 +42,10 @@ def test_write_path_config():
     put_data = {
         "resource_dir": "./data/resource/",
         "content_dir": "./data/content/",
+        "note_dir": "./data/note/",
         "log_path": "./data/paps.log",
-        "tag_path": "./data/tags.db"
+        "tag_path": "./data/tags.db",
+        "emoji_path": "./data/emoji.db",
     }
     response = client.put("/config/set_config/path", json=put_data)
     assert response.status_code == 202
@@ -55,8 +57,10 @@ def test_write_path_config():
     put_data_2 = {
         "resource_dir": "./data/resource/",
         "content_dir": "./data/content/",
+        "note_dir": "./data/note/",
         "log_path": "./data/pap.log",
-        "tag_path": "./data/tag.db"
+        "tag_path": "./data/tag.db",
+        "emoji_path": "./data/emoji.db"
     }
     response_2 = client.put("/config/set_config/path", json=put_data_2)
     assert response_2.status_code == 202

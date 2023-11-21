@@ -41,9 +41,9 @@ def remove_resource_item_file(_mapper: Mapper[ResourceItemModel], _connection: C
     """remove resource item file before delete
 
     Args:
-        _mapper (Mapper[ResourceItem]): Mapper of ResourceItem
+        _mapper (Mapper[ResourceItemModel]): Mapper of ResourceItem
         _connection (Connection): database connection
-        target (ResourceItem): target instance
+        target (ResourceItemModel): target instance
     """
     if path.exists(target.url):
         remove(target.url)

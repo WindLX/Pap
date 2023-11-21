@@ -112,10 +112,20 @@ impl ToString for JsBlock {
             JsBlock::Footer(footer) => footer.to_string(),
             JsBlock::Quote(quote) => format!("> {}", quote.to_string()),
             JsBlock::CodeBlock(lang, code) => {
-                format!("```{}\n{}\n```", lang.clone().unwrap_or_default(), code)
+                if code.ends_with('\n') {
+                    format!("```{}\n{}```", lang.clone().unwrap_or_default(), code)
+                } else {
+                    format!("```{}\n{}\n```", lang.clone().unwrap_or_default(), code)
+                }
             }
             JsBlock::Image(image) => image.to_string(),
-            JsBlock::MathBlock(math) => format!("$${}$$", math),
+            JsBlock::MathBlock(math) => {
+                if math.ends_with('\n') {
+                    format!("$$\n{}$$", math)
+                } else {
+                    format!("$$\n{}\n$$", math)
+                }
+            }
             JsBlock::Line => String::from("---"),
             JsBlock::TableBlock => String::from(":::table\n:::\n"),
         }

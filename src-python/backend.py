@@ -1,11 +1,12 @@
-from router import config, resource, content, tag
+from router import login, config, resource, content, note, tag, emoji
 from model.resource_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
 from service.database import engine
+from service.security import authentication_manager
 
 from uvicorn import run
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -29,7 +30,29 @@ templates = Jinja2Templates(directory="dist")
 origins = [
     f"http://{dev_config.dev_host}:{dev_config.dev_port}",
     f"http://{host}:{port}",
+    "http://localhost:6174",
 ]
+
+# middleware
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    if request.url.path in ["/login/", "/login"]:
+        response = await call_next(request)
+        return response
+    if token := request.headers.get("Authorization"):
+        exception = authentication_manager.check_jwt_token(token)
+        if exception:
+            return exception
+        else:
+            response = await call_next(request)
+            return response
+    return Response(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,10 +67,13 @@ app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
 app.mount("/data", StaticFiles(directory="data"), name="data")
 
 # router
+app.include_router(login.router)
 app.include_router(config.router)
 app.include_router(resource.router)
 app.include_router(content.router)
+app.include_router(note.router)
 app.include_router(tag.router)
+app.include_router(emoji.router)
 
 
 @app.get("/", include_in_schema=False)
@@ -57,7 +83,7 @@ async def index(request: Request):
     Returns:
         _TemplateResponse : HTML of main page
     """
-    logger.debug("load index page")
+    logger.debug("GET / load index page")
     return templates.TemplateResponse("index.html", {"request": request, "host": host, "port": port})
 
 
