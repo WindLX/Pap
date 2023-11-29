@@ -1,8 +1,5 @@
-from os import path
-
 from model.note import NoteModel
-from schemas.note import NoteSchemaCreate, NoteSchema, FolderSchema, FolderSchemaCreate
-from service.config import path_config
+from schemas.note import NoteSchemaCreate, NoteSchema, NoteSchemaUpdate
 from service.logger import logger
 from service.database import get_db
 from service.crud import note
@@ -56,8 +53,32 @@ def get_note(note_id: int, db: Session = Depends(get_db)) -> NoteModel:
     Returns:
         ContentModel: query result, note model
     """
-    logger.debug("GET /note/get_note")
+    logger.debug(f"GET /note/get_note?note_id={note_id}")
     if (data := note.get_note(db, note_id)):
+        return data
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="目标笔记文件查找失败")
+
+
+@router.get("/get_note_by_name", response_model=NoteSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_note_by_name(note_name: str, index: int, db: Session = Depends(get_db)) -> NoteModel:
+    """get note by name
+
+    Args:
+        note_name (str): note name
+        index (int): index
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: 404 for not find the target note
+
+    Returns:
+        ContentModel: query result, note model
+    """
+    logger.debug(
+        f"GET /note/get_note_by_name?note_name={note_name}&index={index}")
+    if (data := note.get_note_by_name(db, note_name, index)):
         return data
     else:
         raise HTTPException(
@@ -76,16 +97,27 @@ def save_note(note_id: int, file: UploadFile, db: Session = Depends(get_db)):
     Raises:
         HTTPException: 404 for not find the target note
     """
-    logger.debug("POST /note/save_note")
+    logger.debug(f"POST /note/save_note?note_id={note_id}")
     if (data := note.get_note(db, note_id)):
         file_data = file.file.read()
-        file_path = path.join(path_config.note_dir, data.name)
-        with open(f"{file_path}.md", 'wb') as fout:
+        with open(data.url, 'wb') as fout:
             fout.write(file_data)
             file.file.close()
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="目标笔记文件查找失败")
+
+
+@router.put("/rename_note", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+def rename_note(note_update: NoteSchemaUpdate, db: Session = Depends(get_db)):
+    """update note name
+
+    Args:
+        note_update (NoteSchemaUpdate): update note data
+        db (Session, optional): database session. Defaults to Depends(get_db).
+    """
+    logger.info("PUT /note/rename_note")
+    note.update_name(db, note_update)
 
 
 @router.delete("/delete_note", status_code=status.HTTP_200_OK, include_in_schema=True)
@@ -96,18 +128,5 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
         note_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /note/delete_note")
+    logger.info(f"DELETE /note/delete_note?note_id={note_id}")
     note.delete_note(db, note_id)
-
-
-@router.post("/create_folder", status_code=status.HTTP_200_OK, include_in_schema=True)
-def create_folder(new_folder: FolderSchemaCreate):
-    """create folder
-
-    Args:
-        new_folder (FolderSchemaCreate): new folder schema
-    """
-    logger.info("POST /note/create_folder")
-    if not note.create_folder(new_folder):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="文件夹创建失败")

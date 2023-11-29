@@ -18,6 +18,12 @@ export default {
         }
     },
     methods: {
+        async onEnter(e: KeyboardEvent) {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                await this.login()
+            }
+        },
         async login() {
             await pFetch('/login/', {
                 method: 'POST',
@@ -30,6 +36,7 @@ export default {
                     }
                 }
             })
+            this.password = ""
         }
     }
 }
@@ -37,7 +44,7 @@ export default {
 
 <template>
     <div class="login">
-        <div class="login-form">
+        <div class="login-form" @keydown="onEnter">
             <font-awesome-icon :icon="['fas', 'lock']" class="icon" />
             <input v-model="password" type="password" name="password" placeholder="密码" />
             <button @click="login()">登录</button>

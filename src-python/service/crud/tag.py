@@ -76,6 +76,7 @@ def update_tag(db: Session, tag: TagSchema) -> TagModel | None:
                 TagModel.color: tag.color
             })
         db.commit()
+        db.refresh(db_tag)
         return db_tag
     return None
 

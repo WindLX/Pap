@@ -59,7 +59,9 @@ const props = {
     label: 'name',
     children: 'contents',
 }
+let renameContentName = ref<string | null>(null)
 const visible = ref<Array<boolean>>([])
+const renameVisible = ref<Array<boolean>>([])
 
 // data
 const data = ref<Array<INodeResourceItem>>([])
@@ -170,6 +172,23 @@ async function handleDeleteContentAsync(id: number) {
     })
 }
 
+async function handleRenameContentAsync(contentId: number) {
+    const renameData = {
+        id: contentId,
+        name: renameContentName.value
+    }
+    await pFetch(`/content/rename_content`, {
+        method: 'PUT',
+        successMsg: '内容文件重命名成功',
+        body: JSON.stringify(renameData),
+        successCallback: async () => {
+            await getResourceAsync()
+            tabStore.flush(data.value)
+        }
+    })
+    onContentRenameCancel(contentId)
+}
+
 function onNodeClick(nodeData: TreeNodeData) {
     function judge(t: TabData) {
         return t.typ === TabDataType.ResourceItem && t.id === data.id
@@ -192,6 +211,17 @@ function onLeafClick(nodeData: TreeNodeData) {
         tabStore.tabs.push(<TabData>{ typ: TabDataType.Content, id: data.id, name: data.name, state: new Set([TabState.Save]) })
     }
     tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
+}
+
+function onContentRename(content: IContent) {
+    renameVisible.value.fill(false);
+    renameVisible.value[content.id] = true
+    renameContentName.value = content.name
+}
+
+function onContentRenameCancel(contentId: number) {
+    renameVisible.value[contentId] = false;
+    renameContentName.value = null
 }
 
 function handleShowTag() {
@@ -290,10 +320,29 @@ watch(filterTags, () => {
                                     <font-awesome-icon :icon="['fas', 'file']" class="icon" />
                                     <el-text truncated style="max-width: 90%;">{{ node.label }}</el-text>
                                 </div>
-                                <el-button size="small" class="leaf" style="height: 18px; width: 72px">
-                                    <font-awesome-icon :icon="['fas', 'trash-can']"
-                                        @click="handleDeleteContentAsync(data.id)" />
-                                </el-button>
+                                <el-button-group class="leaf">
+                                    <el-popover placement="bottom" :visible="renameVisible[data.id]" :width="200"
+                                        trigger="click">
+                                        <p style="margin-top: 0; font-size: 12px;">修改内容文件名称</p>
+                                        <div style="text-align: center; margin: 0">
+                                            <el-input size="small" style="margin-bottom: 6px;"
+                                                v-model="renameContentName"></el-input>
+                                            <el-button size="small" text
+                                                @click="onContentRenameCancel(data.id)">取消</el-button>
+                                            <el-button size="small" type="primary"
+                                                @click="handleRenameContentAsync(data.id)">确认</el-button>
+                                        </div>
+                                        <template #reference>
+                                            <el-button size="small" class="leaf-button">
+                                                <font-awesome-icon :icon="['fas', 'pen']" @click="onContentRename(data)" />
+                                            </el-button>
+                                        </template>
+                                    </el-popover>
+                                    <el-button size="small" class="leaf-button">
+                                        <font-awesome-icon :icon="['fas', 'trash-can']"
+                                            @click="handleDeleteContentAsync(data.id)" />
+                                    </el-button>
+                                </el-button-group>
                             </div>
                         </el-tooltip>
                     </template>
@@ -347,4 +396,9 @@ watch(filterTags, () => {
 .resource .node .button-group .button {
     height: 18px;
 }
-</style>../store/workspaceTab
+
+.resource .node .leaf .leaf-button {
+    height: 18px;
+    width: 36px;
+}
+</style>

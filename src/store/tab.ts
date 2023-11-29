@@ -33,7 +33,14 @@ export const useResourceTabStore = defineStore('workspaceTabs', {
                     if (item.typ === TabDataType.ResourceItem) {
                         return data.some(bItem => bItem.id === item.id);
                     } else {
-                        return data.some(bItem => bItem.contents.some(content => content.id === item.id));
+                        return data.some(bItem => bItem.contents.some(content => {
+                            if (content.id === item.id) {
+                                item.name = content.name
+                                return true
+                            } else {
+                                return false
+                            }
+                        }));
                     }
                 });
             }
@@ -66,7 +73,14 @@ export const useNoteTabStore = defineStore('noteTabs', {
             } else {
                 this.tabs = this.tabs.filter(item => {
                     if (item.typ === TabDataType.Note) {
-                        return data.some(bItem => bItem.id === item.id);
+                        return data.some(bItem => {
+                            if (bItem.id === item.id) {
+                                item.name = bItem.name
+                                return true
+                            } else {
+                                return false
+                            }
+                        });
                     }
                 });
             }

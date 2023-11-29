@@ -13,6 +13,12 @@ class ContentSchemaCreate(ContentSchemaBase):
     resource_item_id: int
 
 
+class ContentSchemaUpdate(ContentSchemaBase):
+    """for update
+    """
+    id: int
+
+
 class ContentSchema(ContentSchemaCreate):
     """full data
     """

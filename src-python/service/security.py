@@ -1,6 +1,8 @@
 from typing import Union
 from datetime import datetime, timedelta
 
+from service.config import path_config
+
 from fastapi import status, Depends, Response
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -10,16 +12,36 @@ from passlib.context import CryptContext
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-FAKE_PASSWORD = "1234"
 SECRET_KEY = "dfdd202b4e5edfd0825f45718d15884224d8ea09cb7a3a253f0d4362e3132fc7"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 
 class AuthenticationManager:
     @staticmethod
+    def get_pwd() -> str | None:
+        pwd = path_config.pwd_path
+        try:
+            with open(pwd, "r") as f:
+                return f.read()
+        except:
+            return None
+
+    @staticmethod
+    def set_pwd(new_pwd: str) -> bool:
+        pwd = path_config.pwd_path
+        try:
+            with open(pwd, "w") as f:
+                f.write(new_pwd)
+        except Exception as e:
+            return False
+        return True
+
+    @staticmethod
     def authenticate(input_password: str):
-        password = FAKE_PASSWORD
+        password = AuthenticationManager.get_pwd()
+        if not password:
+            return False
         password = get_password_hash(password)
         if not pwd_context.verify(input_password, password):
             return False

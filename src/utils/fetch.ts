@@ -37,6 +37,7 @@ export default async function pFetch(input: RequestInfo | URL, options?:
 
     let headers: Headers = new Headers();
     headers.append('Authorization', `Bearer ${localStorage.getItem('token')}`)
+    headers.append('Cache-Control', 'no-cache')
     if (!isForm) {
         headers.append('Content-Type', 'application/json')
     }
@@ -53,6 +54,12 @@ export default async function pFetch(input: RequestInfo | URL, options?:
         fetch(input, init)
             .then(async res => {
                 if (res.status === 401) {
+                    ElNotification({
+                        title: '鉴权失败',
+                        message: res.statusText,
+                        type: 'error',
+                        duration: 2000
+                    })
                     window.location.replace('/#/login')
                 } else if (Math.floor(res.status / 100) !== 2) {
                     if (isErrTip) {
@@ -68,7 +75,7 @@ export default async function pFetch(input: RequestInfo | URL, options?:
                         ElNotification({
                             title: successTitle.get(method),
                             message: options?.successMsg,
-                            type: 'info',
+                            type: 'success',
                             duration: 2000
                         })
                     }

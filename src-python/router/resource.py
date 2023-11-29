@@ -11,6 +11,7 @@ from service.crud import resource, tag
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
+from uuid import uuid4
 
 router = APIRouter(prefix="/resource")
 
@@ -32,9 +33,7 @@ def create_resource(file: UploadFile, db: Session = Depends(get_db)):
         if file_extension == ".pdf":
             file_data = file.file.read()
             assert file_name is not None
-            file_path = path.join(path_config.resource_dir, raw_filename)
-            if path.exists(file_path):
-                file_path = f"{file_path}.other"
+            file_path = path.join(path_config.resource_dir, str(uuid4()))
             with open(file_path, 'wb') as fout:
                 fout.write(file_data)
                 file.file.close()
@@ -76,7 +75,7 @@ def get_resource_by_tags(tags_id: TagSetSchema, db: Session = Depends(get_db)) -
     Returns:
         list[ResourceItemModel]: query result, all resource items model
     """
-    logger.debug("GET /resource/get_resource_by_tags")
+    logger.debug(f"GET /resource/get_resource_by_tags?tags_id={tags_id}")
     return resource.get_resource_items_by_tags(db, tags_id)
 
 
@@ -94,7 +93,8 @@ def get_resource_item(resource_item_id: int, db: Session = Depends(get_db)) -> R
     Returns:
         ResourceItemModel: query result
     """
-    logger.debug("GET /resource/get_resource_item")
+    logger.debug(
+        f"GET /resource/get_resource_item?resource_item_id={resource_item_id}")
     if (data := resource.get_resource_item(db, resource_item_id)):
         return data
     else:
@@ -110,7 +110,8 @@ def delete_resource_item(resource_item_id: int, db: Session = Depends(get_db)):
         resource_item_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /resource/delete_resource_item")
+    logger.info(
+        f"DELETE /resource/delete_resource_item?resource_item_id={resource_item_id}")
     resource.delete_resource_item(db, resource_item_id)
 
 
@@ -123,5 +124,6 @@ def remove_resource_item(tag_id: int, resource_item_id: int, db: Session = Depen
         resource_item_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("PUT /resource/remove_resource_item")
+    logger.info(
+        f"PUT /resource/remove_resource_item?tag_id={tag_id}&resource_item_id={resource_item_id}")
     tag.remove_resource_item(db, tag_id, resource_item_id)

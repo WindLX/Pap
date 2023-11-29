@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import katex from "katex";
-import type { FooterIndex, Link, Paragraph, Text } from '../../types/mdexpr-types';
-import { SentenceTag, Sentence } from '../../types/mdexpr-types';
-import type { Emoji } from '../../types/emoji-types';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ElPopover, ElButton, ElNotification, ElScrollbar } from 'element-plus';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import type { FooterIndex, Link, Paragraph, Text } from '@/types/mdexpr-types';
+import { SentenceTag, Sentence } from '@/types/mdexpr-types';
+import type { Emoji } from '@/types/emoji-types';
 import { state } from "@store";
+import pFetch from '@/utils/fetch';
 
 const props = defineProps<{
     paragraph: Paragraph
@@ -23,9 +24,19 @@ function jump(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
 }
 
-function newJump(href: string | undefined) {
+async function newJump(href: string | undefined) {
     if (href) {
-        window.open(href, "_blank");
+        if (href.startsWith("local://")) {
+            await pFetch(`/note/get_note_by_name?note_name=${}&index=${0}`, {
+                successCallback: async () => {
+                    await getNoteAsync()
+                    tabStore.flush(noteSet.value)
+                }
+            })
+        }
+        else {
+            window.open(href, "_blank")
+        }
     } else {
         ElNotification({
             title: '跳转失败',

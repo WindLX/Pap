@@ -36,6 +36,9 @@ let pathConfig = reactive<IPathConfig>({
     tag_path: ".",
     emoji_path: "."
 })
+let pwd = reactive<{ password: string }>({
+    password: ""
+})
 
 // tool function
 function numberToLogLevel(level: number): string {
@@ -76,6 +79,14 @@ async function onBasicSubmitAsync() {
     setHandler('basic', basicConfig, '基本设置修改成功,将在应用重启后生效')
 }
 
+async function onPwdSubmitAsync() {
+    await pFetch(`/config/set_pwd`, {
+        method: 'PUT',
+        body: JSON.stringify(pwd),
+        successMsg: '密码修改成功,将在应用重启后生效'
+    })
+}
+
 async function onSystemCancelAsync() {
     systemConfig.host = stateStore.host
     systemConfig.port = stateStore.port
@@ -100,6 +111,10 @@ async function onBasicCancelAsync() {
         basicConfig.title = data.title
         logLevel.value = logLevelToNumber(basicConfig.log_level)
     })
+}
+
+async function onPwdCancelAsync() {
+    pwd.password = ""
 }
 
 // hook
@@ -207,6 +222,25 @@ onActivated(() => {
                     </div>
                 </template>
                 <!-- todo -->
+            </el-collapse-item>
+            <el-collapse-item>
+                <template #title>
+                    <div class="title">
+                        <font-awesome-icon :icon="['fas', 'lock']" class="icon" />
+                        <p>密码</p>
+                    </div>
+                </template>
+                <el-form class="form" label-position="top">
+                    <el-tooltip content="初始密码为1234">
+                        <el-form-item label="新密码">
+                            <el-input v-model="pwd.password"></el-input>
+                        </el-form-item>
+                    </el-tooltip>
+                    <el-form-item>
+                        <el-button type="primary" @click="onPwdSubmitAsync">提交</el-button>
+                        <el-button @click="onPwdCancelAsync">取消</el-button>
+                    </el-form-item>
+                </el-form>
             </el-collapse-item>
         </el-collapse>
     </div>

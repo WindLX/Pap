@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import {
-    ElAutoResizer, ElButton,
+    ElAutoResizer, ElButton, ElButtonGroup,
     ElNotification, ElPopover,
     ElInput, ElTooltip, ElText
 } from 'element-plus'
@@ -17,8 +17,10 @@ const tabStore = tab.useNoteTabStore()
 // data
 let noteSet = ref<Array<INote>>([])
 let newNoteName = ref<string | null>(null)
+let renameNoteName = ref<string | null>(null)
 let filterText = ref<string>("")
 let visible = ref<boolean>(false)
+let renameVisible = ref<Array<boolean>>([])
 
 // load function
 async function getNoteAsync() {
@@ -57,6 +59,23 @@ async function handleCreateNoteAsync() {
     }
 }
 
+async function handleRenameNoteAsync(noteId: number) {
+    const data = {
+        id: noteId,
+        name: renameNoteName.value
+    }
+    await pFetch(`/note/rename_note`, {
+        method: 'PUT',
+        successMsg: '笔记重命名成功',
+        body: JSON.stringify(data),
+        successCallback: async () => {
+            await getNoteAsync()
+            tabStore.flush(noteSet.value)
+        }
+    })
+    onNoteRenameCancel(noteId)
+}
+
 async function handleDeleteNoteAsync(noteId: number) {
     await pFetch(`/note/delete_note?note_id=${noteId}`, {
         method: 'DELETE',
@@ -77,6 +96,17 @@ function onNoteClick(note: INote) {
         tabStore.tabs.push(<TabData>{ typ: TabDataType.Note, id: note.id, name: note.name, state: new Set([TabState.Save]) })
     }
     tabStore.currentIndex = tabStore.tabs.findIndex((t) => judge(t))
+}
+
+function onNoteRename(note: INote) {
+    renameVisible.value.fill(false);
+    renameVisible.value[note.id] = true
+    renameNoteName.value = note.name
+}
+
+function onNoteRenameCancel(noteId: number) {
+    renameVisible.value[noteId] = false;
+    renameNoteName.value = null
 }
 
 // tool function
@@ -121,9 +151,25 @@ onMounted(async () => {
                             <font-awesome-icon :icon="['fas', 'file']" class="icon" />
                             <el-text truncated style="max-width: 90%;">{{ note.name }}</el-text>
                         </div>
-                        <el-button size="small" class="leaf" style="height: 18px; width: 72px">
-                            <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteNoteAsync(note.id)" />
-                        </el-button>
+                        <el-button-group>
+                            <el-popover placement="bottom" :visible="renameVisible[note.id]" :width="200" trigger="click">
+                                <p style="margin-top: 0; font-size: 12px;">修改笔记名称</p>
+                                <div style="text-align: center; margin: 0">
+                                    <el-input size="small" style="margin-bottom: 6px;" v-model="renameNoteName"></el-input>
+                                    <el-button size="small" text @click="onNoteRenameCancel(note.id)">取消</el-button>
+                                    <el-button size="small" type="primary"
+                                        @click="handleRenameNoteAsync(note.id)">确认</el-button>
+                                </div>
+                                <template #reference>
+                                    <el-button class="leaf" size="small">
+                                        <font-awesome-icon :icon="['fas', 'pen']" @click="onNoteRename(note)" />
+                                    </el-button>
+                                </template>
+                            </el-popover>
+                            <el-button size="small" class="leaf">
+                                <font-awesome-icon :icon="['fas', 'trash-can']" @click="handleDeleteNoteAsync(note.id)" />
+                            </el-button>
+                        </el-button-group>
                     </div>
                 </el-tooltip>
             </span>
@@ -174,10 +220,7 @@ onMounted(async () => {
 }
 
 .note .node .leaf {
-    right: 18px
-}
-
-.note .node .button {
     height: 18px;
+    width: 36px;
 }
 </style>

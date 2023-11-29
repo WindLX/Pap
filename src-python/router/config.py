@@ -1,7 +1,9 @@
 from typing import Optional
 
+from schemas.token import LoginSchema
 from schemas.config import SystemConfigSchema, BasicConfigSchema, PathConfigSchema
 from service.config import system_config, basic_config, path_config
+from service.security import authentication_manager
 from service.logger import logger
 
 from fastapi import HTTPException, status, APIRouter
@@ -71,3 +73,11 @@ async def set_config(section: str, value: SystemConfigSchema | BasicConfigSchema
         logger.warning(f"{section} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"`{section}` 查找失败")
+
+
+@router.put("/set_pwd", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+async def set_pwd(pwd: LoginSchema):
+    logger.info("PUT /login/set_pwd")
+    if not authentication_manager.set_pwd(pwd.password):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="密码文件写入异常")

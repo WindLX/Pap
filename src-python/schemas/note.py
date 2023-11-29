@@ -1,4 +1,3 @@
-from __future__ import annotations
 from pydantic import BaseModel, ConfigDict
 
 
@@ -14,6 +13,12 @@ class NoteSchemaCreate(NoteSchemaBase):
     pass
 
 
+class NoteSchemaUpdate(NoteSchemaBase):
+    """for update
+    """
+    id: int
+
+
 class NoteSchema(NoteSchemaCreate):
     """full data
     """
@@ -21,22 +26,3 @@ class NoteSchema(NoteSchemaCreate):
     url: str
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class FolderSchemaBase(BaseModel):
-    """for impl
-    """
-    name: str
-
-
-class FolderSchemaCreate(FolderSchemaBase):
-    """for create
-    """
-    pass
-
-
-class FolderSchema(FolderSchemaCreate):
-    """full data
-    """
-    folder: list[FolderSchema]
-    note: list[NoteSchema]

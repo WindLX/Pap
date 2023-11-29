@@ -5,8 +5,8 @@ import katex from "katex";
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ElImage, ElSkeleton } from "element-plus";
 import MdParagraph from './MdParagraph.vue';
-import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "../../types/mdexpr-types";
-import { BlockTag } from "../../types/mdexpr-types";
+import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "@/types/mdexpr-types";
+import { BlockTag } from "@/types/mdexpr-types";
 
 const props = defineProps<{
     lineNum: number,

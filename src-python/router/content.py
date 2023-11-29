@@ -1,9 +1,6 @@
-from os import path
-
 from model.resource_group import ContentModel
 from schemas.resource import ResourceItemSchemaRelationship
-from schemas.content import ContentSchemaCreate, ContentSchema
-from service.config import path_config
+from schemas.content import ContentSchemaCreate, ContentSchema, ContentSchemaUpdate
 from service.logger import logger
 from service.database import get_db
 from service.crud import content
@@ -51,7 +48,7 @@ def get_content(content_id: int, db: Session = Depends(get_db)) -> ContentModel:
     Returns:
         ContentModel: query result, content model
     """
-    logger.debug("GET /resource/get_resource")
+    logger.debug(f"GET /content/get_content?content_id={content_id}")
     if (data := content.get_content(db, content_id)):
         return data
     else:
@@ -71,11 +68,10 @@ def save_content(content_id: int, file: UploadFile, db: Session = Depends(get_db
     Raises:
         HTTPException: 404 for not find the target resource item
     """
-    logger.debug("POST /resource/save_resource")
+    logger.debug(f"POST /content/save_content?content_id={content_id}")
     if (data := content.get_content(db, content_id)):
         file_data = file.file.read()
-        file_path = path.join(path_config.content_dir, data.name)
-        with open(f"{file_path}.md", 'wb') as fout:
+        with open(data.url, 'wb') as fout:
             fout.write(file_data)
             file.file.close()
     else:
@@ -91,5 +87,17 @@ def delete_content(content_id: int, db: Session = Depends(get_db)):
         content_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /content/delete_content")
+    logger.info(f"DELETE /content/delete_content?content_id={content_id}")
     content.delete_content(db, content_id)
+
+
+@router.put("/rename_content", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+def rename_content(content_update: ContentSchemaUpdate, db: Session = Depends(get_db)):
+    """update content name
+
+    Args:
+        content_update (ContentSchemaUpdate): update content data
+        db (Session, optional): database session. Defaults to Depends(get_db).
+    """
+    logger.info("PUT /content/rename_content")
+    content.update_name(db, content_update)

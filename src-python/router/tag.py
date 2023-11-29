@@ -64,7 +64,8 @@ def add_tag(tag_id: int, resource_item_id: int, db: Session = Depends(get_db)) -
     Returns:
         TagSchema: created tag item
     """
-    logger.info("PUT /tag/add_tag")
+    logger.info(
+        f"PUT /tag/add_tag?tag_id={tag_id}&resource_item_id={resource_item_id}")
     if updated_resource_item := tag.add_tag(db, tag_id, resource_item_id):
         return updated_resource_item
     else:
@@ -104,7 +105,7 @@ def delete_tag(tag_id: int, db: Session = Depends(get_db)):
         tag_id (int): target id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("DELETE /tag/delete_tag")
+    logger.info(f"DELETE /tag/delete_tag?tag_id={tag_id}")
     tag.delete_tag(db, tag_id)
 
 
@@ -117,5 +118,6 @@ def remove_tag(tag_id: int, resource_item_id: int, db: Session = Depends(get_db)
         resource_item_id (int): related resource item id
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
-    logger.info("PUT /tag/remove_tag")
+    logger.info(
+        f"PUT /tag/remove_tag?tag_id={tag_id}&resource_item_id={resource_item_id}")
     tag.remove_tag(db, tag_id, resource_item_id)

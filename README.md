@@ -30,13 +30,13 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [x] Markdown Editor
 - [x] File Lock
 - [x] Not save tip
+- [x] File Rename
 - [ ] Note Folder
-- [ ] Private Lock
+- [x] Private Lock
 - [ ] HousePage
 - [ ] Style
 - [ ] Help
 - [ ] Timeline
-- [ ] Markdown Grep
 - [ ] Markdown Ref net
 - [ ] Table
 - [ ] OCR
