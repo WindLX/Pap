@@ -8,9 +8,9 @@ The tool.ps1 script is a versatile tool designed to simplify the process of Pap 
 
 - If the `-Test` option is specified, the script will launch the pytest automatically.
 
-- When the `-Check` option is provided, This script will automatically perform Python static type checking。
+- When the `-Check` option is provided, this script will automatically perform Python static type checking.
 
-- When the `-Build` option is provided, This script will build the frontend part
+- When the `-Build` option is provided, this script will build the frontend part.
 
 The script's flexibility allows it to adapt to your specific needs, whether you're focused on development or simply coding.
 .Parameter Check 
@@ -34,7 +34,7 @@ PS .\tool.ps1 -Build
 param (
     [switch] $Check,
     [switch] $Test,
-    [switch] $Build,
+    [switch] $Build
 )
 
 # Function to install node modules
@@ -68,15 +68,18 @@ if ($Test) {
     Open-Venv
     pytest -o "python_paths=src-python/"
     deactivate
-} elseif ($Check) {
+}
+elseif ($Check) {
     Open-Venv
     mypy src-python/
     deactivate
-} elseif ($Build) {
+}
+elseif ($Build) {
     Build-Rust
     Open-Node
     npm run build
-} else {
+}
+else {
     Write-Output "please choose a switch below neither this script will do nothing."
     Write-Output "1. -Check"
     Write-Output "2. -Test"

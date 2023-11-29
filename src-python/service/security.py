@@ -1,7 +1,6 @@
+from os import path
 from typing import Union
 from datetime import datetime, timedelta
-
-from service.config import path_config
 
 from fastapi import status, Depends, Response
 from fastapi.security import OAuth2PasswordBearer
@@ -15,12 +14,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "dfdd202b4e5edfd0825f45718d15884224d8ea09cb7a3a253f0d4362e3132fc7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
+PWD_PATH = "./data/pwd"
 
 
 class AuthenticationManager:
     @staticmethod
     def get_pwd() -> str | None:
-        pwd = path_config.pwd_path
+        pwd = PWD_PATH
+        if not path.exists(pwd):
+            with open(pwd, 'w') as f:
+                f.write(get_password_hash(""))
         try:
             with open(pwd, "r") as f:
                 return f.read()
@@ -29,20 +32,19 @@ class AuthenticationManager:
 
     @staticmethod
     def set_pwd(new_pwd: str) -> bool:
-        pwd = path_config.pwd_path
+        pwd = PWD_PATH
         try:
             with open(pwd, "w") as f:
-                f.write(new_pwd)
-        except Exception as e:
+                f.write(get_password_hash(new_pwd))
+        except Exception:
             return False
         return True
 
     @staticmethod
     def authenticate(input_password: str):
         password = AuthenticationManager.get_pwd()
-        if not password:
+        if password is None:
             return False
-        password = get_password_hash(password)
         if not pwd_context.verify(input_password, password):
             return False
         return True

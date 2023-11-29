@@ -1,8 +1,8 @@
 from backend import app
-from model.resource_group import Base
-from schemas.resource_base import ResourceItemSchemaCreate
+from model.note_group import Base
+from schemas.note_base import NoteCreateSchema
 from service.database import get_db
-from service.crud.resource import create_resource_item
+from service.crud.note import create_note
 
 from pytest import fixture
 from sqlalchemy import create_engine
@@ -22,8 +22,8 @@ def context():
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
     with SessionLocal() as db:
-        create_resource_item(db, ResourceItemSchemaCreate(
-            name="test", url="/path/to/test"))
+        create_note(db, NoteCreateSchema(
+            name="test"))
 
     def override_get_db():
         db = SessionLocal()

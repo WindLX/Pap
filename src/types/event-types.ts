@@ -1,4 +1,4 @@
-import { ITag } from "./resource-types"
+import { ITag } from "./tag-types"
 
 export interface TagEvent {
     tag: ITag
@@ -7,5 +7,5 @@ export interface TagEvent {
 
 export interface TagRemoveEvent {
     tagId: number
-    resourceItemId: number
+    noteId: number
 }

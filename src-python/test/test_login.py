@@ -8,9 +8,8 @@ client = TestClient(app)
 
 def test_login():
     post_data = {
-        "username": "test",
-        "password": "1234"
+        "password": ""
     }
-    response = client.post("/login", data=post_data)
+    response = client.post("/login", json=post_data)
     assert response.status_code == 200
     print(response.json())

@@ -2,9 +2,17 @@ from os import path, remove
 
 from service.database import Base
 
-from sqlalchemy import Column, Integer, String, event
-from sqlalchemy.orm import Mapper
+from sqlalchemy import Column, Integer, String, Table, ForeignKey, event
+from sqlalchemy.orm import relationship, Mapper
 from sqlalchemy.engine import Connection
+
+
+note_tag_association = Table(
+    'note_tag_association',
+    Base.metadata,
+    Column('note_id', Integer, ForeignKey('notes.id')),
+    Column('tag_id', Integer, ForeignKey('tags.id'))
+)
 
 
 class NoteModel(Base):
@@ -15,6 +23,9 @@ class NoteModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     url = Column(String)
+
+    tags = relationship(
+        "TagModel", secondary="note_tag_association", back_populates="notes")
 
     def __repr__(self):
         return "<Note(id='%d', name='%s', url='%s')>" % self.id, self.name, self.url
@@ -44,3 +55,22 @@ def remove_note_file(_mapper: Mapper[NoteModel], _connection: Connection, target
     """
     if path.exists(target.url):
         remove(target.url)
+
+
+class TagModel(Base):
+    """tag ORM model
+
+    Relationships:
+        notes: NoteModel 'many to many'
+    """
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(length=15))
+    color = Column(String(length=7))
+
+    notes = relationship(
+        "NoteModel", secondary="note_tag_association", back_populates="tags")
+
+    def __repr__(self):
+        return "<TagModel(id='%d', name='%s', color='%s')>" % self.id, self.name, self.color

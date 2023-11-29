@@ -1,8 +1,10 @@
-from model.note import NoteModel
-from schemas.note import NoteSchemaCreate, NoteSchema, NoteSchemaUpdate
+from model.note_group import NoteModel
+from schemas.note_base import NoteCreateSchema, NoteUpdateSchema
+from schemas.note import NoteRelationshipSchema
+from schemas.tag_base import TagSetSchema
 from service.logger import logger
 from service.database import get_db
-from service.crud import note
+from service.crud import note, tag
 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
@@ -10,22 +12,22 @@ from fastapi import HTTPException, status, APIRouter, Depends, UploadFile
 router = APIRouter(prefix="/note")
 
 
-@router.post("/create_note", response_model=NoteSchema, status_code=status.HTTP_201_CREATED, include_in_schema=True)
-def create_note(new_note: NoteSchemaCreate, db: Session = Depends(get_db)) -> NoteModel:
+@router.post("/create_note", response_model=NoteRelationshipSchema, status_code=status.HTTP_201_CREATED, include_in_schema=True)
+def create_note(new_note: NoteCreateSchema, db: Session = Depends(get_db)) -> NoteModel:
     """create a new note
 
     Args:
-        new_note (NoteSchemaCreate): new note data
+        new_note (NoteCreateSchema): new note data
         db (Session, optional): database session. Defaults to Depends(get_db).
 
     Returns:
-        NoteSchema: new note data
+        NoteModel: new note data
     """
     logger.info("POST /note/create_note")
     return note.create_note(db, new_note)
 
 
-@router.get("/get_notes", response_model=list[NoteSchema], status_code=status.HTTP_200_OK, include_in_schema=True)
+@router.get("/get_notes", response_model=list[NoteRelationshipSchema], status_code=status.HTTP_200_OK, include_in_schema=True)
 def get_notes(db: Session = Depends(get_db)) -> list[NoteModel]:
     """get all notes
 
@@ -39,7 +41,7 @@ def get_notes(db: Session = Depends(get_db)) -> list[NoteModel]:
     return note.get_notes(db)
 
 
-@router.get("/get_note", response_model=NoteSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
+@router.get("/get_note", response_model=NoteRelationshipSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
 def get_note(note_id: int, db: Session = Depends(get_db)) -> NoteModel:
     """get note by id
 
@@ -51,7 +53,7 @@ def get_note(note_id: int, db: Session = Depends(get_db)) -> NoteModel:
         HTTPException: 404 for not find the target note
 
     Returns:
-        ContentModel: query result, note model
+        NoteModel: query result, note model
     """
     logger.debug(f"GET /note/get_note?note_id={note_id}")
     if (data := note.get_note(db, note_id)):
@@ -61,7 +63,22 @@ def get_note(note_id: int, db: Session = Depends(get_db)) -> NoteModel:
             status_code=status.HTTP_404_NOT_FOUND, detail="目标笔记文件查找失败")
 
 
-@router.get("/get_note_by_name", response_model=NoteSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
+@router.post("/get_note_by_tags", response_model=list[NoteRelationshipSchema], status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_note_by_tags(tags_id: TagSetSchema, db: Session = Depends(get_db)) -> list[NoteModel]:
+    """get notes by tags
+
+    Args:
+        tags_id (TagSetSchema): id of filter tags
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Returns:
+        list[NoteModel]: query result, all notes model
+    """
+    logger.debug(f"GET /note/get_note_tags?tags_id={tags_id}")
+    return note.get_notes_by_tags(db, tags_id)
+
+
+@router.get("/get_note_by_name", response_model=NoteRelationshipSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
 def get_note_by_name(note_name: str, index: int, db: Session = Depends(get_db)) -> NoteModel:
     """get note by name
 
@@ -74,7 +91,7 @@ def get_note_by_name(note_name: str, index: int, db: Session = Depends(get_db)) 
         HTTPException: 404 for not find the target note
 
     Returns:
-        ContentModel: query result, note model
+        NoteModel: query result, note model
     """
     logger.debug(
         f"GET /note/get_note_by_name?note_name={note_name}&index={index}")
@@ -109,11 +126,11 @@ def save_note(note_id: int, file: UploadFile, db: Session = Depends(get_db)):
 
 
 @router.put("/rename_note", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
-def rename_note(note_update: NoteSchemaUpdate, db: Session = Depends(get_db)):
+def rename_note(note_update: NoteUpdateSchema, db: Session = Depends(get_db)):
     """update note name
 
     Args:
-        note_update (NoteSchemaUpdate): update note data
+        note_update (NoteUpdateSchema): update note data
         db (Session, optional): database session. Defaults to Depends(get_db).
     """
     logger.info("PUT /note/rename_note")
@@ -130,3 +147,17 @@ def delete_note(note_id: int, db: Session = Depends(get_db)):
     """
     logger.info(f"DELETE /note/delete_note?note_id={note_id}")
     note.delete_note(db, note_id)
+
+
+@router.put("/remove_note", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
+def remove_note(tag_id: int, note_id: int, db: Session = Depends(get_db)):
+    """remove note by note id(only remove relationship)
+
+    Args:
+        tag_id (int): related tag id
+        note_id (int): target id
+        db (Session, optional): database session. Defaults to Depends(get_db).
+    """
+    logger.info(
+        f"PUT /note/remove_note?tag_id={tag_id}&note_id={note_id}")
+    tag.remove_note(db, tag_id, note_id)

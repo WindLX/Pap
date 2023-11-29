@@ -16,9 +16,9 @@ import {
     faTag, faPen, faHand, faQuoteLeft, faInfinity,
     faCode, faSquare, faSquareCheck, faLink,
     faBookmark, faCircleChevronRight, faFloppyDisk,
-    faFileExport, faFilePdf, faArrowUp, faFileCircleQuestion,
-    faShieldHalved, faPaintBrush, faHouse, faLock, faLockOpen,
-    faClockRotateLeft
+    faFileExport, faFilePdf, faArrowUp,
+    faShieldHalved, faPaintBrush, faHouse,
+    faLock, faLockOpen, faClockRotateLeft
 } from '@fortawesome/free-solid-svg-icons'
 import homeVue from './views/home.vue'
 import loginVue from './views/login.vue'
@@ -32,7 +32,7 @@ library.add(faSearch, faFolder, faFolderOpen, faGear,
     faInfinity, faCode, faSquare, faSquareCheck,
     faLink, faBookmark, faCircleChevronRight,
     faFloppyDisk, faFileExport, faFilePdf, faArrowUp,
-    faFileCircleQuestion, faShieldHalved, faPaintBrush,
+    faShieldHalved, faPaintBrush,
     faHouse, faLock, faLockOpen, faClockRotateLeft
 )
 

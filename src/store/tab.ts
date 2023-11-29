@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { INodeResourceItem } from '../types/resource-types'
+import { INodeResourceItem } from '../types/tag-types'
 import { INote } from '../types/note-types'
 import { TabData, TabDataType, TabState } from '../types/tab-types'
 

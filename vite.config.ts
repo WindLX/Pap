@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [vue(), wasm(), topLevelAwait()],
   clearScreen: false,
   server: {
-    port: 6173,
+    port: 3000,
     proxy: {
       '/data': {
         target: 'http://127.0.0.1:13956/',

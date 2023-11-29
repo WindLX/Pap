@@ -2,7 +2,7 @@
 import { ref, provide } from 'vue'
 import { ElTabPane, ElTabs, TabPaneName, ElEmpty } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { TabState } from '../../types/tab-types'
+import { TabState } from '@/types/tab-types'
 import { tab } from '@store';
 import Markdown from '@components/Markdown';
 
@@ -21,7 +21,7 @@ tabStore.$subscribe((_mutation, state) => {
 provide('tabStore', tabStore)
 
 // callback function
-async function removeTabAsync(name: TabPaneName) {
+async function handleRemoveTabAsync(name: TabPaneName) {
     tabStore.currentIndex = 0
     tabStore.tabs = tabs.value.filter((_tab, index) => index != name)
 }
@@ -30,7 +30,7 @@ async function removeTabAsync(name: TabPaneName) {
 <template>
     <div class="notespace">
         <el-tabs v-if="tabs.length !== 0" type="border-card" closable :model-value="currentTabIndex"
-            @tab-remove="removeTabAsync" style="height: 100%;">
+            @tab-remove="handleRemoveTabAsync" style="height: 100%;">
             <el-tab-pane v-for="(item, index) in tabs" :key="index" :label="item.name" :name="index" style="height: 100%;">
                 <template #label>
                     <span id="not-print">

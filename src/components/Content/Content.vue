@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { state } from '@store'
 import House from './House.vue';
 import Notespace from './Notespace.vue'
-import Resourcespace from './Resourcespace.vue';
 
 // state
 const store = state.useStateStore();
@@ -13,8 +12,6 @@ const currentComponent = computed(() => {
     switch (store.contentIndex) {
         case state.ContentIndex.House:
             return House
-        case state.ContentIndex.Resource:
-            return Resourcespace
         case state.ContentIndex.Note:
             return Notespace
         default:
@@ -25,7 +22,7 @@ const currentComponent = computed(() => {
 
 <template>
     <keep-alive>
-        <component :is="currentComponent"></component>
+        <component :is="currentComponent" />
     </keep-alive>
 </template>
 

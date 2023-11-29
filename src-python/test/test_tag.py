@@ -14,7 +14,7 @@ class TestTagClass:
         post_data = {
             "name": "test_tag",
             "color": "#FFFFFF",
-            "resource_item_id": 1
+            "note_id": 1
         }
         response = context.post(
             "/tag/create_tag", json=post_data)
@@ -22,13 +22,13 @@ class TestTagClass:
         assert response.json()["name"] == post_data["name"]
         assert response.json()["color"] == post_data["color"]
         assert response.json()[
-            "resource_items"][0]["id"] == 1
+            "notes"][0]["id"] == 1
 
     def test_update_tag(self, context: TestClient):
         post_data = {
             "name": "test_tag",
             "color": "#FFFFFF",
-            "resource_item_id": 1
+            "note_id": 1
         }
         response = context.post(
             "/tag/create_tag", json=post_data)
@@ -48,18 +48,18 @@ class TestTagClass:
         post_data = {
             "name": "test_tag",
             "color": "#FFFFFF",
-            "resource_item_id": 1
+            "note_id": 1
         }
         response = context.post(
             "/tag/create_tag", json=post_data)
         assert response.status_code == 201
         response = context.put(
-            "/tag/remove_tag?tag_id=1&resource_item_id=1")
+            "/tag/remove_tag?tag_id=1&note_id=1")
         assert response.status_code == 202
         response = context.get("/tag/get_tags")
         assert response.status_code == 200
         assert response.json()[0]["id"] == 1
-        response = context.get("/resource/get_resource")
+        response = context.get("/note/get_notes")
         assert response.status_code == 200
         assert len(response.json()[0]["tags"]) == 0
 
@@ -67,7 +67,7 @@ class TestTagClass:
         post_data = {
             "name": "test_tag",
             "color": "#FFFFFF",
-            "resource_item_id": 1
+            "note_id": 1
         }
         response = context.post(
             "/tag/create_tag", json=post_data)
@@ -77,6 +77,6 @@ class TestTagClass:
         response = context.get("/tag/get_tags")
         assert response.status_code == 200
         assert len(response.json()) == 0
-        response = context.get("/resource/get_resource")
+        response = context.get("/note/get_notes")
         assert response.status_code == 200
         assert len(response.json()[0]["tags"]) == 0

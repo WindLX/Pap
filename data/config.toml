@@ -7,15 +7,12 @@ title = "Pap"
 log_level = "DEBUG"
 
 [path]
-resource_dir = "./data/resource/"
-content_dir = "./data/content/"
 note_dir = "./data/note/"
-log_path = "./data/pap.log"
-tag_path = "./data/tag.db"
+log_path = "./data/paps.log"
+tag_path = "./data/tags.db"
 emoji_path = "./data/emoji.db"
-pwd_path = "./data/pwd"
 
 [dev]
 debug = false
 dev_host = "localhost"
-dev_port = 6173
+dev_port = 3000

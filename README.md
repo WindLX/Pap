@@ -31,11 +31,11 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [x] File Lock
 - [x] Not save tip
 - [x] File Rename
-- [ ] Note Folder
+- [ ] Note Tag
+- [ ] Resource Rightbar
 - [x] Private Lock
 - [ ] HousePage
 - [ ] Style
-- [ ] Help
 - [ ] Timeline
 - [ ] Markdown Ref net
 - [ ] Table

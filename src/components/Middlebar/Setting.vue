@@ -29,8 +29,6 @@ let basicConfig = reactive<IBasicConfig>({
     log_level: "INFO"
 })
 let pathConfig = reactive<IPathConfig>({
-    resource_dir: ".",
-    content_dir: ".",
     note_dir: ".",
     log_path: ".",
     tag_path: ".",
@@ -95,8 +93,6 @@ async function onSystemCancelAsync() {
 async function onPathCancelAsync() {
     await getHandler('path', async (response) => {
         const data = await response.json() as IPathConfig
-        pathConfig.resource_dir = data.resource_dir
-        pathConfig.content_dir = data.content_dir
         pathConfig.note_dir = data.note_dir
         pathConfig.log_path = data.log_path
         pathConfig.tag_path = data.tag_path
@@ -178,16 +174,6 @@ onActivated(() => {
                     </div>
                 </template>
                 <el-form class="form" label-position="top">
-                    <el-tooltip content="托管文件资源存放的路径" :offset="6">
-                        <el-form-item label="资源路径">
-                            <el-input v-model="pathConfig.resource_dir"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
-                    <el-tooltip content="生成的附加内容存放的路径" :offset="6">
-                        <el-form-item label="内容路径">
-                            <el-input v-model="pathConfig.content_dir"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
                     <el-tooltip content="笔记存放的路径" :offset="6">
                         <el-form-item label="笔记路径">
                             <el-input v-model="pathConfig.note_dir"></el-input>

@@ -9,8 +9,6 @@ export interface IBasicConfig {
 }
 
 export interface IPathConfig {
-    resource_dir: string
-    content_dir: string
     note_dir: string
     log_path: string
     tag_path: string

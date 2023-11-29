@@ -1,7 +1,6 @@
 <script lang="ts">
 import { state } from '@store'
 import House from './House.vue';
-import Resource from './Resource.vue'
 import Note from './Note.vue';
 import Setting from './Setting.vue';
 import Timeline from './Timeline.vue';
@@ -18,8 +17,6 @@ export default {
             switch (this.stateStore.sidebarIndex) {
                 case state.SidebarIndex.House:
                     return House
-                case state.SidebarIndex.Resource:
-                    return Resource
                 case state.SidebarIndex.Note:
                     return Note
                 case state.SidebarIndex.Timeline:
@@ -27,15 +24,13 @@ export default {
                 case state.SidebarIndex.Setting:
                     return Setting
                 default:
-                    return Resource
+                    return House
             }
         },
         currentTitle() {
             switch (this.stateStore.sidebarIndex) {
                 case state.SidebarIndex.House:
                     return '主页'
-                case state.SidebarIndex.Resource:
-                    return '工作区'
                 case state.SidebarIndex.Note:
                     return '笔记区'
                 case state.SidebarIndex.Timeline:
@@ -57,7 +52,7 @@ export default {
     <div class="middlebar" v-show="isShow">
         <p>{{ currentTitle }}</p>
         <keep-alive>
-            <component :is="currentComponent"></component>
+            <component :is="currentComponent" />
         </keep-alive>
     </div>
 </template>

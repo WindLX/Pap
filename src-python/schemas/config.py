@@ -18,8 +18,6 @@ class BasicConfigSchema(BaseConfigSchema):
 
 
 class PathConfigSchema(BaseConfigSchema):
-    resource_dir: str
-    content_dir: str
     note_dir: str
     log_path: str
     tag_path: str

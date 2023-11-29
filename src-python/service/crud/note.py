@@ -1,19 +1,21 @@
 from os import path
 
 from service.config import path_config
-from model.note import NoteModel
-from schemas.note import NoteSchemaCreate, NoteSchemaUpdate
+from model.note_group import NoteModel, note_tag_association
+from schemas.note_base import NoteCreateSchema, NoteUpdateSchema
+from schemas.tag_base import TagSetSchema
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
 
-def create_note(db: Session, note: NoteSchemaCreate) -> NoteModel:
+def create_note(db: Session, note: NoteCreateSchema) -> NoteModel:
     """create a new note to database
 
     Args:
         db (Session): database session
-        note (NoteSchemaCreate): note schema for create
+        note (NoteCreateSchema): note schema for create
 
     Returns:
         NoteModel: new note
@@ -51,6 +53,25 @@ def get_note(db: Session, note_id: int) -> NoteModel | None:
     return db.get(NoteModel, note_id)
 
 
+def get_notes_by_tags(db: Session, tags_id: TagSetSchema) -> list[NoteModel]:
+    """get target notes by tags
+
+    Args:
+        db (Session): database session
+        tags_id (TagSetSchema): target tags id set
+
+    Returns:
+        list[NoteModel]: query result
+    """
+    query = db.query(NoteModel)\
+        .join(note_tag_association,
+              NoteModel.id == note_tag_association.c.note_id)\
+        .where(note_tag_association.c.tag_id.in_(tags_id.tags_id))\
+        .group_by(NoteModel.id)\
+        .having(func.count() == len(tags_id.tags_id))
+    return query.all()
+
+
 def get_note_by_name(db: Session, note_name: str, index: int) -> NoteModel | None:
     """get target note by name
 
@@ -81,12 +102,12 @@ def delete_note(db: Session, note_id: int):
         db.commit()
 
 
-def update_name(db: Session, note_update: NoteSchemaUpdate) -> NoteModel | None:
+def update_name(db: Session, note_update: NoteUpdateSchema) -> NoteModel | None:
     """update note name
 
     Args:
         db (Session): database session
-        note_update (NoteSchemaUpdate): note schema for update
+        note_update (NoteUpdateSchema): note schema for update
 
     Returns:
         NoteModel | None: query result

@@ -23,7 +23,7 @@ export default {
                 this.stateStore.isMiddleBarShow = !this.stateStore.isMiddleBarShow
             } else {
                 this.stateStore.sidebarIndex = (index as SidebarIndex)
-                if (["house", "resource", "note"].includes(index)) {
+                if (["house", "note"].includes(index)) {
                     this.stateStore.contentIndex = (index as ContentIndex)
                 }
                 this.stateStore.isMiddleBarShow = true
@@ -47,11 +47,8 @@ export default {
             <el-menu-item class="menu-item" :index="SidebarIndex.House">
                 <font-awesome-icon :icon="['fas', 'house']" class="icon" />
             </el-menu-item>
-            <el-menu-item class="menu-item" :index="SidebarIndex.Resource">
-                <font-awesome-icon :icon="['fas', 'book']" class="icon" />
-            </el-menu-item>
             <el-menu-item class="menu-item" :index="SidebarIndex.Note">
-                <font-awesome-icon :icon="['fas', 'file']" class="icon" />
+                <font-awesome-icon :icon="['fas', 'book']" class="icon" />
             </el-menu-item>
             <el-menu-item class="menu-item" :index="SidebarIndex.Timeline">
                 <font-awesome-icon :icon="['fas', 'route']" class="icon" />

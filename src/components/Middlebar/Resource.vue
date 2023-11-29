@@ -10,7 +10,7 @@ import {
 import { IContent, IResourceItem, INodeResourceItem, ITag } from '@/types/resource-types'
 import { TagEvent } from '@/types/event-types'
 import { TabData, TabDataType, TabState } from '@/types/tab-types'
-import Tag from '../Tag.vue'
+import Tag from '@components/Tag/Tag.vue'
 import { tab, tag } from '@store'
 import pFetch from '@/utils/fetch'
 
@@ -401,4 +401,4 @@ watch(filterTags, () => {
     height: 18px;
     width: 36px;
 }
-</style>
+</style>@/types/tag-types

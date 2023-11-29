@@ -1,5 +1,5 @@
-from router import login, config, resource, content, note, tag, emoji
-from model.resource_group import Base
+from router import login, config, note, tag, emoji
+from model.note_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
 from service.database import engine
@@ -9,7 +9,6 @@ from uvicorn import run
 from fastapi import FastAPI, Response, status
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
@@ -34,25 +33,29 @@ origins = [
 ]
 
 # middleware
-
-
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    if request.url.path in ["/login/", "/login"]:
-        response = await call_next(request)
-        return response
-    if token := request.headers.get("Authorization"):
-        exception = authentication_manager.check_jwt_token(token)
-        if exception:
-            return exception
-        else:
+if not dev_config.debug:
+    @app.middleware("http")
+    async def auth_middleware(request: Request, call_next):
+        if request.url.path in ["/", "/login/", "/login"] or request.url.path.startswith("/assets/"):
             response = await call_next(request)
             return response
-    return Response(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        content="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+        if token := request.headers.get("Authorization"):
+            exception = authentication_manager.check_jwt_token(token)
+            if exception:
+                return exception
+            else:
+                response = await call_next(request)
+                return response
+        return Response(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+else:
+    @app.middleware("http")
+    async def dummy_middleware(request: Request, call_next):
+        response = await call_next(request)
+        return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,8 +72,6 @@ app.mount("/data", StaticFiles(directory="data"), name="data")
 # router
 app.include_router(login.router)
 app.include_router(config.router)
-app.include_router(resource.router)
-app.include_router(content.router)
 app.include_router(note.router)
 app.include_router(tag.router)
 app.include_router(emoji.router)

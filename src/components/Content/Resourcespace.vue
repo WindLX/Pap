@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { ElTabPane, ElTabs, TabPaneName, ElEmpty } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { tab } from '@store';
-import { TabDataType, TabState } from '../../types/tab-types';
+import { TabDataType, TabState } from '@/types/tab-types';
 import PDFViewer from '@components/PDFViewer.vue'
 import Markdown from '@components/Markdown';
 

@@ -1,12 +1,12 @@
 from .tag_base import TagSchema
-from .resource_base import ResourceItemSchema
+from .note_base import NoteSchema
 
 from pydantic import ConfigDict
 
 
-class TagSchemaRelationship(TagSchema):
+class TagRelationshipSchema(TagSchema):
     """full data
     """
-    resource_items: list[ResourceItemSchema]
+    notes: list[NoteSchema]
 
     model_config = ConfigDict(from_attributes=True)

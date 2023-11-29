@@ -1,20 +1,20 @@
 from pydantic import BaseModel
 
 
-class TagSchemaBase(BaseModel):
+class TagBaseSchema(BaseModel):
     """for impl
     """
     name: str
     color: str
 
 
-class TagSchemaCreate(TagSchemaBase):
+class TagCreateSchema(TagBaseSchema):
     """for create
     """
-    resource_item_id: int
+    note_id: int
 
 
-class TagSchema(TagSchemaBase):
+class TagSchema(TagBaseSchema):
     """without relationship
     """
     id: int

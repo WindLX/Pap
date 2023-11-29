@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, provide } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElScrollbar, ElNotification, ElLoading, ElSkeleton } from "element-plus";
-import { IContent } from "@/types/resource-types";
+import { INote } from "@/types/note-types";
 import pFetch from '@/utils/fetch';
 import Editor from './Editor.vue';
 
@@ -33,7 +33,7 @@ provide('lockState', lockState);
 async function loadContentAsync() {
     await pFetch(`/${routerString.value}/get_${routerString.value}?${routerString.value}_id=${props.id}`, {
         successCallback: async (response) => {
-            const data = await response.json() as IContent
+            const data = await response.json() as INote
             name = data.name
             await pFetch(`/${data.url}`, {
                 successCallback: async (response) => {
@@ -153,7 +153,6 @@ onMounted(async () => {
                 @mousedown="editor?.saveData()" />
             <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdData()" />
             <font-awesome-icon :icon="['fas', 'file-pdf']" class="icon" @mousedown="exportPdf()" />
-            <font-awesome-icon :icon="['fas', 'file-circle-question']" class="icon" style="cursor: help;" />
         </div>
         <el-scrollbar id="md-loader">
             <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
@@ -198,4 +197,4 @@ onMounted(async () => {
     margin: 20px auto;
     cursor: wait;
 }
-</style>
+</style>@/types/tag-types

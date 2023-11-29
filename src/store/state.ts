@@ -4,7 +4,6 @@ import { CustomWindow } from '@/types/custom-types'
 export enum SidebarIndex {
     House = 'house',
     Note = 'note',
-    Resource = "resource",
     Timeline = "timeline",
     Setting = "setting",
 }
@@ -12,7 +11,6 @@ export enum SidebarIndex {
 export enum ContentIndex {
     House = 'house',
     Note = 'note',
-    Resource = "resource",
 }
 
 export const useStateStore = defineStore('states', {

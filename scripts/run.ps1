@@ -21,7 +21,7 @@ PS .\run.ps1 -Dev
 
 [CmdletBinding()]
 param (
-    [switch] $Dev,
+    [switch] $Dev
 )
 
 # Function to activate Python virtual environment

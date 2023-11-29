@@ -1,28 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from .note_base import NoteSchema
+from .tag_base import TagSchema
+
+from pydantic import ConfigDict
 
 
-class NoteSchemaBase(BaseModel):
-    """for impl
-    """
-    name: str
-
-
-class NoteSchemaCreate(NoteSchemaBase):
-    """for create
-    """
-    pass
-
-
-class NoteSchemaUpdate(NoteSchemaBase):
-    """for update
-    """
-    id: int
-
-
-class NoteSchema(NoteSchemaCreate):
+class NoteRelationshipSchema(NoteSchema):
     """full data
     """
-    id: int
-    url: str
+    tags: list[TagSchema]
 
     model_config = ConfigDict(from_attributes=True)

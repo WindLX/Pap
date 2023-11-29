@@ -9,11 +9,11 @@ import {
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { Arrayable } from 'element-plus/es/utils/typescript.mjs';
-import type { ITag, IResourceItem } from '../types/resource-types';
-import type { TagEvent } from '../types/event-types';
+import type { ITag, IResourceItem } from '@/types/resource-types';
+import type { TagEvent } from '@/types/event-types';
 import { state, tag } from '@store';
 import pFetch from '@/utils/fetch';
-import Tag from './Tag.vue';
+import Tag from '@components/Tag/Tag.vue';
 
 // props
 const props = defineProps<{
@@ -363,4 +363,4 @@ onActivated(async () => {
     width: 100%;
     height: 100%;
 }
-</style>
+</style>@/types/tag-types

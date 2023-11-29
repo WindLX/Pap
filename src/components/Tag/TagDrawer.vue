@@ -7,7 +7,7 @@ import {
     ElCollapse, ElCollapseItem, ElForm, ElFormItem,
     ElButtonGroup, ElPopconfirm
 } from 'element-plus';
-import type { ITag, ITagRelationship } from '../types/resource-types';
+import type { ITag, ITagRelationship } from '@/types/resource-types';
 import { tag } from '@store';
 import pFetch from '@utils/fetch';
 import Tag from './Tag.vue';
@@ -340,4 +340,4 @@ onMounted(async () => {
 .el-drawer__header {
     margin-bottom: 0;
 }
-</style>
+</style>@/types/tag-types
