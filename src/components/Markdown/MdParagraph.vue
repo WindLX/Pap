@@ -7,7 +7,7 @@ import type { FooterIndex, Link, Paragraph, Text } from '@/types/mdexpr-types';
 import { SentenceTag, Sentence } from '@/types/mdexpr-types';
 import type { Emoji } from '@/types/emoji-types';
 import { state } from "@store";
-import pFetch from '@/utils/fetch';
+// import pFetch from '@/utils/fetch';
 
 const props = defineProps<{
     paragraph: Paragraph
@@ -27,12 +27,12 @@ function jump(id: string) {
 async function newJump(href: string | undefined) {
     if (href) {
         if (href.startsWith("local://")) {
-            await pFetch(`/note/get_note_by_name?note_name=${}&index=${0}`, {
-                successCallback: async () => {
-                    await getNoteAsync()
-                    tabStore.flush(noteSet.value)
-                }
-            })
+            // await pFetch(`/note/get_note_by_name?note_name=${}&index=${0}`, {
+            //     successCallback: async () => {
+            //         await getNoteAsync()
+            //         tabStore.flush(noteSet.value)
+            //     }
+            // })
         }
         else {
             window.open(href, "_blank")

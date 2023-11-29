@@ -231,11 +231,9 @@ onActivated(() => {
                     </div>
                 </template>
                 <el-form class="form" label-position="top">
-                    <el-tooltip content="初始密码为1234">
-                        <el-form-item label="新密码">
-                            <el-input v-model="pwd.password"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
+                    <el-form-item label="新密码">
+                        <el-input v-model="pwd.password"></el-input>
+                    </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="onPwdSubmitAsync">提交</el-button>
                         <el-button @click="onPwdCancelAsync">取消</el-button>

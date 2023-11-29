@@ -35,7 +35,7 @@ __pycache__
 target
 
 # data
-data
+data/*
 !data/config.toml
 !data/style.toml
 !data/emoji.db

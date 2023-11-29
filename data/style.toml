@@ -1,0 +1,7 @@
+[light]
+[light.basic]
+background-color = "#FFF"
+focus-color = "#000"
+
+
+[night]

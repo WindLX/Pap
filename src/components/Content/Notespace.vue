@@ -18,6 +18,8 @@ tabStore.$subscribe((_mutation, state) => {
     tabs.value = state.tabs
 })
 
+provide('tabStore', tabStore)
+
 // callback function
 async function removeTabAsync(name: TabPaneName) {
     tabStore.currentIndex = 0
