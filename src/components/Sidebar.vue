@@ -1,41 +1,26 @@
-<script lang="ts">
-import { ElMenu, ElMenuItem, ElButton } from 'element-plus'
+<script lang="ts" setup>
+import { ElMenu, ElMenuItem } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStateStore, SidebarIndex, ContentIndex } from '@/store/state';
 
-export default {
-    components: {
-        ElMenu,
-        ElMenuItem,
-        ElButton,
-        FontAwesomeIcon
-    },
-    setup() {
-        const stateStore = useStateStore();
-        return {
-            stateStore,
-            SidebarIndex
+const stateStore = useStateStore();
+
+function select(index: string) {
+    if (stateStore.sidebarIndex === (index as SidebarIndex)) {
+        stateStore.isMiddleBarShow = !stateStore.isMiddleBarShow
+    } else {
+        stateStore.sidebarIndex = (index as SidebarIndex)
+        if (["net", "note", "database"].includes(index)) {
+            stateStore.contentIndex = (index as ContentIndex)
         }
-    },
-    methods: {
-        select(index: string) {
-            if (this.stateStore.sidebarIndex === (index as SidebarIndex)) {
-                this.stateStore.isMiddleBarShow = !this.stateStore.isMiddleBarShow
-            } else {
-                this.stateStore.sidebarIndex = (index as SidebarIndex)
-                if (["net", "note", "database"].includes(index)) {
-                    this.stateStore.contentIndex = (index as ContentIndex)
-                }
-                this.stateStore.isMiddleBarShow = true
-            }
-        },
-        lock() {
-            window.location.replace("/#/login")
-            localStorage.removeItem("token")
-        }
+        stateStore.isMiddleBarShow = true
     }
 }
 
+function lock() {
+    window.location.replace("/#/login")
+    localStorage.removeItem("token")
+}
 </script>
 
 <template>
