@@ -7,13 +7,14 @@ import {
     ElCollapse, ElCollapseItem, ElForm, ElFormItem,
     ElButtonGroup, ElPopconfirm
 } from 'element-plus';
-import type { ITag, ITagRelationship } from '@/types/resource-types';
-import { tag } from '@store';
-import pFetch from '@utils/fetch';
 import Tag from './Tag.vue';
+import { useTagStore } from '@/store/tag';
+import { TagApi } from '@/api/tag';
+import { tagDefault, predefineColors } from '@/schemas/tag';
+import type { TagSchema, TagRelationshipSchema } from '@/schemas/tag';
 
 // state
-const tagStore = tag.useTagStore()
+const tagStore = useTagStore()
 
 // style
 const show = ref(tagStore.show)
@@ -30,45 +31,17 @@ tagStore.$subscribe((_mutation, state) => {
 
 tagStore.$onAction(
     ({
-        name: name,
         after: after,
     }) => {
         after(() => {
-            switch (name) {
-                case "onCreate":
-                    loadAllTagsAsync()
-                    break;
-                case "onAdd":
-                    loadAllTagsAsync()
-                    break;
-                case "onRemove":
-                    loadAllTagsAsync()
-                    break;
-                default:
-                    break;
-            }
+            loadAllTagsAsync()
         })
     }
 )
-// const
-const defaultTag = {
-    id: -1,
-    name: "",
-    color: "#409EFF"
-}
-const predefineColors = [
-    '#ff4500',
-    '#ff8c00',
-    '#ffd700',
-    '#90ee90',
-    '#00ced1',
-    '#409EFF',
-    '#c71585'
-]
 
 // data
-let allTags: Ref<Array<ITagRelationship>> = ref([])
-let filterTags: ComputedRef<Array<ITagRelationship>> = computed(() => {
+let allTags: Ref<Array<TagRelationshipSchema>> = ref([])
+let filterTags: ComputedRef<Array<TagRelationshipSchema>> = computed(() => {
     if (inputValue.value !== '')
         return allTags.value.filter((t) => {
             const target = t.name
@@ -79,7 +52,7 @@ let filterTags: ComputedRef<Array<ITagRelationship>> = computed(() => {
     else
         return allTags.value
 })
-let targetTag: ReactiveVariable<ITag> = reactive(defaultTag)
+let targetTag: ReactiveVariable<TagSchema> = reactive(tagDefault())
 let inputValue: Ref<string> = ref("")
 
 // callback function
@@ -90,44 +63,32 @@ async function handleUpdateConfirmAsync() {
             color: targetTag.color,
             id: targetTag.id
         }
-        await pFetch('/tag/update_tag', {
-            method: 'PUT',
-            body: JSON.stringify(tagUpdateData),
-            successMsg: '标签更新成功',
-            successCallback: async (res) => {
-                const data = await res.json() as ITagRelationship
-                const index = allTags.value.findIndex((t) => { return t.id === data.id })
-                allTags.value[index] = data
-                tagStore.onUpdate(data)
-            }
-        })
+        const data = await TagApi.updateTag(tagUpdateData)
+        const index = allTags.value.findIndex((t) => { return t.id === data.id })
+        allTags.value[index] = data
+        tagStore.onUpdate()
     }
-    inputVisible.value = false
-    targetTag = defaultTag
+    handleUpdateCancel()
 }
 
 function handleUpdateCancel() {
     inputVisible.value = false
-    targetTag = defaultTag
+    targetTag = tagDefault()
 }
 
-function handleShowDialog(tag: ITagRelationship) {
+function handleShowEditDialog(tag: TagRelationshipSchema) {
     inputVisible.value = true;
-    targetTag.name = tag.name
-    targetTag.color = tag.color
-    targetTag.id = tag.id
+    targetTag = tag
 }
 
-function handleShowChooseDialog(tag: ITagRelationship) {
+function handleShowChooseDialog(tag: TagRelationshipSchema) {
     chooseVisible.value = true;
-    targetTag.name = tag.name
-    targetTag.color = tag.color
-    targetTag.id = tag.id
+    targetTag = tag
 }
 
 function handleChooseCancel() {
     chooseVisible.value = false
-    targetTag = defaultTag
+    targetTag = tagDefault()
 }
 
 function handleChooseConfirm() {
@@ -138,59 +99,42 @@ function handleChooseConfirm() {
     }
     tagStore.onChoose(chooseTagData)
     chooseVisible.value = false
-    targetTag = defaultTag
+    targetTag = tagDefault()
 }
 
 async function handleDeleteTagAsync(tagId: number) {
-    await pFetch(`/tag/delete_tag?tag_id=${tagId}`, {
-        method: 'DELETE',
-        successMsg: '标签删除成功',
-        successCallback: async (_res) => {
-            await loadAllTagsAsync()
-            tagStore.onDelete(tagId)
-        }
-    })
+    await TagApi.deleteTag(tagId)
+    // await loadAllTagsAsync()
+    tagStore.onUpdate()
 }
 
-async function handleRemoveResourceItemAsync(tagId: number, resourceItemId: number) {
-    await pFetch(`/resource/remove_resource_item?tag_id=${tagId}&resource_item_id=${resourceItemId}`, {
-        method: 'PUT',
-        successMsg: '标签关联对象移除成功',
-        successCallback: async (_response) => {
-            await loadAllTagsAsync()
-            tagStore.onRemove(tagId, resourceItemId)
-        }
-    })
+async function handleRemoveNoteAsync(tagId: number, resourceItemId: number) {
+    await TagApi.removeTag(tagId, resourceItemId)
+    // await loadAllTagsAsync()
+    tagStore.onUpdate()
 }
 
 function handleClose() {
-    tagStore.show = false;
-    tagStore.editable = true;
-    tagStore.filterId = -1
+    tagStore.setDefault()
 }
 
 // load function
 async function loadAllTagsAsync() {
-    await pFetch('/tag/get_tags', {
-        successCallback: async (res) => {
-            const data = await res.json()
-            allTags.value = data as Array<ITagRelationship>
-        }
-    })
+    allTags.value = await TagApi.getTags()
 }
 
 function isChoosable(id: number) {
     const tag = allTags.value.find((t) => { return t.id === id })
     if (tag !== undefined) {
-        const item = tag.resource_items.find((r) => { return r.id === filterId.value })
+        const item = tag.notes.find((r) => { return r.id === filterId.value })
         if (item !== undefined) return false
         else return true
     } else return true
 }
 
 // hook
-onMounted(async () => {
-    await loadAllTagsAsync()
+onMounted(() => {
+    loadAllTagsAsync()
 })
 </script>
 
@@ -217,7 +161,7 @@ onMounted(async () => {
                                 :disabled="!isChoosable(tag.id)">
                                 <font-awesome-icon :icon="['fas', 'hand']" class="icon" />
                             </el-button>
-                            <el-button size="small" @click="handleShowDialog(tag)" class="button" :disabled="!editable">
+                            <el-button size="small" @click="handleShowEditDialog(tag)" class="button" :disabled="!editable">
                                 <font-awesome-icon :icon="['fas', 'pen']" class="icon" />
                             </el-button>
                             <el-popconfirm title="确认删除此标签吗?" confirm-button-text="确认" cancel-button-text="取消"
@@ -229,13 +173,13 @@ onMounted(async () => {
                                 </template>
                             </el-popconfirm>
                         </el-button-group>
-                        <span v-for="resource in tag.resource_items" class="tag-container">
+                        <span v-for="resource in tag.notes" class="tag-container">
                             <span class="tag-drawer">
                                 <font-awesome-icon :icon="['fas', 'file']" class="icon" />
                                 {{ resource.name }}
                             </span>
-                            <el-popconfirm title="确认删除此资源与此标签的关联吗?" confirm-button-text="确认" cancel-button-text="取消"
-                                @confirm="handleRemoveResourceItemAsync(tag.id, resource.id)" :hide-after="0">
+                            <el-popconfirm title="确认删除此笔记与此标签的关联吗?" confirm-button-text="确认" cancel-button-text="取消"
+                                @confirm="handleRemoveNoteAsync(tag.id, resource.id)" :hide-after="0">
                                 <template #reference>
                                     <el-button size="small" :disabled="!editable">
                                         <font-awesome-icon :icon="['fas', 'trash-can']" class="icon" />
@@ -276,11 +220,11 @@ onMounted(async () => {
         </template>
     </el-dialog>
     <el-dialog v-model="chooseVisible" title="提示" width="30%">
-        <div style="display: flex; align-items: center;">
+        <div style="display: flex; align-items: center; flex-direction: column;">
             <tag :color="targetTag?.color" :closable="false" :disable="false">
                 {{ targetTag?.name }}
             </tag>
-            <span style="margin-left: 12px;">确定选择此标签吗</span>
+            <span style="margin: 12px;">确定选择此标签吗</span>
         </div>
         <template #footer>
             <span>
@@ -340,4 +284,4 @@ onMounted(async () => {
 .el-drawer__header {
     margin-bottom: 0;
 }
-</style>@/types/tag-types
+</style>

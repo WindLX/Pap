@@ -49,6 +49,20 @@ def create_tag(new_tag: TagCreateSchema, db: Session = Depends(get_db)) -> TagMo
             status_code=status.HTTP_404_NOT_FOUND, detail="目标笔记查找失败")
 
 
+@router.get("/get_note_tags", response_model=list[TagRelationshipSchema], status_code=status.HTTP_200_OK, include_in_schema=True)
+def get_note_tags(note_id: int, db: Session = Depends(get_db)) -> list[TagModel]:
+    """get target note's tags(with relationship)
+
+    Args:
+        db (Session, optional): database session. Defaults to Depends(get_db).
+
+    Returns:
+        list[TagModel]: query result, all tags model
+    """
+    logger.debug(f"GET /tag/get_note_tags?note_id={note_id}")
+    return tag.get_note_tags(db, note_id)
+
+
 @router.put("/add_tag", response_model=NoteRelationshipSchema, status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
 def add_tag(tag_id: int, note_id: int, db: Session = Depends(get_db)) -> NoteModel:
     """add a tag to a note

@@ -111,9 +111,9 @@ function hslToRgb(h: number, s: number, l: number): number[] {
     height: 24px;
     width: fit-content;
     border-radius: 3px;
-    margin: 0 2px;
+    margin: 3px;
     padding: 0 6px;
-    transition: background-color .2s ease-in-out;
+    user-select: none;
 }
 
 .icon {

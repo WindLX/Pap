@@ -24,6 +24,12 @@ export interface Title {
     content: Paragraph,
 }
 
+export interface RawTitle {
+    line: number,
+    level: TitleLevel,
+    content: string,
+}
+
 export enum TitleLevel {
     H1 = "H1",
     H2 = "H2",
@@ -83,12 +89,3 @@ export interface Footer {
 }
 
 export type FooterIndex = string
-
-export enum MultiBlockTag {
-    CodeHead,
-    CodeBody,
-    CodeTail,
-    MathHead,
-    MathBody,
-    MathTail,
-}

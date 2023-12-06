@@ -1,24 +1,23 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import katex from "katex";
-import { ElPopover, ElButton, ElNotification, ElScrollbar } from 'element-plus';
+import { ElPopover, ElNotification, ElScrollbar } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import type { FooterIndex, Link, Paragraph, Text } from '@/types/mdexpr-types';
-import { SentenceTag, Sentence } from '@/types/mdexpr-types';
-import type { Emoji } from '@/types/emoji-types';
-import { state } from "@store";
-// import pFetch from '@/utils/fetch';
+import type { FooterIndex, Link, Paragraph, Text, Sentence } from '@/md/mdexpr';
+import { SentenceTag } from '@/md/mdexpr';
+import type { EmojiSchema } from '@/schemas/emoji';
+import { EmojiApi } from '@/api/emoji';
+import { NoteApi } from '@/api/note';
+import { useNoteTabStore } from '@/store/tab';
 
 const props = defineProps<{
     paragraph: Paragraph
 }>();
 
-const stateStore = state.useStateStore()
-
+const tabStore = useNoteTabStore()
 const span = ref<Array<HTMLSpanElement>>()
-
 let emoji_fail = false;
-let emojis = ref<Array<Emoji>>([])
+let emojis = ref<Array<EmojiSchema>>([])
 
 function jump(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
@@ -26,13 +25,11 @@ function jump(id: string) {
 
 async function newJump(href: string | undefined) {
     if (href) {
-        if (href.startsWith("local://")) {
-            // await pFetch(`/note/get_note_by_name?note_name=${}&index=${0}`, {
-            //     successCallback: async () => {
-            //         await getNoteAsync()
-            //         tabStore.flush(noteSet.value)
-            //     }
-            // })
+        if (href.startsWith("md://")) {
+            const note = await NoteApi.getNoteByName(href.slice(5))
+            if (note) {
+                tabStore.addTab(note)
+            }
         }
         else {
             window.open(href, "_blank")
@@ -47,24 +44,17 @@ async function newJump(href: string | undefined) {
     }
 }
 
-async function getEmojiAsync(emoji: string): Promise<Array<Emoji>> {
-    const response = await fetch(`${stateStore.backendHost}/emoji/get_emoji?emoji=${emoji}`, { method: 'GET', mode: 'cors' });
-    if (response.status == 200) {
-        const emoji = await response.json() as Array<Emoji>;
-        return emoji.map(e => {
+async function getEmojiAsync(emoji: string): Promise<Array<EmojiSchema>> {
+    try {
+        const emojis = await EmojiApi.getEmoji(emoji)
+        return emojis.map(e => {
             const unicodeArray = e.unicode.split(' ');
             const htmlEntities = unicodeArray.map(code => '&#x' + code.slice(2) + ';');
             return { unicode: htmlEntities.join(''), name: e.name }
-        });
-    } else {
-        if (!emoji_fail && response.status == 406) {
+        })
+    } catch (e) {
+        if (!emoji_fail && (e as Response).status == 406) {
             emoji_fail = true;
-            ElNotification({
-                title: '渲染失败',
-                message: 'emoji数据库加载失败',
-                type: 'error',
-                duration: 2000
-            })
             return [{ unicode: "&#x2757;", name: "failtoload" }]
         } else {
             return [{ unicode: "&#x2753;", name: "failtoload" }]
@@ -102,20 +92,12 @@ watch(props, async () => {
         }">
             {{ (sentence.content as Text).content }}
         </span>
-        <span v-else-if="sentence.tag === SentenceTag.Link" class="link">
-            <el-popover placement="bottom" trigger="hover" :title="(sentence.content as Link).href">
-                <div style="text-align: center; margin: 0">
-                    <el-button size="small" type="primary" @click="newJump((sentence.content as Link).href)">Go!</el-button>
-                </div>
-                <template #reference>
-                    <span>
-                        <span>
-                            {{ (sentence.content as Link).content }}
-                        </span>
-                        <font-awesome-icon class="super" :icon="['fas', 'link']" />
-                    </span>
-                </template>
-            </el-popover>
+        <span v-else-if="sentence.tag === SentenceTag.Link" class="link ref"
+            @click="newJump((sentence.content as Link).href)">
+            <span>
+                {{ (sentence.content as Link).content }}
+            </span>
+            <font-awesome-icon class="super" :icon="['fas', 'link']" />
         </span>
         <span v-else-if="sentence.tag === SentenceTag.Code" class="code">
             {{ sentence.content as string }}
@@ -133,20 +115,12 @@ watch(props, async () => {
                 <span class="emoji" />
             </template>
         </el-popover>
-        <span v-else-if="sentence.tag === SentenceTag.FooterIndex" class="footer-index">
-            <el-popover placement="bottom" trigger="hover" :title="(sentence.content as FooterIndex)">
-                <div style="text-align: center; margin: 0">
-                    <el-button size="small" type="primary" @click="jump((sentence.content as FooterIndex))">Go!</el-button>
-                </div>
-                <template #reference>
-                    <span>
-                        <span>
-                            {{ (sentence.content as FooterIndex) }}
-                        </span>
-                        <font-awesome-icon class="super" :icon="['fas', 'bookmark']" />
-                    </span>
-                </template>
-            </el-popover>
+        <span v-else-if="sentence.tag === SentenceTag.FooterIndex" class="footer-index ref"
+            @click="jump((sentence.content as FooterIndex))">
+            <span>
+                {{ (sentence.content as FooterIndex) }}
+            </span>
+            <font-awesome-icon class=" super" :icon="['fas', 'bookmark']" />
         </span>
     </span>
 </template>
@@ -198,5 +172,13 @@ watch(props, async () => {
 
 .sentence .footer-index {
     color: #24af34;
+}
+
+.sentence .ref {
+    cursor: pointer;
+}
+
+.sentence .ref:hover {
+    text-decoration: underline;
 }
 </style>

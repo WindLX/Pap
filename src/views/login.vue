@@ -1,42 +1,32 @@
 <script lang="ts">
-import { ref } from 'vue'
+import { reactive } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { Token } from '@/types/token-types'
-import { state } from '@store'
-import pFetch from '@utils/fetch'
+import { LoginApi } from '@/api/login'
+import { TokenSchema, loginDefault } from '@/schemas/token'
+
 
 export default {
     components: {
         FontAwesomeIcon
     },
     setup() {
-        let password = ref("")
-        const stateStore = state.useStateStore()
+        let password = reactive(loginDefault())
         return {
-            stateStore,
             password
         }
     },
     methods: {
-        async onEnter(e: KeyboardEvent) {
+        async handleEnter(e: KeyboardEvent) {
             if (e.key === 'Enter') {
                 e.preventDefault()
                 await this.login()
             }
         },
         async login() {
-            await pFetch('/login/', {
-                method: 'POST',
-                body: JSON.stringify({ password: this.password }),
-                successCallback: async (res) => {
-                    if (res.status === 200) {
-                        const token = await res.json() as Token
-                        localStorage.setItem('token', token.access_token)
-                        window.location.replace('/')
-                    }
-                }
-            })
-            this.password = ""
+            const token = await LoginApi.login(this.password) as TokenSchema
+            localStorage.setItem('token', token.access_token)
+            window.location.replace('/')
+            this.password = loginDefault()
         }
     }
 }
@@ -44,9 +34,9 @@ export default {
 
 <template>
     <div class="login">
-        <div class="login-form" @keydown="onEnter">
+        <div class="login-form" @keydown="handleEnter">
             <font-awesome-icon :icon="['fas', 'lock']" class="icon" />
-            <input v-model="password" type="password" name="password" placeholder="密码" />
+            <input v-model="password.password" type="password" name="password" placeholder="密码" />
             <button @click="login()">登录</button>
         </div>
     </div>
@@ -114,4 +104,4 @@ export default {
     margin-top: 10px;
     margin-bottom: 30px;
 }
-</style>
+</style>@/api/fetch

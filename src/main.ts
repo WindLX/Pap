@@ -18,7 +18,10 @@ import {
     faBookmark, faCircleChevronRight, faFloppyDisk,
     faFileExport, faFilePdf, faArrowUp,
     faShieldHalved, faPaintBrush, faHouse,
-    faLock, faLockOpen, faClockRotateLeft
+    faLock, faLockOpen, faClockRotateLeft,
+    faHashtag, faToolbox, faTags, faHeading,
+    faCircleNodes, faRotateRight, faChevronRight,
+    faChevronDown, faDatabase
 } from '@fortawesome/free-solid-svg-icons'
 import homeVue from './views/home.vue'
 import loginVue from './views/login.vue'
@@ -33,7 +36,10 @@ library.add(faSearch, faFolder, faFolderOpen, faGear,
     faLink, faBookmark, faCircleChevronRight,
     faFloppyDisk, faFileExport, faFilePdf, faArrowUp,
     faShieldHalved, faPaintBrush,
-    faHouse, faLock, faLockOpen, faClockRotateLeft
+    faHouse, faLock, faLockOpen, faClockRotateLeft,
+    faHashtag, faToolbox, faTags, faHeading,
+    faCircleNodes, faRotateRight, faChevronRight,
+    faChevronDown, faDatabase
 )
 
 const pinia = createPinia()

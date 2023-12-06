@@ -1,68 +1,106 @@
 <script lang="ts">
-import { state } from '@store'
-import House from './House.vue';
+import { useStateStore, SidebarIndex } from '@/store/state';
 import Note from './Note.vue';
+import Database from './Database.vue';
 import Setting from './Setting.vue';
-import Timeline from './Timeline.vue';
 
 export default {
     setup() {
-        const stateStore = state.useStateStore()
+        const stateStore = useStateStore()
         return {
-            stateStore
+            stateStore,
+            SidebarIndex
         }
     },
     computed: {
         currentComponent() {
             switch (this.stateStore.sidebarIndex) {
-                case state.SidebarIndex.House:
-                    return House
-                case state.SidebarIndex.Note:
+                case SidebarIndex.Note:
                     return Note
-                case state.SidebarIndex.Timeline:
-                    return Timeline
-                case state.SidebarIndex.Setting:
+                case SidebarIndex.Database:
+                    return Database
+                case SidebarIndex.Setting:
                     return Setting
                 default:
-                    return House
+                    return Note
             }
         },
         currentTitle() {
             switch (this.stateStore.sidebarIndex) {
-                case state.SidebarIndex.House:
-                    return '主页'
-                case state.SidebarIndex.Note:
+                case SidebarIndex.Note:
                     return '笔记区'
-                case state.SidebarIndex.Timeline:
-                    return '时间线'
-                case state.SidebarIndex.Setting:
+                case SidebarIndex.Database:
+                    return '数据库'
+                case SidebarIndex.Setting:
                     return '设置'
                 default:
                     return '主页'
             }
         },
-        isShow() {
-            return this.stateStore.isMiddleBarShow;
-        }
     }
 }
 </script>
 
 <template>
-    <div class="middlebar" v-show="isShow">
-        <p>{{ currentTitle }}</p>
-        <keep-alive>
-            <component :is="currentComponent" />
-        </keep-alive>
-    </div>
+    <transition name="accept">
+        <div class="middlebar" v-show="stateStore.isMiddleBarShow" v-if="stateStore.sidebarIndex != SidebarIndex.Net">
+            <p class="title">{{ currentTitle }}</p>
+            <keep-alive>
+                <transition name="change">
+                    <component :is="currentComponent" />
+                </transition>
+            </keep-alive>
+        </div>
+    </transition>
 </template>
 
 <style scoped>
 .middlebar {
     grid-area: middlebar;
-    display: flex;
     flex-direction: column;
     user-select: none;
+    width: 320px;
+}
+
+.accept-enter-active {
+    animation: accept-in 0.3s;
+}
+
+.accept-leave-active {
+    animation: accept-in 0.3s reverse;
+}
+
+@keyframes accept-in {
+    0% {
+        width: 0px;
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.change-enter-active {
+    animation: change-in 0.3s;
+}
+
+.change-leave-active {
+    animation: change-in 0.3s reverse;
+}
+
+.change-leave-to {
+    display: none;
+}
+
+@keyframes change-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 .middlebar p {
@@ -73,5 +111,71 @@ export default {
     padding-left: 8px;
     width: 92%;
     background-color: #f4f4f4;
+}
+
+@media screen and (max-width: 900px) and (min-width:540px) {
+    .middlebar {
+        z-index: 100;
+        left: 57px;
+        width: 320px;
+        height: calc(100vh - 12px);
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+        background-color: #fff;
+        border: 1px solid #e5e5e5;
+    }
+
+    .middlebar .title {
+        margin-top: 6px;
+    }
+
+    .accpet-enter-active {
+        animation: por-width-in 0.3s;
+    }
+
+    .accpet-leave-active {
+        animation: por-width-in 0.3s reverse;
+    }
+}
+
+@media screen and (max-width: 540px) {
+    .middlebar {
+        z-index: 100;
+        left: 57px;
+        width: calc(100vw - 60px);
+        height: calc(100vh - 12px);
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+        background-color: #fff;
+        border: 1px solid #e5e5e5;
+    }
+
+    .middlebar .title {
+        margin-top: 6px;
+    }
+
+    .accpet-enter-active {
+        animation: por-width-in 0.3s;
+    }
+
+    .accpet-leave-active {
+        animation: por-width-in 0.3s reverse;
+    }
+}
+
+@keyframes por-width-in {
+    0% {
+        width: 0px;
+        opacity: 0;
+    }
+
+    100% {
+        width: calc(100vw - 60px);
+        opacity: 1;
+    }
 }
 </style>

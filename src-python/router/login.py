@@ -12,9 +12,10 @@ async def login(login: LoginSchema):
     logger.info("POST /login")
     result = authentication_manager.authenticate(login.password)
     if not result:
+        logger.error("login failed due to incorrect password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = authentication_manager.create_access_token(

@@ -72,20 +72,18 @@ def get_notes_by_tags(db: Session, tags_id: TagSetSchema) -> list[NoteModel]:
     return query.all()
 
 
-def get_note_by_name(db: Session, note_name: str, index: int) -> NoteModel | None:
+def get_note_by_name(db: Session, note_name: str) -> NoteModel | None:
     """get target note by name
 
     Args:
         db (Session): database session
         note_name (str): target note name
-        index (int): index
 
     Returns:
         NoteModel | None: query result
     """
-    notes = db.query(NoteModel).filter(NoteModel.name == note_name).all()
-    if index < len(notes) and index >= 0:
-        return notes[index]
+    if notes := db.query(NoteModel).filter(NoteModel.name == note_name).all():
+        return notes[0]
     else:
         return None
 

@@ -3,7 +3,7 @@
 
 <template>
     <div>
-        Timeline
+        Net
     </div>
 </template>
 

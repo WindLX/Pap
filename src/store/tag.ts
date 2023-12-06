@@ -1,10 +1,9 @@
 import { defineStore } from 'pinia'
-import { ITag } from '@/types/tag-types'
-import { TagEvent, TagRemoveEvent } from '@/types/event-types'
+import { TagSchema } from '@/schemas/tag'
 
-export enum ChooseSource {
-    Search,
-    Resource,
+export interface TagEvent {
+    tag: TagSchema
+    filterId: number
 }
 
 export const useTagStore = defineStore('tagDrawer', {
@@ -16,22 +15,27 @@ export const useTagStore = defineStore('tagDrawer', {
         }
     },
     actions: {
-        onCreate() { },
-        onUpdate(tag: ITag) {
-            return tag
+        setDefault() {
+            this.show = false
+            this.editable = true
+            this.filterId = -1
         },
-        onRemove(tagId: number, resourceItemId: number): TagRemoveEvent {
-            return { tagId: tagId, resourceItemId: resourceItemId }
+        setShow() {
+            this.show = true
+            this.editable = true
+            this.filterId = -1
         },
-        onDelete(tagId: number) {
-            return tagId
+        setFilterShow(targetId: number) {
+            this.show = true
+            this.editable = false
+            this.filterId = targetId
         },
-        onChoose(tag: ITag): TagEvent {
+        onUpdate() { },
+        onChoose(tag: TagSchema): TagEvent {
             return {
                 tag: tag,
                 filterId: this.filterId
             }
         },
-        onAdd() { },
     }
 })

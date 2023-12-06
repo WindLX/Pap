@@ -6,37 +6,33 @@ import {
     ElSlider, ElInputNumber
 } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import type { ISystemConfig, IBasicConfig, IPathConfig } from '@/types/config-types'
-import { state } from '@store'
-import pFetch from '@/utils/fetch';
+import { ConfigApi } from '@/api/config';
+import type {
+    SystemConfigSchema,
+    BasicConfigSchema,
+    PathConfigSchema
+} from '@/schemas/config';
+import {
+    Section,
+    systemConfigDefault,
+    basicConfigDefault,
+    pathConfigDefault
+} from '@/schemas/config';
+import type { LoginSchema } from '@/schemas/token';
+import { loginDefault } from '@/schemas/token';
+
 
 // const
 const marks = reactive<Record<number, string>>({ 0: '调试', 1: '消息', 2: '警告', 3: '错误' })
 const levelStringMap = ["DEBUG", "INFO", "WARNING", "ERROR"];
 const levelMap = new Map([["DEBUG", 0], ["INFO", 1], ["WARNING", 2], ["ERROR", 3]])
 
-// state
-const stateStore = state.useStateStore()
-
 // data
 let logLevel = ref(0)
-let systemConfig = reactive<ISystemConfig>({
-    host: stateStore.host,
-    port: stateStore.port
-})
-let basicConfig = reactive<IBasicConfig>({
-    title: "Pap",
-    log_level: "INFO"
-})
-let pathConfig = reactive<IPathConfig>({
-    note_dir: ".",
-    log_path: ".",
-    tag_path: ".",
-    emoji_path: "."
-})
-let pwd = reactive<{ password: string }>({
-    password: ""
-})
+let systemConfig = ref<SystemConfigSchema>(systemConfigDefault())
+let basicConfig = ref<BasicConfigSchema>(basicConfigDefault())
+let pathConfig = ref<PathConfigSchema>(pathConfigDefault())
+let pwd = ref<LoginSchema>(loginDefault())
 
 // tool function
 function numberToLogLevel(level: number): string {
@@ -47,77 +43,46 @@ function logLevelToNumber(level: string): number {
     return levelMap.get(level) || 1;
 }
 
-async function setHandler(router: string, data: any, successText: string) {
-    await pFetch(`/config/set_config/${router}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-        successMsg: successText
-    })
-}
-
-async function getHandler(router: string, callback: (res: Response) => Promise<void>) {
-    await pFetch(`/config/get_config/${router}`, {
-        successCallback: async (response) => {
-            await callback(response)
-        }
-    })
-}
-
 // callback function
-async function onSystemSubmitAsync() {
-    await setHandler('system', systemConfig, '系统设置修改成功,将在应用重启后生效')
+function handleSystemSubmit() {
+    ConfigApi.setConfig(Section.System, systemConfig.value)
 }
 
-async function onPathSubmitAsync() {
-    await setHandler('path', pathConfig, '路径设置修改成功')
+function handlePathSubmit() {
+    ConfigApi.setConfig(Section.Path, pathConfig.value)
 }
 
-async function onBasicSubmitAsync() {
-    basicConfig.log_level = numberToLogLevel(logLevel.value)
-    setHandler('basic', basicConfig, '基本设置修改成功,将在应用重启后生效')
+function handleBasicSubmit() {
+    basicConfig.value.log_level = numberToLogLevel(logLevel.value)
+    ConfigApi.setConfig(Section.Basic, basicConfig.value)
 }
 
-async function onPwdSubmitAsync() {
-    await pFetch(`/config/set_pwd`, {
-        method: 'PUT',
-        body: JSON.stringify(pwd),
-        successMsg: '密码修改成功,将在应用重启后生效'
-    })
+function handlePwdSubmit() {
+    ConfigApi.setPwd(pwd.value)
 }
 
-async function onSystemCancelAsync() {
-    systemConfig.host = stateStore.host
-    systemConfig.port = stateStore.port
+function handleSystemCancel() {
+    systemConfig.value = systemConfigDefault()
 }
 
-async function onPathCancelAsync() {
-    await getHandler('path', async (response) => {
-        const data = await response.json() as IPathConfig
-        pathConfig.note_dir = data.note_dir
-        pathConfig.log_path = data.log_path
-        pathConfig.tag_path = data.tag_path
-        pathConfig.emoji_path = data.emoji_path
-    })
+async function handlePathCancelAsync() {
+    pathConfig.value = await ConfigApi.getConfig(Section.Path) as PathConfigSchema
 }
 
-async function onBasicCancelAsync() {
-    await getHandler('basic', async (response) => {
-        const data = await response.json() as IBasicConfig
-        basicConfig.log_level = data.log_level
-        basicConfig.title = data.title
-        logLevel.value = logLevelToNumber(basicConfig.log_level)
-    })
+async function handleBasicCancelAsync() {
+    basicConfig.value = await ConfigApi.getConfig(Section.Basic) as BasicConfigSchema
+    logLevel.value = logLevelToNumber(basicConfig.value.log_level)
 }
 
-async function onPwdCancelAsync() {
-    pwd.password = ""
+function handlePwdCancel() {
+    pwd.value = loginDefault()
 }
 
 // hook
 onActivated(() => {
-    onSystemCancelAsync()
-    onBasicCancelAsync()
-    onPathCancelAsync()
+    handleSystemCancel()
+    handleBasicCancelAsync()
+    handlePathCancelAsync()
 })
 </script>
 
@@ -139,8 +104,8 @@ onActivated(() => {
                         <el-input-number v-model="systemConfig.port"></el-input-number>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onSystemSubmitAsync">提交</el-button>
-                        <el-button @click="onSystemCancelAsync">取消</el-button>
+                        <el-button type="primary" @click="handleSystemSubmit">提交</el-button>
+                        <el-button @click="handleSystemCancel">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>
@@ -161,8 +126,8 @@ onActivated(() => {
                             :format-tooltip="numberToLogLevel"></el-slider>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onBasicSubmitAsync">提交</el-button>
-                        <el-button @click="onBasicCancelAsync">取消</el-button>
+                        <el-button type="primary" @click="handleBasicSubmit">提交</el-button>
+                        <el-button @click="handleBasicCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>
@@ -195,8 +160,8 @@ onActivated(() => {
                         </el-form-item>
                     </el-tooltip>
                     <el-form-item>
-                        <el-button type="primary" @click="onPathSubmitAsync">提交</el-button>
-                        <el-button @click="onPathCancelAsync">取消</el-button>
+                        <el-button type="primary" @click="handlePathSubmit">提交</el-button>
+                        <el-button @click="handlePathCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>
@@ -221,8 +186,8 @@ onActivated(() => {
                         <el-input v-model="pwd.password"></el-input>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="onPwdSubmitAsync">提交</el-button>
-                        <el-button @click="onPwdCancelAsync">取消</el-button>
+                        <el-button type="primary" @click="handlePwdSubmit">提交</el-button>
+                        <el-button @click="handlePwdCancel">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>

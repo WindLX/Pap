@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, provide } from 'vue';
+import { nextTick, onMounted, ref, provide } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { ElScrollbar, ElNotification, ElLoading, ElSkeleton } from "element-plus";
-import { INote } from "@/types/note-types";
-import pFetch from '@/utils/fetch';
+import { ElLoading, ElSkeleton } from "element-plus";
+import { NoteApi } from '@/api/note';
+import { ResourceApi } from '@/api/resource';
 import Editor from './Editor.vue';
+import MdOutline from './MdOutline.vue';
+import TagList from '../Tag/TagList.vue';
 
 // props
 const props = defineProps<{
-    isNote: boolean
     id: number
 }>();
 
@@ -18,30 +19,23 @@ const emits = defineEmits<{
 }>();
 
 // data
-const routerString = computed(() => {
-    return props.isNote ? 'note' : 'content'
-})
 let mdData = ref<string | null>(null);
-let name = "";
+let name = ref<string>("");
 const editor = ref<InstanceType<typeof Editor> | null>(null);
 let lockState = ref<boolean>(false);
+let isTagListShow = ref<boolean>(false);
+let isRightbarShow = ref<boolean>(false);
+let updateStatus = ref<number>(new Date().getTime())
 
 // inject
+// provide('updateStatus', updateStatus)
 provide('lockState', lockState);
 
 // load
 async function loadContentAsync() {
-    await pFetch(`/${routerString.value}/get_${routerString.value}?${routerString.value}_id=${props.id}`, {
-        successCallback: async (response) => {
-            const data = await response.json() as INote
-            name = data.name
-            await pFetch(`/${data.url}`, {
-                successCallback: async (response) => {
-                    mdData.value = await response.text()
-                }
-            })
-        }
-    })
+    const data = await NoteApi.getNote(props.id);
+    name.value = data.name
+    mdData.value = await ResourceApi.getResource(data.url);
 }
 
 // save
@@ -72,24 +66,9 @@ async function saveContentAsync(newData: string) {
     const blob = await createBlobAsync(newData)
     const formData = await createFormDataAsync(blob)
     loadingInstance.close()
-    try {
-        await pFetch(`/${routerString.value}/save_${routerString.value}?${routerString.value}_id=${props.id}`, {
-            method: 'POST',
-            body: formData,
-            isForm: true,
-            successMsg: '文件保存成功',
-            successCallback: async () => {
-                emits('save', true)
-            }
-        })
-    } catch (error) {
-        ElNotification({
-            title: '保存失败',
-            message: 'blob创建失败',
-            type: 'error',
-            duration: 2000
-        })
-    }
+    await NoteApi.saveNote(props.id, formData)
+    emits('save', true)
+    updateStatus.value = new Date().getTime()
 }
 
 async function downloadMdDataAsync(newData: string) {
@@ -135,6 +114,16 @@ function exportPdf() {
     })
 }
 
+function handleShowTagList() {
+    isTagListShow.value = !isTagListShow.value
+    isRightbarShow.value = false
+}
+
+function handleShowOutline() {
+    isRightbarShow.value = !isRightbarShow.value
+    isTagListShow.value = false
+}
+
 onMounted(async () => {
     await loadContentAsync()
     window.onbeforeprint = () => {
@@ -146,55 +135,102 @@ onMounted(async () => {
 <template>
     <div class="markdown" v-if="mdData !== null">
         <div class="markdown-tool">
+            <font-awesome-icon :icon="['fas', 'tags']" class="icon" :class="isTagListShow ? 'active' : ''"
+                @mousedown="handleShowTagList()" />
             <font-awesome-icon :icon="['fas', lockState ? 'lock' : 'lock-open']" class="icon"
-                :class="lockState ? 'lock' : ''" style="font-size: 24px;"
-                @mousedown="lockState = !lockState; emits('lock', lockState)" />
-            <font-awesome-icon :icon="['fas', 'floppy-disk']" class="icon" style="font-size: 24px;"
+                :class="lockState ? 'active' : ''" @mousedown="lockState = !lockState; emits('lock', lockState)" />
+            <font-awesome-icon :icon="['fas', 'floppy-disk']" class="icon" style="font-size: 22px;"
                 @mousedown="editor?.saveData()" />
             <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdData()" />
             <font-awesome-icon :icon="['fas', 'file-pdf']" class="icon" @mousedown="exportPdf()" />
+            <font-awesome-icon :icon="['fas', 'hashtag']" class="icon" :class="isRightbarShow ? 'active' : ''"
+                @mousedown="handleShowOutline()" style="font-size: 22px;" />
         </div>
-        <el-scrollbar id="md-loader">
-            <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
-                ref="editor" />
-        </el-scrollbar>
+        <Transition name="drag">
+            <TagList :id="props.id" v-show="isTagListShow" />
+        </Transition>
+        <Transition name="push">
+            <MdOutline :md-data="mdData" :name="name" v-show="isRightbarShow" :key="updateStatus" />
+        </Transition>
+        <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
+            ref="editor" />
     </div>
     <el-skeleton v-else :rows="10" class="md-block-skeleton" animated />
 </template>
 
 <style scoped>
-.markdown-tool {
+.drag-enter-active {
+    animation: drag-in 0.3s;
+}
+
+.drag-leave-active {
+    animation: drag-in 0.3s reverse;
+}
+
+@keyframes drag-in {
+    0% {
+        transform: translateY(-50%);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.push-enter-active {
+    animation: push-in 0.3s;
+}
+
+.push-leave-active {
+    animation: push-in 0.3s reverse;
+}
+
+@keyframes push-in {
+    0% {
+        transform: translateX(50%);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.markdown {
+    position: relative;
+}
+
+.markdown .markdown-tool {
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    margin-bottom: 10px;
     padding: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     width: fit-content;
+    margin-bottom: 5px;
 }
 
-.markdown-tool .icon {
+.markdown .icon {
     margin: 0 10px;
     font-size: 20px;
     color: #aaaaaa;
     cursor: pointer;
 }
 
-.markdown-tool .icon.lock {
-    color: #4D78cc;
+.markdown .icon.active {
+    color: var(--el-color-primary);
 }
 
-.markdown-tool .icon:hover {
-    color: #4D78cc;
+.markdown .icon:hover {
+    color: var(--el-color-primary);
 }
 
-.md-block-skeleton {
+.markdown .md-block-skeleton {
     max-width: 95%;
     outline: none;
     position: relative;
     margin: 20px auto;
     cursor: wait;
 }
-</style>@/types/tag-types
+</style>

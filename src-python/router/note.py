@@ -74,17 +74,16 @@ def get_note_by_tags(tags_id: TagSetSchema, db: Session = Depends(get_db)) -> li
     Returns:
         list[NoteModel]: query result, all notes model
     """
-    logger.debug(f"GET /note/get_note_tags?tags_id={tags_id}")
+    logger.debug(f"GET /note/get_note_by_tags")
     return note.get_notes_by_tags(db, tags_id)
 
 
 @router.get("/get_note_by_name", response_model=NoteRelationshipSchema, status_code=status.HTTP_200_OK, include_in_schema=True)
-def get_note_by_name(note_name: str, index: int, db: Session = Depends(get_db)) -> NoteModel:
+def get_note_by_name(note_name: str, db: Session = Depends(get_db)) -> NoteModel:
     """get note by name
 
     Args:
         note_name (str): note name
-        index (int): index
         db (Session, optional): database session. Defaults to Depends(get_db).
 
     Raises:
@@ -94,8 +93,8 @@ def get_note_by_name(note_name: str, index: int, db: Session = Depends(get_db)) 
         NoteModel: query result, note model
     """
     logger.debug(
-        f"GET /note/get_note_by_name?note_name={note_name}&index={index}")
-    if (data := note.get_note_by_name(db, note_name, index)):
+        f"GET /note/get_note_by_name?note_name={note_name}")
+    if (data := note.get_note_by_name(db, note_name)):
         return data
     else:
         raise HTTPException(

@@ -14,21 +14,6 @@
       "@/*": [
         "src/*"
       ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@store": [
-        "src/store"
-      ],
-      "@store/*": [
-        "src/store/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@types/*": [
-        "src/types/*",
-      ]
     },
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -68,6 +68,39 @@ impl<'md> Parser {
         }
     }
 
+    pub fn parse_title_only(&mut self, line: usize, input: &'md SplitBlock) -> Option<RawTitle> {
+        match input {
+            SplitBlock::Paragraph(pa) => match pa.as_bytes().get(0) {
+                Some(b'#') => match self.parse_raw_title(line, &pa.as_bytes()) {
+                    Ok(t) => Some(t),
+                    Err(_) => None,
+                },
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    pub fn parse_link_only(&mut self, input: &'md SplitBlock) -> Vec<RawLink> {
+        match input {
+            SplitBlock::Paragraph(pa) => match self.parse_paragraph(pa.as_bytes()) {
+                Ok(p) => {
+                    let ll =
+                        p.0.iter()
+                            .filter(|s| matches!(s, Sentence::Link(_)))
+                            .map(|s| match s {
+                                Sentence::Link(l) => RawLink::from(l.clone()),
+                                _ => unreachable!(),
+                            })
+                            .collect();
+                    return ll;
+                }
+                _ => return Vec::new(),
+            },
+            _ => Vec::new(),
+        }
+    }
+
     fn parse_title(&mut self, input: &'md [u8]) -> Result<Title<'md>> {
         let mut level = 1;
         let mut input = &input[1..];
@@ -86,6 +119,30 @@ impl<'md> Parser {
         }
         let content = self.parse_paragraph(input)?;
         Ok(Title {
+            level: TitleLevel::from(level),
+            content,
+        })
+    }
+
+    fn parse_raw_title(&mut self, line: usize, input: &'md [u8]) -> Result<RawTitle> {
+        let mut level = 1;
+        let mut input = &input[1..];
+        loop {
+            match input.get(0) {
+                Some(b'#') => {
+                    if level >= 6 {
+                        break;
+                    }
+                    level += 1;
+                    input = &input[1..];
+                }
+                Some(b' ') => input = &input[1..],
+                _ => break,
+            }
+        }
+        let content = String::from_utf8(input.to_vec()).unwrap();
+        Ok(RawTitle {
+            line,
             level: TitleLevel::from(level),
             content,
         })
@@ -441,6 +498,16 @@ impl<'md> Parser {
 pub fn parse(sb: &SplitBlock) -> Result<Block> {
     let mut parser = crate::parser::Parser::new();
     parser.process(sb)
+}
+
+pub fn parse_title_only(line: usize, sb: &SplitBlock) -> Option<RawTitle> {
+    let mut parser = crate::parser::Parser::new();
+    parser.parse_title_only(line, sb)
+}
+
+pub fn parse_link_only(sb: &SplitBlock) -> Vec<RawLink> {
+    let mut parser = crate::parser::Parser::new();
+    parser.parse_link_only(sb)
 }
 
 #[cfg(test)]

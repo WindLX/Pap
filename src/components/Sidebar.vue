@@ -1,7 +1,7 @@
 <script lang="ts">
 import { ElMenu, ElMenuItem, ElButton } from 'element-plus'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useStateStore, SidebarIndex, ContentIndex } from '@store/state';
+import { useStateStore, SidebarIndex, ContentIndex } from '@/store/state';
 
 export default {
     components: {
@@ -23,7 +23,7 @@ export default {
                 this.stateStore.isMiddleBarShow = !this.stateStore.isMiddleBarShow
             } else {
                 this.stateStore.sidebarIndex = (index as SidebarIndex)
-                if (["house", "note"].includes(index)) {
+                if (["net", "note", "database"].includes(index)) {
                     this.stateStore.contentIndex = (index as ContentIndex)
                 }
                 this.stateStore.isMiddleBarShow = true
@@ -40,23 +40,21 @@ export default {
 
 <template>
     <div class="sidebar">
-        <el-button @click="lock()" size="small">
-            <font-awesome-icon :icon="['fas', 'lock']" class="icon" @click="lock()" />
-        </el-button>
-        <el-menu @select="select" default-active="house" style="height: 100%;">
-            <el-menu-item class="menu-item" :index="SidebarIndex.House">
-                <font-awesome-icon :icon="['fas', 'house']" class="icon" />
-            </el-menu-item>
+        <el-menu @select="select" default-active="note">
             <el-menu-item class="menu-item" :index="SidebarIndex.Note">
                 <font-awesome-icon :icon="['fas', 'book']" class="icon" />
             </el-menu-item>
-            <el-menu-item class="menu-item" :index="SidebarIndex.Timeline">
-                <font-awesome-icon :icon="['fas', 'route']" class="icon" />
+            <el-menu-item class="menu-item" :index="SidebarIndex.Net">
+                <font-awesome-icon :icon="['fas', 'circle-nodes']" class="icon" />
+            </el-menu-item>
+            <el-menu-item class="menu-item" :index="SidebarIndex.Database">
+                <font-awesome-icon :icon="['fas', 'database']" class="icon" />
             </el-menu-item>
             <el-menu-item class="menu-item" :index="SidebarIndex.Setting">
                 <font-awesome-icon :icon="['fas', 'gear']" class="icon" />
             </el-menu-item>
         </el-menu>
+        <font-awesome-icon :icon="['fas', 'lock']" class="icon button" @click="lock()" />
     </div>
 </template>
 
@@ -72,7 +70,7 @@ export default {
 }
 
 .sidebar .icon {
-    font-size: 14px;
+    font-size: 20px;
 }
 
 .sidebar .menu-item .icon {
@@ -81,5 +79,24 @@ export default {
 
 .sidebar .menu-item:not(.is-active) .icon {
     color: #6d6d6d;
+}
+
+.sidebar .button {
+    color: #6d6d6d;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+.sidebar .button:hover {
+    color: var(--el-color-primary);
+}
+</style>
+<style>
+.el-menu {
+    border-right: none;
+}
+
+.el-menu-item {
+    height: 48px;
 }
 </style>

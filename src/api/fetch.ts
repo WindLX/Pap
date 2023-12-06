@@ -1,5 +1,5 @@
 import { ElNotification } from "element-plus"
-import { state } from "@/store"
+import { useStateStore } from "@/store/state"
 
 export default async function pFetch(input: RequestInfo | URL, options?:
     {
@@ -8,14 +8,12 @@ export default async function pFetch(input: RequestInfo | URL, options?:
         body?: any,
         isErrTip?: boolean,
         successMsg?: string
-        successCallback?: (res: Response) => Promise<void>
     }): Promise<Response> {
-    const stateStore = state.useStateStore()
+    const stateStore = useStateStore()
     const method = options?.method || 'GET'
     const body = options?.body || null
     const isForm = options?.isForm || false
-    const isErrTip = options?.isErrTip || true
-    const successCallback = options?.successCallback
+    const isErrTip = options?.isErrTip === undefined ? true : options?.isErrTip
     const errTitle = new Map([
         ['GET', '获取失败'],
         ['POST', '提交失败'],
@@ -61,16 +59,19 @@ export default async function pFetch(input: RequestInfo | URL, options?:
                         duration: 2000
                     })
                     window.location.replace('/#/login')
+                    reject(res)
                 } else if (Math.floor(res.status / 100) !== 2) {
                     if (isErrTip) {
+                        const detail = await res.json()
                         ElNotification({
                             title: errTitle.get(method),
-                            message: res.statusText,
+                            message: detail.detail,
                             type: 'error',
                             duration: 2000
                         })
                     }
-                } else if (successCallback) {
+                    reject(res)
+                } else {
                     if (options?.successMsg) {
                         ElNotification({
                             title: successTitle.get(method),
@@ -79,15 +80,14 @@ export default async function pFetch(input: RequestInfo | URL, options?:
                             duration: 2000
                         })
                     }
-                    await successCallback(res)
+                    resolve(res)
                 }
-                resolve(res)
             })
             .catch(err => {
                 if (err.status === 401) {
                     window.location.replace('/#/login')
-                    reject(err)
                 }
+                reject(err)
             })
     })
 }

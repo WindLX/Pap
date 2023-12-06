@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import * as pdfjs from 'pdfjs-dist'
 import pdfWorker from "pdfjs-dist/build/pdf.worker";
 import { nextTick, ref, Ref, onMounted, onActivated } from 'vue'
@@ -363,4 +363,4 @@ onActivated(async () => {
     width: 100%;
     height: 100%;
 }
-</style>@/types/tag-types
+</style>@/types/tag-types@/api/fetch -->

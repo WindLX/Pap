@@ -1,90 +1,61 @@
 import { defineStore } from 'pinia'
-import { INodeResourceItem } from '../types/tag-types'
-import { INote } from '../types/note-types'
-import { TabData, TabDataType, TabState } from '../types/tab-types'
+import { NoteUpdateSchema } from '@/schemas/note'
+import { TabPaneName } from 'element-plus'
 
-export function isResourceItem(node: any) {
-    return (node && 'name' in node && 'url' in node && 'contents' in node && 'tags' in node)
+export enum TabState {
+    Lock,
+    Save
 }
 
-export const useResourceTabStore = defineStore('workspaceTabs', {
-    state: () => ({
-        currentIndex: 0,
-        tabs: <Array<TabData>>[]
-    }),
-    getters: {
-        current(state) {
-            return state.tabs[state.currentIndex]
-        }
-    },
-    actions: {
-        updateState(typ: TabState, state: boolean, index: number) {
-            if (state) {
-                this.tabs[index].state.add(typ)
-            } else {
-                this.tabs[index].state.delete(typ)
-            }
-        },
-        flush(data: Array<INodeResourceItem>) {
-            if (data.length === 0) {
-                this.tabs = []
-            } else {
-                this.tabs = this.tabs.filter(item => {
-                    if (item.typ === TabDataType.ResourceItem) {
-                        return data.some(bItem => bItem.id === item.id);
-                    } else {
-                        return data.some(bItem => bItem.contents.some(content => {
-                            if (content.id === item.id) {
-                                item.name = content.name
-                                return true
-                            } else {
-                                return false
-                            }
-                        }));
-                    }
-                });
-            }
-            this.currentIndex = 0
-        },
-    },
-})
+interface TabData {
+    id: number
+    name: string
+    state: Set<TabState>
+}
 
 export const useNoteTabStore = defineStore('noteTabs', {
-    state: () => ({
-        currentIndex: 0,
-        tabs: <Array<TabData>>[]
-    }),
-    getters: {
-        current(state) {
-            return state.tabs[state.currentIndex]
+    state: () => {
+        return {
+            currentIndex: <TabPaneName>0,
+            tabs: <Array<TabData>>[]
         }
     },
+    getters: {
+        length: (state) => state.tabs.length
+    },
     actions: {
-        updateState(typ: TabState, state: boolean, index: number) {
-            if (state) {
-                this.tabs[index].state.add(typ)
-            } else {
-                this.tabs[index].state.delete(typ)
+        addTab(data: NoteUpdateSchema) {
+            let index = this.tabs.findIndex((t) => t.id === data.id)
+            if (index === -1) {
+                this.tabs.push({
+                    id: data.id,
+                    name: data.name,
+                    state: new Set([TabState.Save])
+                })
+                index = this.tabs.length - 1
+            }
+            this.currentIndex = index
+        },
+        updateTab(data: NoteUpdateSchema) {
+            const target = this.tabs.find(item => item.id === data.id)
+            if (target) {
+                target.name = data.name
             }
         },
-        flush(data: Array<INote>) {
-            if (data.length === 0) {
-                this.tabs = []
-            } else {
-                this.tabs = this.tabs.filter(item => {
-                    if (item.typ === TabDataType.Note) {
-                        return data.some(bItem => {
-                            if (bItem.id === item.id) {
-                                item.name = bItem.name
-                                return true
-                            } else {
-                                return false
-                            }
-                        });
-                    }
-                });
-            }
+        removeTab(name: TabPaneName) {
+            this.tabs = this.tabs.filter((_item, index) => index !== name)
             this.currentIndex = 0
+        },
+        deleteTab(id: number) {
+            this.tabs = this.tabs.filter(item => item.id !== id)
+            this.currentIndex = 0
+        },
+        updateState(state: TabState, isAdd: boolean, index: number) {
+            if (isAdd) {
+                this.tabs[index].state.add(state)
+            } else {
+                this.tabs[index].state.delete(state)
+            }
         },
     },
 })

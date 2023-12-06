@@ -57,6 +57,13 @@ pub struct Title<'md> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct RawTitle {
+    pub line: usize,
+    pub level: TitleLevel,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum TitleLevel {
     H1,
     H2,
@@ -120,6 +127,29 @@ impl Default for Text {
 pub struct Link<'md> {
     pub content: String,
     pub href: Option<&'md str>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct RawLink {
+    pub content: String,
+    pub href: Option<String>,
+    pub is_md: bool,
+}
+
+impl<'md> From<Link<'md>> for RawLink {
+    fn from(value: Link<'md>) -> Self {
+        RawLink {
+            content: value.content,
+            href: match value.href {
+                Some(href) => Some(href.to_string()),
+                None => None,
+            },
+            is_md: value
+                .href
+                .map(|href| href.starts_with("md://"))
+                .unwrap_or_default(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

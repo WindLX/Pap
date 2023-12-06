@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { JsGenerator } from "md_wasm";
 import { nextTick, onMounted, ref } from "vue";
-import MdBlock from "./MdBlock.vue";
 import { ElScrollbar } from "element-plus";
+import MdBlock from "./MdBlock.vue";
+
 
 const props = defineProps<{
     mdData: string,
@@ -101,12 +102,15 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="editor" ref="container" @keydown="handleKeyDown" id="md-print">
+    <div class="editor">
         <el-scrollbar>
-            <MdBlock v-for="(rawData, index) in rawDataSet" :key="index" :raw-data="rawData" :line-num="index" ref="blocks"
-                @update:raw-data="(newValue: string) => updateRawData(index, newValue)" @append-line="appendLine"
-                @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine" @down-line="downLine">
-            </MdBlock>
+            <div class="editor-content" ref="container" @keydown="handleKeyDown" id="md-print">
+                <MdBlock v-for="(rawData, index) in rawDataSet" :key="index" :raw-data="rawData" :line-num="index"
+                    ref="blocks" @update:raw-data="(newValue: string) => updateRawData(index, newValue)"
+                    @append-line="appendLine" @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine"
+                    @down-line="downLine">
+                </MdBlock>
+            </div>
         </el-scrollbar>
     </div>
 </template>
@@ -114,12 +118,13 @@ onMounted(async () => {
 <style scoped>
 .editor {
     max-width: 100%;
-    grid-area: content;
     display: flex;
     flex-direction: column;
-    border: 1px solid #ccc;
     position: relative;
-    border-radius: 10px;
     padding: 10px 0;
+}
+
+.editor-content {
+    height: calc(100vh - 140px);
 }
 </style>

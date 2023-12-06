@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { state } from '@store'
-import House from './House.vue';
+import { useStateStore, ContentIndex } from '@/store/state'
 import Notespace from './Notespace.vue'
+import Databasespace from './Databasespace.vue';
+import Netspace from './Netspace.vue';
 
 // state
-const store = state.useStateStore();
+const store = useStateStore();
 
 // content
 const currentComponent = computed(() => {
     switch (store.contentIndex) {
-        case state.ContentIndex.House:
-            return House
-        case state.ContentIndex.Note:
+        case ContentIndex.Net:
+            return Netspace
+        case ContentIndex.Note:
             return Notespace
+        case ContentIndex.Database:
+            return Databasespace
         default:
-            return House
+            return Notespace
     }
 });
 </script>
@@ -25,5 +28,3 @@ const currentComponent = computed(() => {
         <component :is="currentComponent" />
     </keep-alive>
 </template>
-
-<style scoped></style>

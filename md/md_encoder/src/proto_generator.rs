@@ -1,5 +1,5 @@
 use md_parser::expr::*;
-use md_parser::generator::Generator;
+use md_parser::generator::ParaGenerator;
 use md_parser::Result as MResult;
 use prost::Message;
 
@@ -163,7 +163,7 @@ impl ProtoGenerator {
     }
 }
 
-impl Generator<proto::Block> for ProtoGenerator {
+impl ParaGenerator<proto::Block> for ProtoGenerator {
     fn parallel_threshold(&self) -> usize {
         self.parallel_threshold
     }

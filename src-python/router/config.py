@@ -72,12 +72,13 @@ async def set_config(section: str, value: SystemConfigSchema | BasicConfigSchema
     if (not flag):
         logger.warning(f"{section} not found")
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"`{section}` 查找失败")
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"`{section}`设置字段查找失败")
 
 
 @router.put("/set_pwd", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
 async def set_pwd(pwd: LoginSchema):
     logger.info("PUT /login/set_pwd")
     if not authentication_manager.set_pwd(pwd.password):
+        logger.error(f"password save failed")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="密码文件写入异常")
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="密码保存异常")

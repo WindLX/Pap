@@ -31,14 +31,15 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [x] File Lock
 - [x] Not save tip
 - [x] File Rename
-- [ ] Note Tag
-- [ ] Resource Rightbar
+- [x] Note Tag
+- [x] Rightbar
 - [x] Private Lock
-- [ ] HousePage
+- [ ] Keymap
 - [ ] Style
-- [ ] Timeline
+- [x] Title List
 - [ ] Markdown Ref net
 - [ ] Table
+- [ ] Database
 - [ ] OCR
 - [ ] PDF information extraction function
 - [ ] More powerful PDF browsing and editing functions

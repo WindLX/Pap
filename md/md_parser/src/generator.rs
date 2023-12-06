@@ -1,11 +1,26 @@
 use crate::expr::*;
 use crate::Result;
 
+pub trait Generator<T>
+where
+    T: Sized,
+{
+    fn generate(&self, block: &Result<Block>) -> T;
+    fn process(&self, input: String) -> Vec<T> {
+        let split_blocks = crate::spliter::split(&input);
+        let bs: Vec<Result<Block>> = split_blocks
+            .iter()
+            .map(|sb| crate::parser::parse(sb))
+            .collect();
+        bs.iter().map(|b| self.generate(b)).collect()
+    }
+}
+
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 #[cfg(feature = "parallel")]
-pub trait Generator<T>
+pub trait ParaGenerator<T>
 where
     T: Sized + Send,
     Self: Sync,
@@ -44,5 +59,28 @@ where
             )]))),
         };
         self.generate(&b)
+    }
+}
+
+pub trait StatusGenerator {
+    fn get_titles(&self, input: String) -> Vec<RawTitle> {
+        let split_blocks = crate::spliter::split(&input);
+        let mut bs = Vec::new();
+        for sb in split_blocks.iter().enumerate() {
+            let t = crate::parser::parse_title_only(sb.0, &sb.1);
+            if let Some(t) = t {
+                bs.push(t);
+            }
+        }
+        bs
+    }
+    fn get_refs(&self, input: String) -> Vec<RawLink> {
+        let split_blocks = crate::spliter::split(&input);
+        let mut bs = Vec::new();
+        for sb in split_blocks {
+            let l = crate::parser::parse_link_only(&sb);
+            bs.extend(l)
+        }
+        bs
     }
 }

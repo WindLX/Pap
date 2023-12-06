@@ -16,6 +16,22 @@ def get_tags(db: Session) -> list[TagModel]:
     return db.query(TagModel).all()
 
 
+def get_note_tags(db: Session, note_id: int) -> list[TagModel]:
+    """get target note's tags
+
+    Args:
+        db (Session): database session
+        note_id (int): target note id
+
+    Returns:
+        list[TagModel]: query result
+    """
+    if db_note := db.get(NoteModel, note_id):
+        return db_note.tags
+    else:
+        return []
+
+
 def create_tag(db: Session, tag: TagCreateSchema) -> TagModel | None:
     """create a new tag to database
 

@@ -1,6 +1,6 @@
 use crate::js_expr::*;
 use md_parser::expr::*;
-use md_parser::generator::SingleGenerator;
+use md_parser::generator::{SingleGenerator, StatusGenerator};
 use md_parser::Result as MResult;
 use wasm_bindgen::prelude::*;
 
@@ -155,6 +155,39 @@ impl SingleGenerator<Result<JsBlock, JsError>> for JsGenerator {
         Ok(block)
     }
 }
+
+#[wasm_bindgen]
+pub struct JsStatusGenerator;
+
+#[wasm_bindgen]
+impl JsStatusGenerator {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn get_js_titles(&self, input: String) -> Vec<JsValue> {
+        self.get_titles(input)
+            .iter()
+            .map(|t| {
+                let t = JsRawTitle {
+                    line: t.line,
+                    level: match t.level {
+                        TitleLevel::H1 => JsTitleLevel::H1,
+                        TitleLevel::H2 => JsTitleLevel::H2,
+                        TitleLevel::H3 => JsTitleLevel::H3,
+                        TitleLevel::H4 => JsTitleLevel::H4,
+                        TitleLevel::H5 => JsTitleLevel::H5,
+                        TitleLevel::H6 => JsTitleLevel::H6,
+                    },
+                    content: t.content.clone(),
+                };
+                serde_wasm_bindgen::to_value(&t).unwrap()
+            })
+            .collect()
+    }
+}
+
+impl StatusGenerator for JsStatusGenerator {}
 
 #[cfg(test)]
 mod tests {

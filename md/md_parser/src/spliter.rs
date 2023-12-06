@@ -50,9 +50,7 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
             continue;
         }
         let para = input.slice_to_byte(b'\n');
-        if para.len() > 0 {
-            blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
-        }
+        blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
         if input.is_end() {
             break;
         }

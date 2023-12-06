@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import katex from "katex";
 import { JsGenerator } from "md_wasm";
 import { Ref, nextTick, onMounted, ref, watch, inject } from 'vue';
-import katex from "katex";
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ElImage, ElSkeleton } from "element-plus";
+import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "@/md/mdexpr";
+import { BlockTag } from "@/md/mdexpr";
 import MdParagraph from './MdParagraph.vue';
-import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "@/types/mdexpr-types";
-import { BlockTag } from "@/types/mdexpr-types";
 
 const props = defineProps<{
     lineNum: number,
@@ -21,6 +21,7 @@ const emits = defineEmits<{
     (e: 'edit'): void;
     (e: 'upLine', value: number): void;
     (e: 'downLine', value: number): void;
+    (e: 'updateStatus'): void;
 }>()
 
 defineExpose({
@@ -40,21 +41,24 @@ let block: Ref<Block | null> = ref(null)
 const lock = inject<Ref<boolean>>('lockState')
 
 async function serializeAsync(rawData: string): Promise<Block> {
-    try {
-        const result = generator.serialize(rawData);
-        return Promise.resolve(result);
-    } catch (_e) {
-        // console.log(_e)
-        return Promise.resolve({
-            tag: BlockTag.Error,
-            content: rawData
-        });
-    }
+    var p = new Promise<Block>((resolve) => {
+        try {
+            const result = generator.serialize(rawData);
+            resolve(result);
+        } catch (_e) {
+            resolve({
+                tag: BlockTag.Error,
+                content: rawData
+            });
+        }
+    })
+    return p
 }
 
 function handleInput() {
     if (raw.value) {
         emits('update:rawData', raw.value.innerText);
+        emits("updateStatus")
     }
 }
 
@@ -98,17 +102,18 @@ function behaviorHandler(e: KeyboardEvent) {
             e.preventDefault();
             if (raw.value && selection) {
                 const oldRange = selection.getRangeAt(0);
-                oldRange.insertNode(document.createTextNode('\t'));
+                const end = oldRange.endOffset
+                raw.value.innerText =
+                    raw.value.innerText.slice(0, oldRange.endOffset)
+                    + '\t'
+                    + raw.value.innerText.slice(oldRange.endOffset);
                 emits('update:rawData', raw.value.innerText);
-                const pos = oldRange.startOffset + 1;
-                raw.value?.focus();
-                const range = document.createRange();
-                if (raw.value?.firstChild) {
-                    range.setEnd(raw.value.firstChild, pos)
-                    range.collapse();
-                    selection?.removeAllRanges();
-                    selection?.addRange(range);
+                if (end !== 0) {
+                    oldRange.setEnd(raw.value?.firstChild!, end + 1)
+                } else {
+                    oldRange.setEndAfter(raw.value?.firstChild!)
                 }
+                oldRange.collapse()
             }
             break;
         case 'Backspace':
@@ -207,7 +212,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="block" class="md-block" @mousedown="handleEdit()">
+    <div v-if="block" class="md-block" @dblclick="handleEdit()">
         <span v-show="isEdit" class="line-num" :class="{ 'focus-num': isEdit }">
             {{ props.lineNum }}
         </span>
@@ -216,8 +221,9 @@ onMounted(async () => {
             {{ props.rawData }}
         </span>
         <span v-show="!isEdit" class="render" :class="{ 'inline': calcuateInline(block.tag) }">
-            <span v-if="block.tag === BlockTag.Title" class="title" :class="(block.content as Title).level">
-                <span class="title-tip">{{ (block.content as Title).level }}</span>
+            <span v-if="block.tag === BlockTag.Title" class="title" :class="(block.content as Title).level"
+                :id="`md-title-${$props.lineNum}`">
+                <!-- <span class="title-tip">{{ (block.content as Title).level }}</span> -->
                 <MdParagraph :paragraph="(block.content as Title).content"></MdParagraph>
             </span>
             <span v-else-if="block.tag === BlockTag.Paragraph" class="paragraph">
@@ -231,8 +237,8 @@ onMounted(async () => {
             </span>
             <span v-else-if="block.tag === BlockTag.ListItem" class="list-item">
                 <span class="list-tip" :style="calcuateMargin((block.content as ListItem).level)">
-                    <font-awesome-icon v-if="!(block.content as ListItem).index" style="margin-right: 4px;"
-                        :icon="['fas', 'circle-chevron-right']" />
+                    <font-awesome-icon v-if="!(block.content as ListItem).index && (block.content as ListItem).index !== 0"
+                        style="margin-right: 4px;" :icon="['fas', 'chevron-right']" />
                     <span v-else>
                         {{ (block.content as ListItem).index }}
                     </span>
@@ -359,24 +365,28 @@ onMounted(async () => {
     display: inline-block;
 }
 
+.md-block .title {
+    font-weight: bold;
+}
+
 .md-block .H1 {
-    font-size: 32px;
+    font-size: 40px;
 }
 
 .md-block .H2 {
-    font-size: 28px;
+    font-size: 36px;
 }
 
 .md-block .H3 {
-    font-size: 26px;
+    font-size: 32px;
 }
 
 .md-block .H4 {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .md-block .H5 {
-    font-size: 22px;
+    font-size: 24px;
 }
 
 .md-block .H6 {

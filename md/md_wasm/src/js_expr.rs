@@ -23,6 +23,13 @@ pub struct JsTitle {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct JsRawTitle {
+    pub line: usize,
+    pub level: JsTitleLevel,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum JsTitleLevel {
     H1,
     H2,
