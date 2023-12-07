@@ -57,6 +57,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['pdfjs-dist'],
-    exclude: ['md_wasm'],
+    exclude: ['md_wasm', 'sim'],
   },
 })

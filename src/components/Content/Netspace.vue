@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { onMounted, reactive } from 'vue'
+import { JsSystem } from 'sim';
 import NetNode from '../Net/NetNode.vue';
 import NetLine from '../Net/NetLine.vue';
 
 const nodes = reactive([
     {
         id: 0,
-        isMd: true,
-        text: "a",
+        is_md: true,
+        data: "a",
         pos: {
             x: 0,
             y: 0
@@ -15,8 +16,8 @@ const nodes = reactive([
     },
     {
         id: 1,
-        isMd: false,
-        text: "b",
+        is_md: false,
+        data: "b",
         pos: {
             x: 0,
             y: 0
@@ -31,10 +32,26 @@ const lines = [
     }
 ]
 
+const config = {
+    origin_x: 50.0,
+    origin_y: 50.0,
+    origin_length: 50.0,
+    stiffness: 3.0,
+    gravitation_weight: 1.0,
+    gravitation_bais: -30.0,
+    md_mass: 10.0,
+    res_mass: 1.0,
+}
+
 function handleShowMd(id: number) {
 
 }
 
+onMounted(() => {
+    const system = JsSystem.new(nodes, lines, config)
+    let a = system.step()
+    console.log(a)
+})
 </script>
 
 <template>
