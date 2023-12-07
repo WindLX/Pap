@@ -75,7 +75,7 @@ app.include_router(config.router)
 app.include_router(note.router)
 app.include_router(tag.router)
 app.include_router(emoji.router)
-# app.include_router(net.router)
+app.include_router(net.router)
 
 
 @app.get("/", include_in_schema=False)

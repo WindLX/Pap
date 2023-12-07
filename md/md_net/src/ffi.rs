@@ -9,7 +9,6 @@ pub struct CNoteSchema {
     id: c_uint,
     name: *const libc::c_char,
     url: *const libc::c_char,
-    len: c_uint,
 }
 
 #[repr(C)]
@@ -60,6 +59,7 @@ pub unsafe extern "C" fn generate(
 ) -> *const CNetSchema {
     let notes = parse_note_schema_vec(notes);
     let net = (*(*net_generator).gen).generate(notes);
+    println!("{:#?}", net);
     let clink_vec: Vec<*const CNetLinkSchema> =
         net.links.iter().map(|o| copy_net_link_schema(o)).collect();
     let l_len = clink_vec.len();

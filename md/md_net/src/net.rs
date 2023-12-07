@@ -68,8 +68,8 @@ impl MultiNetGenerator {
             })
             .collect();
         let mut link_set: HashSet<NetLinkSchema> = HashSet::new();
-        for note in notes {
-            let input = fs::read_to_string(note.url).unwrap();
+        for (i, note) in notes.iter().enumerate() {
+            let input = fs::read_to_string(&note.url).unwrap();
             let links = self.get_refs(input);
             links.iter().for_each(|l| {
                 match &l.href {
@@ -82,7 +82,7 @@ impl MultiNetGenerator {
                                 pos: Vector { x: 0, y: 0 },
                             });
                             link_set.insert(NetLinkSchema {
-                                source: note.id,
+                                source: i,
                                 target: nodes.len() - 1,
                             });
                         } else {
@@ -92,7 +92,7 @@ impl MultiNetGenerator {
                             });
                             if let Some(idx) = idx {
                                 link_set.insert(NetLinkSchema {
-                                    source: note.id,
+                                    source: i,
                                     target: idx,
                                 });
                             }

@@ -1,15 +1,14 @@
 import ctypes
 from schemas.note import NoteSchema
-from schemas.net import NetSchema, NetNodeSchema, NetLinkSchema
+from schemas.net import NetSchema, NetNodeSchema, NetLinkSchema, Vector
 
-lib = ctypes.CDLL('./md_net.dll')
+lib = ctypes.CDLL('./lib/md_net.dll')
 
 
 class CNoteSchema(ctypes.Structure):
     _fields_ = [("id", ctypes.c_uint32),
                 ("name", ctypes.POINTER(ctypes.c_char)),
-                ("url", ctypes.POINTER(ctypes.c_char)),
-                ("len", ctypes.c_uint32)]
+                ("url", ctypes.POINTER(ctypes.c_char))]
 
 
 class CNoteSchemaVec(ctypes.Structure):
@@ -69,23 +68,41 @@ class NetGenerator:
 
 
 def copy_note(note: NoteSchema) -> CNoteSchema:
-    pass
+    c_note = CNoteSchema()
+    c_note.id = note.id
+    c_note.name = ctypes.create_string_buffer(note.name.encode('utf-8'))
+    c_note.url = ctypes.create_string_buffer(note.url.encode('utf-8'))
+    return c_note
 
 
 def copy_notes(notes: list[NoteSchema]) -> CNoteSchemaVec:
-    pass
+    c_notes = (CNoteSchema * len(notes))()
+    for i, note in enumerate(notes):
+        c_notes[i] = copy_note(note)
+    c_notes_vec = CNoteSchemaVec(notes=c_notes, len=len(notes))
+    return c_notes_vec
 
 
 def parse_cnet(input: CNetSchema) -> NetSchema:
-    pass
+    nodes = [parse_cnet_node(input.nodes[i]) for i in range(input.n_len)]
+    links = [parse_cnet_link(input.links[i]) for i in range(input.l_len)]
+    return NetSchema(nodes=nodes, links=links)
 
 
 def parse_cnet_node(input: CNetNodeSchema) -> NetNodeSchema:
-    pass
+    return NetNodeSchema(
+        id=input.id,
+        data=ctypes.string_at(input.data).decode('utf-8'),
+        is_md=True if input.is_md == 1 else False,
+        pos=Vector(x=input.pos_x, y=input.pos_y)
+    )
 
 
 def parse_cnet_link(input: CNetLinkSchema) -> NetLinkSchema:
-    pass
+    return NetLinkSchema(
+        source=input.source,
+        target=input.target
+    )
 
 
 net_generator = NetGenerator()

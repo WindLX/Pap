@@ -49,6 +49,12 @@ function Build-Rust {
     wasm-pack build
     Set-Location ..\..
 
+    Set-Location .\md\md_net
+    cargo build --release
+    Set-Location ..
+    Copy-Item -Path .\target\release\md_net.dll -Destination ..\lib
+    Set-Location ..
+
     Set-Location .\sim
     cargo build --release
     wasm-pack build

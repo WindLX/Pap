@@ -107,9 +107,9 @@ function handleUpdatePos(index: number, pos: Vector) {
 }
 
 async function loadNet() {
-    // const net = await NetApi.get_net()
-    // nodes.value = net.nodes
-    // lines.value = net.links
+    const net = await NetApi.get_net()
+    nodes.value = net.nodes
+    lines.value = net.links
     system = JsSystem.new(nodes.value, lines.value, config)
     timer.value = window.setInterval(netStep, 20)
 }
