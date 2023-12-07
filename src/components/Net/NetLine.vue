@@ -1,13 +1,11 @@
 <script setup lang="ts">
+import { Vector } from '@/schemas/net';
+
 const props = defineProps<{
     source: Vector,
     target: Vector,
 }>()
 
-type Vector = {
-    x: number,
-    y: number
-}
 </script>
 
 <template>
@@ -19,4 +17,4 @@ type Vector = {
     stroke: #f0f0f0;
     stroke-width: 2;
 }
-</style>
+</style>@/schemas/net

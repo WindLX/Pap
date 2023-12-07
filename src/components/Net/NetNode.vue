@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, reactive } from 'vue';
+import { computed, ref, reactive, watchEffect } from 'vue';
+import { Vector } from '@/schemas/net';
 
 const props = defineProps<{
-    id: number
+    radius: [number, number]
+    bound: [number, number]
     isMd: boolean
     text: string
     pos: Vector
@@ -13,17 +15,12 @@ const emits = defineEmits<{
     (e: 'click'): void
 }>()
 
-const isHover = ref(false)
-let isDragging = ref(false);
+const isShowText = ref(false)
+const isDragging = ref(false);
 const pos = reactive(props.pos);
 
-type Vector = {
-    x: number,
-    y: number
-}
-
 const radius = computed(() => {
-    return props.isMd ? 30 : 15
+    return props.isMd ? props.radius[0] : props.radius[1]
 })
 
 const color = computed(() => {
@@ -32,8 +29,25 @@ const color = computed(() => {
 
 function handleDrag(event: MouseEvent) {
     if (isDragging.value) {
-        pos.x = event.clientX - 50;
-        pos.y = event.clientY;
+        let x = Math.min((props.bound[0] - radius.value), (event.clientX - 50));
+        x = Math.max(radius.value, x)
+        pos.x = x
+        let y = Math.min((props.bound[1] - radius.value), (event.clientY - 48));
+        y = Math.max(radius.value, y)
+        pos.y = y
+        emits("update:pos", pos)
+    }
+}
+
+function handleTouchDrag(event: TouchEvent) {
+    const touch = event.touches[0]
+    if (isDragging.value) {
+        let x = Math.min((props.bound[0] - radius.value), (touch.clientX - 50));
+        x = Math.max(radius.value, x)
+        pos.x = x
+        let y = Math.min((props.bound[1] - radius.value), (touch.clientY - 48));
+        y = Math.max(radius.value, y)
+        pos.y = y
         emits("update:pos", pos)
     }
 }
@@ -43,14 +57,20 @@ function handleClick() {
         emits('click')
     }
 }
+
+watchEffect(() => {
+    pos.x = props.pos.x
+    pos.y = props.pos.y
+})
 </script>
 
 <template>
-    <g @mouseenter="isHover = true" @mouseleave="isHover = false" @dblclick="handleClick" class="node"
-        @mousedown="isDragging = true" @mousemove="handleDrag" @mouseup="isDragging = false">
+    <g @dblclick="handleClick" @click="isShowText = !isShowText" class="node" @mousedown="isDragging = true"
+        @mousemove="handleDrag" @mouseup="isDragging = false" @touchstart="isDragging = true" @touchmove="handleTouchDrag"
+        @touchend="isDragging = false">
         <circle :cx="pos.x" :cy="pos.y" :r="radius" :fill="color" />
         <Transition name="fade">
-            <text v-show="isHover" :x="pos.x" :y="pos.y" alignment-baseline="middle" text-anchor="middle" fill="#fff"
+            <text v-show="isShowText" :x="pos.x" :y="pos.y" alignment-baseline="middle" text-anchor="middle" fill="#fff"
                 filter="url(#back)">{{ props.text }}</text>
         </Transition>
     </g>
@@ -78,4 +98,4 @@ function handleClick() {
         opacity: 1;
     }
 }
-</style>
+</style>@/schemas/net

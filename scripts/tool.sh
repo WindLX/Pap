@@ -24,6 +24,11 @@ build_rust() {
     cargo build --release
     wasm-pack build
     cd ../..
+
+    cd sim
+    cargo build --release
+    wasm-pack build
+    cd ..
 }
 
 pack() {

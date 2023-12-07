@@ -77,7 +77,7 @@ async def set_config(section: str, value: SystemConfigSchema | BasicConfigSchema
 
 @router.put("/set_pwd", status_code=status.HTTP_202_ACCEPTED, include_in_schema=True)
 async def set_pwd(pwd: LoginSchema):
-    logger.info("PUT /login/set_pwd")
+    logger.info("PUT /config/set_pwd")
     if not authentication_manager.set_pwd(pwd.password):
         logger.error(f"password save failed")
         raise HTTPException(

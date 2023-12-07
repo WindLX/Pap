@@ -198,6 +198,9 @@ onActivated(() => {
 <style scoped>
 .setting {
     margin-top: 10px;
+    width: 95%;
+    transform: translateX(2.5%);
+    border-radius: 10px;
 }
 
 .setting .title {

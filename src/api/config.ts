@@ -42,7 +42,7 @@ export class ConfigApi extends BaseApi {
 
     public static async setPwd(pwd: LoginSchema): Promise<void> {
         return new Promise(function (resolve, reject) {
-            pFetch(`/set_pwd`, {
+            pFetch(`/config/set_pwd`, {
                 method: 'PUT',
                 body: JSON.stringify(pwd),
                 successMsg: '密码修改成功,将在应用重启后生效'

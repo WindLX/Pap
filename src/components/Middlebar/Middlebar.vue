@@ -28,7 +28,7 @@ export default {
         currentTitle() {
             switch (this.stateStore.sidebarIndex) {
                 case SidebarIndex.Note:
-                    return '笔记区'
+                    return '笔记'
                 case SidebarIndex.Database:
                     return '数据库'
                 case SidebarIndex.Setting:
@@ -106,11 +106,11 @@ export default {
 .middlebar p {
     font-size: 14px;
     margin: 0;
-    margin-left: 2.5%;
+    margin-top: 10px;
     padding: 0;
     padding-left: 8px;
     width: 92%;
-    background-color: #f4f4f4;
+    text-align: center;
 }
 
 @media screen and (max-width: 900px) and (min-width:540px) {

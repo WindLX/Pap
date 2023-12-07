@@ -62,6 +62,11 @@ function Build-Rust {
     cargo build --release
     wasm-pack build
     Set-Location ..\..
+
+    Set-Location .\sim
+    cargo build --release
+    wasm-pack build
+    Set-Location ..
 }
 
 if ($Test) {

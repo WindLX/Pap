@@ -23,6 +23,11 @@ build_rust() {
     cargo build --release
     wasm-pack build
     cd ../..
+
+    cd sim
+    cargo build --release
+    wasm-pack build
+    cd ..
 }
 
 while [[ $# -gt 0 ]]; do

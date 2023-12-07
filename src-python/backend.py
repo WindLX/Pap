@@ -1,4 +1,4 @@
-from router import login, config, note, tag, emoji
+from router import login, config, note, tag, emoji, net
 from model.note_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
@@ -75,6 +75,7 @@ app.include_router(config.router)
 app.include_router(note.router)
 app.include_router(tag.router)
 app.include_router(emoji.router)
+# app.include_router(net.router)
 
 
 @app.get("/", include_in_schema=False)

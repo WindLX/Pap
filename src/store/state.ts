@@ -18,6 +18,8 @@ export enum ContentIndex {
     Note = 'note',
 }
 
+const indexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Database, SidebarIndex.Setting]
+
 export const useStateStore = defineStore('states', {
     state: () => {
         return {
@@ -30,5 +32,13 @@ export const useStateStore = defineStore('states', {
     },
     getters: {
         backendHost: (state) => `http://${state.host}:${state.port}`
+    },
+    actions: {
+        isActive(index: number): string {
+            return this.sidebarIndex == indexes[index] ? 'active' : ''
+        },
+        select(index: number) {
+            this.sidebarIndex = indexes[index]
+        }
     }
 })

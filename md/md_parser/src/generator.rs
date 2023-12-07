@@ -74,6 +74,9 @@ pub trait StatusGenerator {
         }
         bs
     }
+}
+
+pub trait NetGenerator {
     fn get_refs(&self, input: String) -> Vec<RawLink> {
         let split_blocks = crate::spliter::split(&input);
         let mut bs = Vec::new();
