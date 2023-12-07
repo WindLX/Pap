@@ -10,4 +10,5 @@ crate-type = ["cdylib"]
 name = "md_net"
 
 [dependencies]
+libc = "0.2.150"
 md_parser = { path = "../md_parser", features = ["pap"] }

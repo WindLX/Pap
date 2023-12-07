@@ -1,29 +1,30 @@
 use crate::net::*;
 use std::{
-    ffi::{c_uint, CStr},
+    ffi::{c_char, c_uint, CStr},
     mem::size_of,
 };
 
 #[repr(C)]
 pub struct CNoteSchema {
     id: c_uint,
-    name: *const u8,
-    url: *const u8,
+    name: *const libc::c_char,
+    url: *const libc::c_char,
     len: c_uint,
 }
 
 #[repr(C)]
-pub struct CVector {
-    x: c_uint,
-    y: c_uint,
+pub struct CNoteSchemaVec {
+    notes: *const CNoteSchema,
+    len: c_uint,
 }
 
 #[repr(C)]
 pub struct CNetNodeSchema {
     id: c_uint,
-    data: *const u8,
-    is_md: bool,
-    pos: Vector,
+    data: *const libc::c_char,
+    is_md: c_uint,
+    pos_x: c_uint,
+    pox_y: c_uint,
 }
 
 #[repr(C)]
@@ -42,66 +43,93 @@ pub struct CNetSchema {
 
 #[repr(C)]
 pub struct CNetGenerator {
-    gen: *mut MultiNetGenerator,
+    gen: *const MultiNetGenerator,
 }
 
 #[no_mangle]
-pub extern "C" fn init_proto_generator(parallel_threshold: c_uint) -> *mut CProtoGenerator {
-    let proto_generator = ProtoGenerator::new(parallel_threshold as c_uint);
-    let p = Box::into_raw(Box::new(proto_generator));
-    Box::into_raw(Box::new(CProtoGenerator { content: p }))
+pub extern "C" fn init_net_generator() -> *const CNetGenerator {
+    let net_generator = MultiNetGenerator::new();
+    let p = Box::into_raw(Box::new(net_generator));
+    Box::into_raw(Box::new(CNetGenerator { gen: p }))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn get_threshold(proto_generator: *mut CProtoGenerator) -> c_uint {
-    (*(*proto_generator).content).get_threshold() as c_uint
+pub unsafe extern "C" fn generate(
+    net_generator: *const CNetGenerator,
+    notes: *const CNoteSchemaVec,
+) -> *const CNetSchema {
+    let notes = parse_note_schema_vec(notes);
+    let net = (*(*net_generator).gen).generate(notes);
+    let clink_vec: Vec<*const CNetLinkSchema> =
+        net.links.iter().map(|o| copy_net_link_schema(o)).collect();
+    let l_len = clink_vec.len();
+    let cnode_vec: Vec<*const CNetNodeSchema> =
+        net.nodes.iter().map(|o| copy_net_node_schema(o)).collect();
+    let n_len = cnode_vec.len();
+    let n_p = libc::malloc(n_len * size_of::<*const CNetNodeSchema>());
+    let l_p = libc::malloc(l_len * size_of::<*const CNetLinkSchema>());
+    std::ptr::copy_nonoverlapping(clink_vec.as_slice().as_ptr().cast(), l_p, l_len);
+    std::ptr::copy_nonoverlapping(cnode_vec.as_slice().as_ptr().cast(), n_p, n_len);
+    let p = CNetSchema {
+        nodes: n_p as *const CNetNodeSchema,
+        n_len: n_len as c_uint,
+        links: l_p as *const CNetLinkSchema,
+        l_len: l_len as c_uint,
+    };
+    Box::into_raw(Box::new(p))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn set_threshold(
-    proto_generator: *mut CProtoGenerator,
-    parallel_threshold: c_uint,
-) {
-    (*(*proto_generator).content).set_threshold(parallel_threshold as c_uint)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn generate_proto(
-    proto_generator: *mut CProtoGenerator,
-    input: *const libc::c_char,
-) -> *const CProtoVec {
-    let input = CStr::from_ptr(input);
-    let input = input.to_str().unwrap().to_string();
-    let output = (*(*proto_generator).content).serialize(input);
-    let cproto_vec: Vec<*const CProto> = output.iter().map(|o| copy_single_proto(&o)).collect();
-    let len = cproto_vec.len();
-    let p = libc::malloc(len * size_of::<*const CProto>() as c_uint);
-    std::ptr::copy_nonoverlapping(cproto_vec.as_ptr(), p as *mut *const CProto, len);
-    Box::into_raw(Box::new(CProtoVec {
-        data: p as *const *const CProto,
-        len: len as c_uint,
-    }))
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn free_proto(p: *const CProto) {
-    libc::free((*p).data as *mut libc::c_void);
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn free_proto_vec(p: *const CProtoVec) {
-    for p in std::slice::from_raw_parts((*p).data, (*p).len as c_uint) {
-        free_proto(p.clone());
+pub unsafe extern "C" fn free_net_schema(p: *const CNetSchema) {
+    for p in std::slice::from_raw_parts((*p).nodes, (*p).n_len as usize) {
+        free_string(p.data)
     }
-    libc::free((*p).data as *mut libc::c_void);
+    libc::free((*p).links as *mut libc::c_void);
+    libc::free((*p).nodes as *mut libc::c_void);
 }
 
-pub unsafe fn copy_single_proto(input: &[u8]) -> *const CProto {
-    let len = input.len();
-    let p = libc::malloc(len * size_of::<u8>() as c_uint);
-    std::ptr::copy_nonoverlapping(input.as_ptr(), p as *mut u8, len);
-    Box::into_raw(Box::new(CProto {
-        data: p as *const u8,
-        len: len as c_uint,
-    }))
+pub unsafe fn copy_net_node_schema(input: &NetNodeSchema) -> *const CNetNodeSchema {
+    let data = libc::malloc(input.data.len() * size_of::<i8>()) as *mut c_char;
+    std::ptr::copy_nonoverlapping(
+        input.data.as_bytes().as_ptr().cast(),
+        data,
+        input.data.len(),
+    );
+    let p = CNetNodeSchema {
+        id: input.id as u32,
+        data,
+        is_md: if input.is_md { 1 } else { 0 },
+        pos_x: input.pos.x as u32,
+        pox_y: input.pos.y as u32,
+    };
+    Box::into_raw(Box::new(p))
+}
+
+pub unsafe fn free_string(p: *const c_char) {
+    libc::free(p as *mut libc::c_void);
+}
+
+pub unsafe fn copy_net_link_schema(input: &NetLinkSchema) -> *const CNetLinkSchema {
+    let p = CNetLinkSchema {
+        source: input.source as u32,
+        target: input.target as u32,
+    };
+    Box::into_raw(Box::new(p))
+}
+
+pub unsafe fn parse_note_schema(input: *const CNoteSchema) -> NoteSchema {
+    let id = (*input).id;
+    let name = CStr::from_ptr((*input).name).to_str().unwrap().to_string();
+    let url = CStr::from_ptr((*input).url).to_str().unwrap().to_string();
+    NoteSchema::new(id as usize, name, url)
+}
+
+pub unsafe fn parse_note_schema_vec(input: *const CNoteSchemaVec) -> Vec<NoteSchema> {
+    let mut output = Vec::new();
+    for i in 0..(*input).len {
+        output.push(parse_note_schema(
+            (*input).notes.offset(i as isize) as *const CNoteSchema
+        ));
+    }
+    output
 }

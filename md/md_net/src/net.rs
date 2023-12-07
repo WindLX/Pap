@@ -9,24 +9,30 @@ pub struct NoteSchema {
     url: String,
 }
 
+impl NoteSchema {
+    pub fn new(id: usize, name: String, url: String) -> Self {
+        Self { id, name, url }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Vector {
-    x: usize,
-    y: usize,
+    pub x: usize,
+    pub y: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct NetNodeSchema {
-    id: usize,
-    data: String,
-    is_md: bool,
-    pos: Vector,
+    pub id: usize,
+    pub data: String,
+    pub is_md: bool,
+    pub pos: Vector,
 }
 
 #[derive(Debug, Clone, Hash)]
 pub struct NetLinkSchema {
-    source: usize,
-    target: usize,
+    pub source: usize,
+    pub target: usize,
 }
 
 impl PartialEq for NetLinkSchema {
@@ -40,8 +46,8 @@ impl Eq for NetLinkSchema {}
 
 #[derive(Debug, Clone)]
 pub struct NetSchema {
-    nodes: Vec<NetNodeSchema>,
-    links: Vec<NetLinkSchema>,
+    pub nodes: Vec<NetNodeSchema>,
+    pub links: Vec<NetLinkSchema>,
 }
 
 pub struct MultiNetGenerator;
