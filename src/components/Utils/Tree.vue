@@ -6,7 +6,7 @@ const props = defineProps<{
     rawData: TreeCreateNode[];
 }>()
 
-const emits = defineEmits<{
+defineEmits<{
     (e: 'nodeClick', line: number): void
 }>()
 

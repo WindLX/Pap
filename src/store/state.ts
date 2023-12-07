@@ -12,19 +12,12 @@ export enum SidebarIndex {
     Setting = "setting",
 }
 
-export enum ContentIndex {
-    Net = 'net',
-    Database = 'database',
-    Note = 'note',
-}
-
-const indexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Database, SidebarIndex.Setting]
+const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Database, SidebarIndex.Setting]
 
 export const useStateStore = defineStore('states', {
     state: () => {
         return {
             sidebarIndex: SidebarIndex.Note,
-            contentIndex: ContentIndex.Note,
             isMiddleBarShow: true,
             host: (window as unknown as CustomWindow).host,
             port: (window as unknown as CustomWindow).port
@@ -35,10 +28,10 @@ export const useStateStore = defineStore('states', {
     },
     actions: {
         isActive(index: number): string {
-            return this.sidebarIndex == indexes[index] ? 'active' : ''
+            return this.sidebarIndex == sideIndexes[index] ? 'active' : ''
         },
         select(index: number) {
-            this.sidebarIndex = indexes[index]
+            this.sidebarIndex = sideIndexes[index]
         }
     }
 })

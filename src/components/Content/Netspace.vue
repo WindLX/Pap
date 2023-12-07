@@ -9,64 +9,9 @@ import { NetApi } from "@/api/net";
 import NetNode from '../Net/NetNode.vue';
 import NetLine from '../Net/NetLine.vue';
 
-const nodes = ref<Array<NetNodeSchema>>([
-    {
-        id: 0,
-        is_md: true,
-        data: "aaaaaaaa",
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id: 1,
-        is_md: false,
-        data: "b",
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id: 3,
-        is_md: true,
-        data: "c",
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id: 4,
-        is_md: true,
-        data: "d",
-        pos: {
-            x: 0,
-            y: 0
-        }
-    },
-    {
-        id: 5,
-        is_md: true,
-        data: "e",
-        pos: {
-            x: 0,
-            y: 0
-        }
-    }
-])
+const nodes = ref<Array<NetNodeSchema>>([])
 
-const lines = ref<Array<NetLinkSchema>>([
-    {
-        source: 0,
-        target: 1
-    },
-    {
-        source: 0,
-        target: 2
-    }
-])
+const lines = ref<Array<NetLinkSchema>>([])
 
 const stateStore = useStateStore()
 const tabStore = useNoteTabStore()
@@ -135,7 +80,7 @@ onMounted(async () => {
         gravitation_bais: 150,
         md_mass: 5,
         res_mass: 1,
-        mu: 10
+        mu: 30
     }
     await loadNet()
 })
@@ -154,7 +99,7 @@ onDeactivated(() => {
 <template>
     <div class="net-space">
         <div class="net-top">
-            关系
+            引用网络
         </div>
         <svg class="net-svg" ref="svgRef">
             <defs>

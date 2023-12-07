@@ -1,6 +1,6 @@
 use crate::net::*;
 use std::{
-    ffi::{c_char, c_uint, CStr},
+    ffi::{c_char, c_uint, CStr, CString},
     mem::size_of,
 };
 
@@ -34,9 +34,9 @@ pub struct CNetLinkSchema {
 
 #[repr(C)]
 pub struct CNetSchema {
-    nodes: *const CNetNodeSchema,
+    nodes: *const *const CNetNodeSchema,
     n_len: c_uint,
-    links: *const CNetLinkSchema,
+    links: *const *const CNetLinkSchema,
     l_len: c_uint,
 }
 
@@ -59,7 +59,6 @@ pub unsafe extern "C" fn generate(
 ) -> *const CNetSchema {
     let notes = parse_note_schema_vec(notes);
     let net = (*(*net_generator).gen).generate(notes);
-    println!("{:#?}", net);
     let clink_vec: Vec<*const CNetLinkSchema> =
         net.links.iter().map(|o| copy_net_link_schema(o)).collect();
     let l_len = clink_vec.len();
@@ -68,12 +67,12 @@ pub unsafe extern "C" fn generate(
     let n_len = cnode_vec.len();
     let n_p = libc::malloc(n_len * size_of::<*const CNetNodeSchema>());
     let l_p = libc::malloc(l_len * size_of::<*const CNetLinkSchema>());
-    std::ptr::copy_nonoverlapping(clink_vec.as_slice().as_ptr().cast(), l_p, l_len);
-    std::ptr::copy_nonoverlapping(cnode_vec.as_slice().as_ptr().cast(), n_p, n_len);
+    std::ptr::copy_nonoverlapping(clink_vec.as_ptr(), l_p.cast(), l_len);
+    std::ptr::copy_nonoverlapping(cnode_vec.as_ptr(), n_p.cast(), n_len);
     let p = CNetSchema {
-        nodes: n_p as *const CNetNodeSchema,
+        nodes: n_p as *const *const CNetNodeSchema,
         n_len: n_len as c_uint,
-        links: l_p as *const CNetLinkSchema,
+        links: l_p as *const *const CNetLinkSchema,
         l_len: l_len as c_uint,
     };
     Box::into_raw(Box::new(p))
@@ -82,19 +81,15 @@ pub unsafe extern "C" fn generate(
 #[no_mangle]
 pub unsafe extern "C" fn free_net_schema(p: *const CNetSchema) {
     for p in std::slice::from_raw_parts((*p).nodes, (*p).n_len as usize) {
-        free_string(p.data)
+        free_string((*(*p)).data.cast_mut())
     }
     libc::free((*p).links as *mut libc::c_void);
     libc::free((*p).nodes as *mut libc::c_void);
 }
 
 pub unsafe fn copy_net_node_schema(input: &NetNodeSchema) -> *const CNetNodeSchema {
-    let data = libc::malloc(input.data.len() * size_of::<i8>()) as *mut c_char;
-    std::ptr::copy_nonoverlapping(
-        input.data.as_bytes().as_ptr().cast(),
-        data,
-        input.data.len(),
-    );
+    let data = CString::new(input.data.clone()).unwrap();
+    let data = data.into_raw();
     let p = CNetNodeSchema {
         id: input.id as u32,
         data,
@@ -105,8 +100,11 @@ pub unsafe fn copy_net_node_schema(input: &NetNodeSchema) -> *const CNetNodeSche
     Box::into_raw(Box::new(p))
 }
 
-pub unsafe fn free_string(p: *const c_char) {
-    libc::free(p as *mut libc::c_void);
+pub unsafe fn free_string(s: *mut c_char) {
+    if s.is_null() {
+        return;
+    }
+    let _ = CString::from_raw(s);
 }
 
 pub unsafe fn copy_net_link_schema(input: &NetLinkSchema) -> *const CNetLinkSchema {

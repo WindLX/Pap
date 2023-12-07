@@ -52,7 +52,7 @@ function Build-Rust {
     Set-Location .\md\md_net
     cargo build --release
     Set-Location ..
-    Copy-Item -Path .\target\release\md_net.dll -Destination ..\lib
+    Copy-Item -Path .\target\release\md_net.dll -Destination ..
     Set-Location ..
 
     Set-Location .\sim

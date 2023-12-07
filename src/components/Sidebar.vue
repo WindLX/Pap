@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useStateStore, SidebarIndex, ContentIndex } from '@/store/state';
+import { useStateStore, SidebarIndex } from '@/store/state';
 
 const stateStore = useStateStore();
 
@@ -9,9 +9,6 @@ function select(index: string) {
         stateStore.isMiddleBarShow = !stateStore.isMiddleBarShow
     } else {
         stateStore.sidebarIndex = (index as SidebarIndex)
-        if (["net", "note", "database"].includes(index)) {
-            stateStore.contentIndex = (index as ContentIndex)
-        }
         stateStore.isMiddleBarShow = true
     }
 }

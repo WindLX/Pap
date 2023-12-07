@@ -24,6 +24,12 @@ build_rust() {
     wasm-pack build
     cd ../..
 
+    cd ./md/md_net
+    cargo build --release
+    cd ..
+    cp ./target/release/libmd_net.so ..
+    cd ..
+
     cd sim
     cargo build --release
     wasm-pack build

@@ -34,7 +34,7 @@ export default {
                 case SidebarIndex.Setting:
                     return '设置'
                 default:
-                    return '主页'
+                    return '笔记'
             }
         },
     }

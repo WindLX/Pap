@@ -30,6 +30,8 @@ async function newJump(href: string | undefined) {
             if (note) {
                 tabStore.addTab(note)
             }
+        } else if (href.startsWith("pdf://")) {
+
         }
         else {
             window.open(href, "_blank")

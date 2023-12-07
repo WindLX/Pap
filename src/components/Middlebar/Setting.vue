@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onActivated } from 'vue'
+import { ref, reactive, onActivated, onMounted } from 'vue'
 import {
     ElForm, ElFormItem, ElInput, ElTooltip,
     ElCollapse, ElCollapseItem, ElButton,
@@ -79,10 +79,16 @@ function handlePwdCancel() {
 }
 
 // hook
-onActivated(() => {
+onMounted(async () => {
     handleSystemCancel()
-    handleBasicCancelAsync()
-    handlePathCancelAsync()
+    await handleBasicCancelAsync()
+    await handlePathCancelAsync()
+})
+
+onActivated(async () => {
+    handleSystemCancel()
+    await handleBasicCancelAsync()
+    await handlePathCancelAsync()
 })
 </script>
 

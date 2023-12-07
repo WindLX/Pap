@@ -66,8 +66,9 @@ watchEffect(() => {
 
 <template>
     <g @dblclick="handleClick" @click="isShowText = !isShowText" class="node" @mousedown="isDragging = true"
-        @mousemove="handleDrag" @mouseup="isDragging = false" @touchstart="isDragging = true" @touchmove="handleTouchDrag"
-        @touchend="isDragging = false">
+        @mousemove="handleDrag" @mouseup="isDragging = false" @mouseover="isDragging = false"
+        @touchstart="isDragging = true" @touchmove="handleTouchDrag" @touchend="isDragging = false"
+        @touchcancel="isDragging = false">
         <circle :cx="pos.x" :cy="pos.y" :r="radius" :fill="color" />
         <Transition name="fade">
             <text v-show="isShowText" :x="pos.x" :y="pos.y" alignment-baseline="middle" text-anchor="middle" fill="#fff"
