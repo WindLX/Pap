@@ -4,7 +4,6 @@ import { useStateStore } from "@/store/state"
 export const enum Section {
     Basic = "basic",
     System = "system",
-    Path = "path",
 }
 
 interface BaseConfigSchema extends BaseSchema { }
@@ -17,13 +16,6 @@ interface SystemConfigSchema extends BaseConfigSchema {
 interface BasicConfigSchema extends BaseConfigSchema {
     title: string
     log_level: string
-}
-
-interface PathConfigSchema extends BaseConfigSchema {
-    note_dir: string
-    log_path: string
-    tag_path: string
-    emoji_path: string
 }
 
 function systemConfigDefault(): SystemConfigSchema {
@@ -41,23 +33,12 @@ function basicConfigDefault(): BasicConfigSchema {
     }
 }
 
-function pathConfigDefault(): PathConfigSchema {
-    return {
-        note_dir: ".",
-        log_path: ".",
-        tag_path: ".",
-        emoji_path: "."
-    }
-}
-
 export type {
     SystemConfigSchema,
     BasicConfigSchema,
-    PathConfigSchema
 }
 
 export {
     systemConfigDefault,
     basicConfigDefault,
-    pathConfigDefault
 }

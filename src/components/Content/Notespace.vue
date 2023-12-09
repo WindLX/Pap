@@ -33,7 +33,7 @@ function handleRemoveTab(name: TabPaneName) {
                     @save="(save) => tabStore.updateState(TabState.Save, save, index)" />
             </el-tab-pane>
         </el-tabs>
-        <el-empty v-else class="empty" />
+        <el-empty v-else class="empty" description="暂无笔记" />
     </div>
 </template>
 

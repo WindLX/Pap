@@ -9,6 +9,7 @@ import type { EmojiSchema } from '@/schemas/emoji';
 import { EmojiApi } from '@/api/emoji';
 import { NoteApi } from '@/api/note';
 import { useNoteTabStore } from '@/store/tab';
+import MdLinkExtend from './MdLinkExtend.vue';
 
 const props = defineProps<{
     paragraph: Paragraph
@@ -18,6 +19,11 @@ const tabStore = useNoteTabStore()
 const span = ref<Array<HTMLSpanElement>>()
 let emoji_fail = false;
 let emojis = ref<Array<EmojiSchema>>([])
+let isLinkExtendShow = ref(false)
+
+function isExtend(link: Link): boolean {
+    return link.href !== undefined && link.href.startsWith("res://")
+}
 
 function jump(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
@@ -30,8 +36,8 @@ async function newJump(href: string | undefined) {
             if (note) {
                 tabStore.addTab(note)
             }
-        } else if (href.startsWith("pdf://")) {
-
+        } else if (href.startsWith("res://")) {
+            isLinkExtendShow.value = !isLinkExtendShow.value
         }
         else {
             window.open(href, "_blank")
@@ -94,12 +100,13 @@ watch(props, async () => {
         }">
             {{ (sentence.content as Text).content }}
         </span>
-        <span v-else-if="sentence.tag === SentenceTag.Link" class="link ref"
-            @click="newJump((sentence.content as Link).href)">
-            <span>
+        <span v-else-if="sentence.tag === SentenceTag.Link" class="link ref">
+            <span class="content" @click="newJump((sentence.content as Link).href)">
                 {{ (sentence.content as Link).content }}
             </span>
             <font-awesome-icon class="super" :icon="['fas', 'link']" />
+            <MdLinkExtend v-show="isLinkExtendShow" v-if="isExtend(sentence.content as Link)"
+                :link="((sentence.content) as Link)" />
         </span>
         <span v-else-if="sentence.tag === SentenceTag.Code" class="code">
             {{ sentence.content as string }}
@@ -165,7 +172,7 @@ watch(props, async () => {
     border-radius: 5px;
     padding: 0 5px;
     color: #6D7D8D;
-    font-family: 'Source Code Pro', 'Courier New', Courier, monospace;
+    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
 }
 
 .sentence .link {
@@ -176,11 +183,11 @@ watch(props, async () => {
     color: #24af34;
 }
 
-.sentence .ref {
+.sentence .ref .content {
     cursor: pointer;
 }
 
-.sentence .ref:hover {
+.sentence .ref:hover .content {
     text-decoration: underline;
 }
 </style>

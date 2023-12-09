@@ -32,7 +32,7 @@ function handleDrag(event: MouseEvent) {
         let x = Math.min((props.bound[0] - radius.value), (event.clientX - 50));
         x = Math.max(radius.value, x)
         pos.x = x
-        let y = Math.min((props.bound[1] - radius.value), (event.clientY - 48));
+        let y = Math.min((props.bound[1] - radius.value), (event.clientY - 100));
         y = Math.max(radius.value, y)
         pos.y = y
         emits("update:pos", pos)
@@ -45,7 +45,7 @@ function handleTouchDrag(event: TouchEvent) {
         let x = Math.min((props.bound[0] - radius.value), (touch.clientX - 50));
         x = Math.max(radius.value, x)
         pos.x = x
-        let y = Math.min((props.bound[1] - radius.value), (touch.clientY - 48));
+        let y = Math.min((props.bound[1] - radius.value), (touch.clientY - 100));
         y = Math.max(radius.value, y)
         pos.y = y
         emits("update:pos", pos)
@@ -99,4 +99,4 @@ watchEffect(() => {
         opacity: 1;
     }
 }
-</style>@/schemas/net
+</style>

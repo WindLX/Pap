@@ -121,6 +121,32 @@ impl MdCharsIter {
         }
     }
 
+    pub fn slice_to_array_2(&mut self, end: &[u8], short_end: &[u8]) -> &[u8] {
+        let start = self.offset;
+        loop {
+            if self.check_multi(end) {
+                self.offset += end.len();
+                return &self.data[start..self.offset - end.len()];
+            } else if self.check_multi(short_end) {
+                self.offset += short_end.len();
+                return &self.data[start..self.offset - short_end.len()];
+            } else {
+                if self.offset + end.len() < self.data.len() {
+                    self.offset += 1;
+                } else {
+                    self.offset = self.data.len();
+                    return &self.data[start..self.data.len()];
+                }
+            }
+        }
+    }
+
+    pub fn slice_to_str_2(&mut self, end: &str, short_end: &str) -> &[u8] {
+        let end = end.as_bytes();
+        let short_end = short_end.as_bytes();
+        self.slice_to_array_2(end, short_end)
+    }
+
     pub fn slice_to_str(&mut self, end: &str) -> &[u8] {
         let end = end.as_bytes();
         self.slice_to_array(end)

@@ -17,4 +17,4 @@ const props = defineProps<{
     stroke: #f0f0f0;
     stroke-width: 2;
 }
-</style>@/schemas/net
+</style>

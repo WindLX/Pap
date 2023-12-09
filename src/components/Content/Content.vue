@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStateStore, SidebarIndex } from '@/store/state'
-import Notespace from './Notespace.vue'
+import Notespace from './Notespace.vue';
+import Resourcespace from './Resourcespace.vue';
 import Databasespace from './Databasespace.vue';
 import Settingspace from './Settingspace.vue';
 import Netspace from './Netspace.vue';
@@ -12,10 +13,12 @@ const store = useStateStore();
 // content
 const currentComponent = computed(() => {
     switch (store.sidebarIndex) {
-        case SidebarIndex.Net:
-            return Netspace
         case SidebarIndex.Note:
             return Notespace
+        case SidebarIndex.Net:
+            return Netspace
+        case SidebarIndex.Resource:
+            return Resourcespace
         case SidebarIndex.Database:
             return Databasespace
         case SidebarIndex.Setting:

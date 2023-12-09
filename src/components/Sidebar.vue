@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStateStore, SidebarIndex } from '@/store/state';
+import { ResourceApi } from '@/api/resource';
+import { downloadUrlAsync } from '@/utils';
 
 const stateStore = useStateStore();
 
@@ -11,6 +13,12 @@ function select(index: string) {
         stateStore.sidebarIndex = (index as SidebarIndex)
         stateStore.isMiddleBarShow = true
     }
+}
+
+async function exportDataAsync() {
+    const url = await ResourceApi.exportData()
+    await downloadUrlAsync('data.zip', url)
+    await ResourceApi.removeZip()
 }
 
 function lock() {
@@ -26,12 +34,15 @@ function lock() {
                 @click="select(SidebarIndex.Note)" />
             <font-awesome-icon :icon="['fas', 'circle-nodes']" class="icon button" :class="stateStore.isActive(1)"
                 @click="select(SidebarIndex.Net)" />
-            <font-awesome-icon :icon="['fas', 'database']" class="icon button" :class="stateStore.isActive(2)"
+            <font-awesome-icon :icon="['fas', 'gift']" class="icon button" :class="stateStore.isActive(2)"
+                @click=select(SidebarIndex.Resource) />
+            <font-awesome-icon :icon="['fas', 'database']" class="icon button" :class="stateStore.isActive(3)"
                 @click=select(SidebarIndex.Database) />
-            <font-awesome-icon :icon="['fas', 'gear']" class="icon button" :class="stateStore.isActive(3)"
+            <font-awesome-icon :icon="['fas', 'gear']" class="icon button" :class="stateStore.isActive(4)"
                 @click="select(SidebarIndex.Setting)" />
         </div>
         <div class="menu">
+            <font-awesome-icon :icon="['fas', 'file-zipper']" class="icon button" @click="exportDataAsync()" />
             <font-awesome-icon :icon="['fas', 'lock']" class="icon button" @click="lock()" />
         </div>
     </div>

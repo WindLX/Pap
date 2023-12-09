@@ -1,10 +1,10 @@
-import { PathConfigSchema, Section, SystemConfigSchema, BasicConfigSchema } from "@/schemas/config";
+import { Section, SystemConfigSchema, BasicConfigSchema } from "@/schemas/config";
 import { LoginSchema } from "@/schemas/token";
 import { BaseApi } from "./base";
 import pFetch from "./fetch";
 
 export class ConfigApi extends BaseApi {
-    public static async getConfig(section: Section): Promise<BasicConfigSchema | SystemConfigSchema | PathConfigSchema> {
+    public static async getConfig(section: Section): Promise<BasicConfigSchema | SystemConfigSchema> {
         return new Promise(function (resolve, reject) {
             pFetch(`/config/get_config/${section}`)
                 .then(async res => {
@@ -16,7 +16,7 @@ export class ConfigApi extends BaseApi {
         })
     }
 
-    public static async setConfig(section: Section, config: BasicConfigSchema | SystemConfigSchema | PathConfigSchema): Promise<void> {
+    public static async setConfig(section: Section, config: BasicConfigSchema | SystemConfigSchema): Promise<void> {
         return new Promise(function (resolve, reject) {
             const successMsg = () => {
                 switch (section) {
@@ -24,8 +24,6 @@ export class ConfigApi extends BaseApi {
                         return '基本设置已保存,将在应用重启后生效'
                     case Section.System:
                         return '系统设置已保存,将在应用重启后生效'
-                    case Section.Path:
-                        return '路径设置已保存'
                 }
             }
             pFetch(`/config/set_config/${section}`, {

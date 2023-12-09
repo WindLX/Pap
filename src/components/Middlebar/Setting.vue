@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, onActivated, onMounted } from 'vue'
 import {
-    ElForm, ElFormItem, ElInput, ElTooltip,
+    ElForm, ElFormItem, ElInput,
     ElCollapse, ElCollapseItem, ElButton,
     ElSlider, ElInputNumber
 } from 'element-plus';
@@ -10,13 +10,11 @@ import { ConfigApi } from '@/api/config';
 import type {
     SystemConfigSchema,
     BasicConfigSchema,
-    PathConfigSchema
 } from '@/schemas/config';
 import {
     Section,
     systemConfigDefault,
     basicConfigDefault,
-    pathConfigDefault
 } from '@/schemas/config';
 import type { LoginSchema } from '@/schemas/token';
 import { loginDefault } from '@/schemas/token';
@@ -31,7 +29,6 @@ const levelMap = new Map([["DEBUG", 0], ["INFO", 1], ["WARNING", 2], ["ERROR", 3
 let logLevel = ref(0)
 let systemConfig = ref<SystemConfigSchema>(systemConfigDefault())
 let basicConfig = ref<BasicConfigSchema>(basicConfigDefault())
-let pathConfig = ref<PathConfigSchema>(pathConfigDefault())
 let pwd = ref<LoginSchema>(loginDefault())
 
 // tool function
@@ -48,10 +45,6 @@ function handleSystemSubmit() {
     ConfigApi.setConfig(Section.System, systemConfig.value)
 }
 
-function handlePathSubmit() {
-    ConfigApi.setConfig(Section.Path, pathConfig.value)
-}
-
 function handleBasicSubmit() {
     basicConfig.value.log_level = numberToLogLevel(logLevel.value)
     ConfigApi.setConfig(Section.Basic, basicConfig.value)
@@ -63,10 +56,6 @@ function handlePwdSubmit() {
 
 function handleSystemCancel() {
     systemConfig.value = systemConfigDefault()
-}
-
-async function handlePathCancelAsync() {
-    pathConfig.value = await ConfigApi.getConfig(Section.Path) as PathConfigSchema
 }
 
 async function handleBasicCancelAsync() {
@@ -82,13 +71,11 @@ function handlePwdCancel() {
 onMounted(async () => {
     handleSystemCancel()
     await handleBasicCancelAsync()
-    await handlePathCancelAsync()
 })
 
 onActivated(async () => {
     handleSystemCancel()
     await handleBasicCancelAsync()
-    await handlePathCancelAsync()
 })
 </script>
 
@@ -134,40 +121,6 @@ onActivated(async () => {
                     <el-form-item>
                         <el-button type="primary" @click="handleBasicSubmit">提交</el-button>
                         <el-button @click="handleBasicCancelAsync">取消</el-button>
-                    </el-form-item>
-                </el-form>
-            </el-collapse-item>
-            <el-collapse-item>
-                <template #title>
-                    <div class="title">
-                        <font-awesome-icon :icon="['fas', 'map']" class="icon" />
-                        <p>路径</p>
-                    </div>
-                </template>
-                <el-form class="form" label-position="top">
-                    <el-tooltip content="笔记存放的路径" :offset="6">
-                        <el-form-item label="笔记路径">
-                            <el-input v-model="pathConfig.note_dir"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
-                    <el-tooltip content="数据库存放的路径" :offset="6">
-                        <el-form-item label="数据库路径">
-                            <el-input v-model="pathConfig.tag_path"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
-                    <el-tooltip content="日志文件存放的路径" :offset="6">
-                        <el-form-item label="日志路径">
-                            <el-input v-model="pathConfig.log_path"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
-                    <el-tooltip content="emoji数据库存放的路径" :offset="6">
-                        <el-form-item label="emoji路径">
-                            <el-input v-model="pathConfig.emoji_path"></el-input>
-                        </el-form-item>
-                    </el-tooltip>
-                    <el-form-item>
-                        <el-button type="primary" @click="handlePathSubmit">提交</el-button>
-                        <el-button @click="handlePathCancelAsync">取消</el-button>
                     </el-form-item>
                 </el-form>
             </el-collapse-item>

@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ElImage, ElSkeleton } from "element-plus";
 import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "@/md/mdexpr";
 import { BlockTag } from "@/md/mdexpr";
+import { ResourceApi } from "@/api/resource";
 import MdParagraph from './MdParagraph.vue';
 
 const props = defineProps<{
@@ -37,6 +38,7 @@ const generator = JsGenerator.new();
 const raw: Ref<HTMLSpanElement | null> = ref(null);
 const math: Ref<HTMLDivElement | null> = ref(null);
 let isEdit = ref(false);
+let src = ref<string>('');
 let block: Ref<Block | null> = ref(null)
 const lock = inject<Ref<boolean>>('lockState')
 
@@ -141,7 +143,7 @@ function behaviorHandler(e: KeyboardEvent) {
             }
             break;
         case 'ArrowUp':
-            if (block.value?.tag === BlockTag.CodeBlock && selection?.anchorOffset != 0) {
+            if ((block.value?.tag === BlockTag.CodeBlock || block.value?.tag === BlockTag.MathBlock) && selection?.anchorOffset != 0) {
                 break;
             } else {
                 e.preventDefault()
@@ -149,7 +151,7 @@ function behaviorHandler(e: KeyboardEvent) {
             }
             break;
         case 'ArrowDown':
-            if (block.value?.tag === BlockTag.CodeBlock && selection?.focusOffset != (raw.value?.innerText.length!)) {
+            if ((block.value?.tag === BlockTag.CodeBlock || block.value?.tag === BlockTag.MathBlock) && selection?.focusOffset != (raw.value?.innerText.length!)) {
                 break;
             } else {
                 e.preventDefault()
@@ -183,7 +185,7 @@ function calcuateClass(block: Block): string {
 }
 
 function calcuateInline(tag: BlockTag): boolean {
-    const target = [BlockTag.CodeBlock, BlockTag.MathBlock, BlockTag.Line];
+    const target = [BlockTag.CodeBlock, BlockTag.MathBlock, BlockTag.Line, BlockTag.Image];
     return !target.includes(tag)
 }
 
@@ -197,17 +199,39 @@ function calcuateRows(): number {
     return Math.max(l, 4)
 }
 
-watch(props, async (newValue) => {
-    block.value = await serializeAsync(newValue.rawData);
-    if (block.value.tag === BlockTag.MathBlock && math.value) {
-        katex.render((block.value.content as string).replace(/[\t\r\f\n]*/g, ""), math.value, {
-            throwOnError: false, output: "html", errorColor: "#cc4d4d", displayMode: true
-        })
+async function getImage(url: string | undefined): Promise<string> {
+    if (url) {
+        if (url.startsWith("res://")) {
+            const newUrl = await ResourceApi.getBlobUrl(url.slice(6))
+            return newUrl
+        } else {
+            return url
+        }
+    } else {
+        return ''
     }
+}
+
+async function load(rawData: string) {
+    const data = await serializeAsync(rawData)
+    block.value = data
+    nextTick(async () => {
+        if (data.tag === BlockTag.MathBlock && math.value) {
+            katex.render((data.content as string).replace(/[\t\r\f\n]*/g, ""), math.value, {
+                throwOnError: false, output: "html", errorColor: "#cc4d4d", displayMode: true
+            })
+        } else if (data.tag === BlockTag.Image) {
+            src.value = await getImage((data.content as Image).src)
+        }
+    })
+}
+
+watch(props, async (newValue) => {
+    await load(newValue.rawData)
 })
 
 onMounted(async () => {
-    block.value = await serializeAsync(props.rawData)
+    await load(props.rawData)
 })
 </script>
 
@@ -246,7 +270,7 @@ onMounted(async () => {
                 <MdParagraph :paragraph="(block.content as ListItem).content"></MdParagraph>
             </span>
             <div v-else-if="block.tag === BlockTag.Image" class="image">
-                <el-image :src="(block.content as Image).src" :alt="(block.content as Image).title" fit="contain" />
+                <el-image :src="src" :alt="(block.content as Image).title" fit="contain" />
                 <div class="image-title">{{ (block.content as Image).title }}</div>
             </div>
             <span v-else-if="block.tag === BlockTag.TodoItem" class="todo-item">
@@ -351,18 +375,16 @@ onMounted(async () => {
 
 .md-block .edit.CodeBlock {
     white-space: pre-wrap;
-    font-family: 'Source Code Pro', 'Courier New', Courier, monospace;
+    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
     margin-top: 22px;
     margin-bottom: 15px;
-    display: inline-block;
 }
 
 .md-block .edit.MathBlock {
     white-space: pre-wrap;
-    font-family: 'Source Code Pro', 'Courier New', Courier, monospace;
+    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
     margin-top: 22px;
     margin-bottom: 15px;
-    display: inline-block;
 }
 
 .md-block .title {
@@ -495,7 +517,7 @@ onMounted(async () => {
 }
 
 .md-block .render .code-block {
-    font-family: 'Source Code Pro', 'Courier New', Courier, monospace;
+    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
 }
 
 .md-block .render .code-block .code {

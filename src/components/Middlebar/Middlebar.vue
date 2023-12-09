@@ -43,7 +43,7 @@ export default {
 
 <template>
     <transition name="accept">
-        <div class="middlebar" v-show="stateStore.isMiddleBarShow" v-if="stateStore.sidebarIndex != SidebarIndex.Net">
+        <div class="middlebar" v-show="stateStore.isMiddleBarShow" v-if="stateStore.ownMiddlebar()">
             <p class="title">{{ currentTitle }}</p>
             <keep-alive>
                 <transition name="change">

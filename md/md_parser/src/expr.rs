@@ -17,16 +17,16 @@ impl ToString for SplitBlock {
             SplitBlock::Paragraph(s) => s.to_string(),
             SplitBlock::CodeBlock(l, s) => {
                 format!(
-                    "```{}\n{}\n```\n",
+                    "```{}\n{}\n```",
                     l.clone().unwrap_or_default(),
                     s.to_string()
                 )
             }
             SplitBlock::Line => "---".to_string(),
             #[cfg(feature = "math")]
-            SplitBlock::MathBlock(s) => format!("$$\n{}\n$$\n", s.to_string()),
+            SplitBlock::MathBlock(s) => format!("$$\n{}\n$$", s.to_string()),
             #[cfg(feature = "extra")]
-            SplitBlock::TableBlock(s) => format!(":::table\n{}\n:::\n", s.to_string()),
+            SplitBlock::TableBlock(s) => format!(":::table\n{}\n:::", s.to_string()),
         }
     }
 }

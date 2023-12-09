@@ -8,6 +8,7 @@ log_level = "WARNING"
 
 [path]
 note_dir = "./data/note/"
+res_dir = "./data/res/"
 log_path = "./data/pap.log"
 tag_path = "./data/tag.db"
 emoji_path = "./data/emoji.db"

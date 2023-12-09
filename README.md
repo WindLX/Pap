@@ -38,10 +38,11 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [ ] Style
 - [x] Title List
 - [x] Markdown Ref net
-- [ ] Sync and Backup
+- [x] Resource
+- [x] Pdf viewer
+- [x] Music viewer
+- [ ] Video viewer
+- [x] Data Export
 - [ ] Table
 - [ ] Database
 - [ ] OCR
-- [ ] PDF information extraction function
-- [ ] More powerful PDF browsing and editing functions
-- [ ] More Test

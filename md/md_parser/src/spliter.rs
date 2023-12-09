@@ -7,13 +7,11 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
     loop {
         #[cfg(feature = "math")]
         {
-            if input.check_str("$$") {
+            if input.check_str("$$\n") {
                 input.next();
                 input.next();
-                if input.check(b'\n') {
-                    input.next();
-                }
-                let math = input.slice_to_str("$$");
+                input.next();
+                let math = input.slice_to_str("\n$$");
                 blocks.push(SplitBlock::MathBlock(MdChars::new(math)));
                 continue;
             }
@@ -37,7 +35,7 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
                 .unwrap()
                 .to_string();
             let lang = if lang.is_empty() { None } else { Some(lang) };
-            let code = input.slice_to_str("```");
+            let code = input.slice_to_str("\n```");
             blocks.push(SplitBlock::CodeBlock(lang, MdChars::new(code)));
             continue;
         }
@@ -50,7 +48,12 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
             continue;
         }
         let para = input.slice_to_byte(b'\n');
-        blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
+        if !matches!(blocks.last(), Some(SplitBlock::CodeBlock(_, _)))
+            && !matches!(blocks.last(), Some(SplitBlock::MathBlock(_)))
+            && !matches!(blocks.last(), Some(SplitBlock::TableBlock(_)))
+        {
+            blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
+        }
         if input.is_end() {
             break;
         }

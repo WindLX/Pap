@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElLoading, ElSkeleton } from "element-plus";
 import { NoteApi } from '@/api/note';
 import { ResourceApi } from '@/api/resource';
+import { downloadUrlAsync } from '@/utils';
 import Editor from './Editor.vue';
 import MdOutline from './MdOutline.vue';
 import TagList from '../Tag/TagList.vue';
@@ -28,7 +29,6 @@ let isRightbarShow = ref<boolean>(false);
 let updateStatus = ref<number>(new Date().getTime())
 
 // inject
-// provide('updateStatus', updateStatus)
 provide('lockState', lockState);
 
 // load
@@ -55,7 +55,6 @@ async function createFormDataAsync(blob: Blob): Promise<FormData> {
     return new Promise((resolve) => {
         const formData = new FormData();
         formData.append("file", blob);
-
         resolve(formData);
     });
 }
@@ -74,12 +73,7 @@ async function saveContentAsync(newData: string) {
 async function downloadMdDataAsync(newData: string) {
     const blob = await createBlobAsync(newData);
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${name}.md`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await downloadUrlAsync(`${name.value}.md`, url)
 }
 
 function updateMdData(newData: string) {

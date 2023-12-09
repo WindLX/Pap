@@ -19,6 +19,7 @@ class BasicConfigSchema(BaseConfigSchema):
 
 class PathConfigSchema(BaseConfigSchema):
     note_dir: str
+    res_dir: str
     log_path: str
     tag_path: str
     emoji_path: str

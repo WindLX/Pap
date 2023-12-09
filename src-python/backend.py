@@ -1,4 +1,4 @@
-from router import login, config, note, tag, emoji, net
+from router import login, config, note, tag, emoji, net, resource
 from model.note_group import Base
 from service.logger import logger
 from service.config import system_config, dev_config
@@ -67,7 +67,8 @@ app.add_middleware(
 
 # static files
 app.mount("/assets", StaticFiles(directory="dist/assets"), name="assets")
-app.mount("/data", StaticFiles(directory="data"), name="data")
+app.mount("/data/note", StaticFiles(directory="data/note"), name="note")
+app.mount("/data/res", StaticFiles(directory="data/res"), name="res")
 
 # router
 app.include_router(login.router)
@@ -76,6 +77,7 @@ app.include_router(note.router)
 app.include_router(tag.router)
 app.include_router(emoji.router)
 app.include_router(net.router)
+app.include_router(resource.router)
 
 
 @app.get("/", include_in_schema=False)

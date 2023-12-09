@@ -227,6 +227,19 @@ class PathConfig(BaseConfig[PathConfigSchema]):
         self.set_property("note_dir", value)
 
     @property
+    def res_dir(self) -> str:
+        """资源存储目录
+
+        Returns:
+            str: 资源存储目录
+        """
+        return self.get_property("res_dir")
+
+    @res_dir.setter
+    def res_dir(self, value: str) -> None:
+        self.set_property("res_dir", value)
+
+    @property
     def log_path(self) -> str:
         """日志文件路径
 
@@ -266,7 +279,7 @@ class PathConfig(BaseConfig[PathConfigSchema]):
         self.set_property("emoji_path", value)
 
     def check_path(self) -> None:
-        dirs = [self.note_dir]
+        dirs = [self.note_dir, self.res_dir]
         files = [self.log_path, self.tag_path]
 
         def check_single_dir(_path: str):

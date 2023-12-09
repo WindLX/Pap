@@ -51,7 +51,7 @@ function handleUpdatePos(index: number, pos: Vector) {
     }
 }
 
-async function loadNet() {
+async function loadNetAsync() {
     const net = await NetApi.get_net()
     nodes.value = net.nodes
     lines.value = net.links
@@ -82,11 +82,11 @@ onMounted(async () => {
         res_mass: 1,
         mu: 30
     }
-    await loadNet()
+    await loadNetAsync()
 })
 
 onActivated(async () => {
-    await loadNet()
+    await loadNetAsync()
 })
 
 onDeactivated(() => {
@@ -98,9 +98,9 @@ onDeactivated(() => {
 
 <template>
     <div class="net-space">
-        <div class="net-top">
+        <h1 class="net-top">
             引用网络
-        </div>
+        </h1>
         <svg class="net-svg" ref="svgRef">
             <defs>
                 <filter id="back" x="-0.5" y="0" width="2" height="1">

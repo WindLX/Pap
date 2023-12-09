@@ -8,11 +8,12 @@ interface CustomWindow extends Window {
 export enum SidebarIndex {
     Net = 'net',
     Note = 'note',
+    Resource = 'resource',
     Database = 'database',
     Setting = "setting",
 }
 
-const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Database, SidebarIndex.Setting]
+const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Resource, SidebarIndex.Database, SidebarIndex.Setting]
 
 export const useStateStore = defineStore('states', {
     state: () => {
@@ -32,6 +33,11 @@ export const useStateStore = defineStore('states', {
         },
         select(index: number) {
             this.sidebarIndex = sideIndexes[index]
+        },
+        ownMiddlebar(): boolean {
+            let a = this.sidebarIndex != SidebarIndex.Net
+            let b = this.sidebarIndex != SidebarIndex.Resource
+            return a && b
         }
     }
 })

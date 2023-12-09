@@ -10,6 +10,7 @@ import { useTagStore, TagEvent } from '@/store/tag'
 import { NoteApi } from '@/api/note'
 import type { NoteUpdateSchema } from '@/schemas/note'
 import type { TagSchema } from '@/schemas/tag'
+import { useFilterName } from '@/utils';
 import NoteItem from './NoteItem.vue'
 import NoteAdd from './NoteAdd.vue'
 import Tag from '../Tag/Tag.vue'
@@ -42,8 +43,8 @@ tagStore.$onAction(
 
 // data
 let noteSet = ref<Array<NoteUpdateSchema>>([])
-let filterText = ref<string>("")
 let filterTags = ref<Array<TagSchema>>([])
+const { filterText, filterName } = useFilterName();
 
 // load function
 async function getNoteAsync() {
@@ -52,25 +53,12 @@ async function getNoteAsync() {
 }
 
 // callback function
-
 function handleShowTag() {
     tagStore.setShow()
 }
 
 function handleClose(id: number) {
     filterTags.value = filterTags.value.filter((t) => t.id !== id)
-}
-
-// tool function
-function filterName(name: string): boolean {
-    if (filterText.value !== '') {
-        const target = name
-        const source = filterText.value
-        const regex = new RegExp(source, 'i');
-        return regex.test(target)
-    }
-    else
-        return true
 }
 
 // hook

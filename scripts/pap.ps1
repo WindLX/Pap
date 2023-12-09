@@ -59,6 +59,7 @@ if ($Update -eq $true) {
     Move-Item .\PapPack\dist .\dist
     Move-Item .\PapPack\src-python .\src-python
     Move-Item .\PapPack\README.md .\README.md
+    Move-Item .\PapPack\md_net.dll .\md_net.dll
     Move-Item .\PapPack\requirements_release.txt .\requirements_release.txt
 
     Remove-Item .\PapPack -Recurse -Force

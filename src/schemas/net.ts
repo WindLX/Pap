@@ -1,21 +1,23 @@
+import { BaseSchema } from "./base"
+
 type Vector = {
     x: number,
     y: number
 }
 
-interface NetSchema {
+interface NetSchema extends BaseSchema {
     nodes: NetNodeSchema[],
     links: NetLinkSchema[],
 }
 
-interface NetNodeSchema {
+interface NetNodeSchema extends BaseSchema {
     id: number,
     data: string,
     is_md: boolean,
     pos: Vector
 }
 
-interface NetLinkSchema {
+interface NetLinkSchema extends BaseSchema {
     source: number,
     target: number,
 }
