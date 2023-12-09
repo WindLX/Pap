@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Link } from '@/md/mdexpr';
-import { watch, ref, onMounted, onActivated, computed } from 'vue';
+import { watch, ref, onMounted, onActivated } from 'vue';
+import { ElEmpty } from 'element-plus';
 import PDFViewer from '../MdExtend/PDFViewer.vue';
-import VideoViewer from '../MdExtend/VideoViewer.vue';
-import AudioViewer from '../MdExtend/AudioViewer.vue';
 
 const props = defineProps<{
     link: Link
@@ -11,16 +10,6 @@ const props = defineProps<{
 
 const url = ref('')
 const config = ref<string | null>(null)
-
-const currentComponent = computed(() => {
-    if (isPDF(url.value)) {
-        return PDFViewer
-    } else if (isVideo(url.value)) {
-        return VideoViewer
-    } else if (isAudio(url.value)) {
-        return AudioViewer
-    }
-});
 
 function extractGroups(url: string): [string, string | null] {
     const reg = /(.*) (\{.*\})/gm;
@@ -45,14 +34,6 @@ function isPDF(url: string): boolean {
     return (url.endsWith('.pdf') || url.endsWith('.PDF'))
 }
 
-function isVideo(url: string): boolean {
-    return (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.flv') || url.endsWith('.mkv'))
-}
-
-function isAudio(url: string): boolean {
-    return (url.endsWith('.mp3') || url.endsWith('.wav'))
-}
-
 watch(props, () => {
     generateURL()
 })
@@ -68,7 +49,8 @@ onActivated(() => {
 
 <template>
     <div class="link-extend">
-        <component :is="currentComponent" :name="props.link.content" :url="url.slice(6)" :config="config" />
+        <PDFViewer v-if="isPDF(url)" :name="props.link.content" :url="url.slice(6)" :config="config" />
+        <el-empty v-else description="无法加载的文件类型" />
     </div>
 </template>
 

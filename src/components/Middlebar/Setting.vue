@@ -127,15 +127,6 @@ onActivated(async () => {
             <el-collapse-item>
                 <template #title>
                     <div class="title">
-                        <font-awesome-icon :icon="['fas', 'paintbrush']" class="icon" />
-                        <p>主题</p>
-                    </div>
-                </template>
-                <!-- todo -->
-            </el-collapse-item>
-            <el-collapse-item>
-                <template #title>
-                    <div class="title">
                         <font-awesome-icon :icon="['fas', 'lock']" class="icon" />
                         <p>密码</p>
                     </div>

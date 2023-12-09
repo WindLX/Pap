@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { useStateStore, SidebarIndex } from '@/store/state';
+import { useStateStore, SidebarIndex, ContentIndex } from '@/store/state';
 import { ResourceApi } from '@/api/resource';
 import { downloadUrlAsync } from '@/utils';
 
@@ -11,6 +11,9 @@ function select(index: string) {
         stateStore.isMiddleBarShow = !stateStore.isMiddleBarShow
     } else {
         stateStore.sidebarIndex = (index as SidebarIndex)
+        if (stateStore.sidebarIndex !== 'setting') {
+            stateStore.contentIndex = (index as ContentIndex)
+        }
         stateStore.isMiddleBarShow = true
     }
 }

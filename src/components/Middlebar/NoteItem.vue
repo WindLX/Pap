@@ -17,7 +17,7 @@ const props = defineProps<{
 
 // emits
 const emits = defineEmits<{
-    (e: 'update:note', note: NoteUpdateSchema): void,
+    (e: 'update:item', note: NoteUpdateSchema): void,
     (e: 'remove', id: number): void
 }>()
 
@@ -35,7 +35,7 @@ async function handleRenameNoteAsync() {
     }
     await NoteApi.renameNote(data)
     tabStore.updateTab(data)
-    emits("update:note", data)
+    emits("update:item", data)
     handleNoteRenameCancel()
 }
 

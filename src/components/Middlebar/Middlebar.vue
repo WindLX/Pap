@@ -1,7 +1,6 @@
 <script lang="ts">
 import { useStateStore, SidebarIndex } from '@/store/state';
 import Note from './Note.vue';
-import Database from './Database.vue';
 import Setting from './Setting.vue';
 
 export default {
@@ -17,8 +16,6 @@ export default {
             switch (this.stateStore.sidebarIndex) {
                 case SidebarIndex.Note:
                     return Note
-                case SidebarIndex.Database:
-                    return Database
                 case SidebarIndex.Setting:
                     return Setting
                 default:
@@ -29,8 +26,6 @@ export default {
             switch (this.stateStore.sidebarIndex) {
                 case SidebarIndex.Note:
                     return '笔记'
-                case SidebarIndex.Database:
-                    return '数据库'
                 case SidebarIndex.Setting:
                     return '设置'
                 default:

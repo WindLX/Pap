@@ -12,7 +12,7 @@ import type { NoteUpdateSchema } from '@/schemas/note'
 import type { TagSchema } from '@/schemas/tag'
 import { useFilterName } from '@/utils';
 import NoteItem from './NoteItem.vue'
-import NoteAdd from './NoteAdd.vue'
+import MiddlebarItemAdd from './MiddlebarItemAdd.vue'
 import Tag from '../Tag/Tag.vue'
 
 // state
@@ -69,7 +69,8 @@ onMounted(async () => {
 
 <template>
     <div class="note">
-        <note-add @create-note="(newNote) => noteSet.push(newNote)" />
+        <middlebar-item-add :name="'笔记文件'" :create-item-func="NoteApi.createNote"
+            @create-item="(newNote) => noteSet.push(newNote)" />
         <el-input class="filter-input" v-model="filterText">
             <template #append>
                 <el-button @click="handleShowTag">
@@ -87,7 +88,7 @@ onMounted(async () => {
         </el-scrollbar>
         <el-auto-resizer>
             <note-item v-for="note in noteSet" :key="note.id" v-show="filterName(note.name)" :note="note"
-                @update:note="(value) => noteSet.find(item => item.id === value.id)!.name = value.name"
+                @update:note="(value: NoteUpdateSchema) => noteSet.find(item => item.id === value.id)!.name = value.name"
                 @remove="(id) => noteSet = noteSet.filter(item => item.id !== id)" />
         </el-auto-resizer>
     </div>

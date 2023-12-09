@@ -118,6 +118,11 @@ function handleShowOutline() {
     isTagListShow.value = false
 }
 
+function handleLock() {
+    lockState.value = !lockState.value;
+    emits('lock', lockState.value)
+}
+
 onMounted(async () => {
     await loadContentAsync()
     window.onbeforeprint = () => {
@@ -132,7 +137,7 @@ onMounted(async () => {
             <font-awesome-icon :icon="['fas', 'tags']" class="icon" :class="isTagListShow ? 'active' : ''"
                 @mousedown="handleShowTagList()" />
             <font-awesome-icon :icon="['fas', lockState ? 'lock' : 'lock-open']" class="icon"
-                :class="lockState ? 'active' : ''" @mousedown="lockState = !lockState; emits('lock', lockState)" />
+                :class="lockState ? 'active' : ''" @mousedown="handleLock()" />
             <font-awesome-icon :icon="['fas', 'floppy-disk']" class="icon" style="font-size: 22px;"
                 @mousedown="editor?.saveData()" />
             <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdData()" />
@@ -147,7 +152,8 @@ onMounted(async () => {
             <MdOutline :md-data="mdData" :name="name" v-show="isRightbarShow" :key="updateStatus" />
         </Transition>
         <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
-            ref="editor" />
+            @tag="handleShowTagList()" @lock="handleLock()" @export="downloadMdData()" @pdf="exportPdf()"
+            @outline="handleShowOutline()" ref="editor" />
     </div>
     <el-skeleton v-else :rows="10" class="md-block-skeleton" animated />
 </template>

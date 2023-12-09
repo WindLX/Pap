@@ -7,7 +7,7 @@ from schemas.resource import ResourceSchema
 from service.logger import logger
 from service.config import path_config
 
-from fastapi import status, APIRouter, HTTPException, UploadFile
+from fastapi import status, APIRouter, HTTPException, UploadFile, WebSocket
 from fastapi.responses import FileResponse, StreamingResponse
 
 router = APIRouter(prefix="/resource")
@@ -100,11 +100,3 @@ async def remove_zip():
     zip_path = "./data.zip"
     if path.exists(zip_path):
         remove(zip_path)
-
-
-@router.get("/get_stream", status_code=status.HTTP_200_OK, include_in_schema=True)
-async def get_stream(url: str):
-    if not path.exists(url):
-        raise HTTPException(status_code=404, detail="Video file not found")
-
-    return StreamingResponse(open(url, "rb"))

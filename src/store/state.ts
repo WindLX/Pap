@@ -9,23 +9,29 @@ export enum SidebarIndex {
     Net = 'net',
     Note = 'note',
     Resource = 'resource',
-    Database = 'database',
     Setting = "setting",
 }
 
-const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Resource, SidebarIndex.Database, SidebarIndex.Setting]
+export enum ContentIndex {
+    Net = 'net',
+    Note = 'note',
+    Resource = 'resource',
+}
+
+const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Resource, SidebarIndex.Setting]
 
 export const useStateStore = defineStore('states', {
     state: () => {
         return {
             sidebarIndex: SidebarIndex.Note,
+            contentIndex: ContentIndex.Note,
             isMiddleBarShow: true,
             host: (window as unknown as CustomWindow).host,
             port: (window as unknown as CustomWindow).port
         }
     },
     getters: {
-        backendHost: (state) => `http://${state.host}:${state.port}`
+        backendHost: (state) => `http://${state.host}:${state.port}`,
     },
     actions: {
         isActive(index: number): string {

@@ -12,6 +12,11 @@ const props = defineProps<{
 const emits = defineEmits<{
     (e: 'update:mdData', value: string): void,
     (e: 'onEdit'): void,
+    (e: 'tag'): void,
+    (e: 'lock'): void,
+    (e: 'export'): void,
+    (e: 'pdf'): void,
+    (e: 'outline'): void,
 }>();
 
 defineExpose({
@@ -31,10 +36,31 @@ const blocks = ref<Array<InstanceType<typeof MdBlock>>>([]);
 let rawDataSet = ref<Array<string>>([""])
 
 function handleKeyDown(event: KeyboardEvent) {
-    if (event.ctrlKey && event.key === 's') {
+    if (event.ctrlKey) {
         event.preventDefault();
-        const newData = saveData();
-        emits('update:mdData', newData);
+        switch (event.key) {
+            case '1':
+                emits('tag')
+                break;
+            case '2':
+                emits('lock')
+                break;
+            case '3':
+                const newData = saveData();
+                emits('update:mdData', newData);
+                break;
+            case '4':
+                emits('export')
+                break;
+            case '5':
+                emits('pdf')
+                break;
+            case '6':
+                emits('outline')
+                break;
+            default:
+                break;
+        }
     }
 }
 

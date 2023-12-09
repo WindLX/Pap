@@ -14,18 +14,6 @@ export class ResourceApi extends BaseApi {
         })
     }
 
-    public static async getStreamUrl(url: string): Promise<string> {
-        return new Promise(function (resolve, reject) {
-            pFetch(`/resource/get_stream?url=${url}`)
-                .then(async res => {
-                    const blob = await res.blob()
-                    const objectURL = URL.createObjectURL(blob);
-                    resolve(objectURL)
-                })
-                .catch(e => reject(e))
-        })
-    }
-
     public static async getBlobUrl(url: string): Promise<string> {
         return new Promise(function (resolve, reject) {
             pFetch(`/${url}`)
