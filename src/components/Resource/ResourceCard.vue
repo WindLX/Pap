@@ -89,6 +89,20 @@ onMounted(async () => {
     user-select: all;
 }
 
+@media screen and (max-width: 540px) {
+    .card {
+        width: 40vw;
+        height: 57vw;
+    }
+}
+
+@media screen and (max-width: 900px) and (min-width:540px) {
+    .card {
+        width: 25vw;
+        height: 35.7vw;
+    }
+}
+
 .card:hover {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     transform: scale(1.05);

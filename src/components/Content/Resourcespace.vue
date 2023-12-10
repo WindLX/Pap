@@ -72,6 +72,22 @@ onMounted(async () => {
     grid-gap: 5vw;
 }
 
+@media screen and (max-width: 540px) {
+    .resource .cards {
+        display: grid;
+        grid-template-columns: repeat(1, calc((100vw - 50px)/2));
+        grid-gap: 5vw;
+    }
+}
+
+@media screen and (max-width: 900px) and (min-width:540px) {
+    .resource .cards {
+        display: grid;
+        grid-template-columns: repeat(3, calc((100vw - 50px)/4));
+        grid-gap: 5vw;
+    }
+}
+
 .resource .empty {
     margin: auto;
 }

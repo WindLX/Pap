@@ -85,6 +85,20 @@ async function uploadFileAsync() {
     justify-content: center;
 }
 
+@media screen and (max-width: 540px) {
+    .resource-add-card {
+        width: 40vw;
+        height: 57vw;
+    }
+}
+
+@media screen and (max-width: 900px) and (min-width:540px) {
+    .resource-add-card {
+        width: 25vw;
+        height: 35.7vw;
+    }
+}
+
 .resource-add-card:hover {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     transform: scale(1.05);
