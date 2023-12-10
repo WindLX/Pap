@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElLoading, ElEmpty, ElInput, ElButton } from 'element-plus';
+import { ElLoading, ElInput, ElButton } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ResourceSchema } from '@/schemas/resource';
 import ResourceAdd from '../Resource/ResourceAdd.vue';
@@ -37,13 +37,12 @@ onMounted(async () => {
                 </el-button>
             </template>
         </el-input>
-        <div class="cards" id="cards-loader" v-if="resources.length !== 0">
+        <div class="cards" id="cards-loader">
             <ResourceCard v-for="(resource, index) in resources" :key="index" :name="resource.name" :url="resource.url"
                 @delete="handleDeleteResource(index)" v-show="filterName(resource.name)">
             </ResourceCard>
             <ResourceAdd @upload="handleAddNewResource" :is-card="true" />
         </div>
-        <ElEmpty v-else class="empty" description="暂无托管资源" />
     </div>
 </template>
 

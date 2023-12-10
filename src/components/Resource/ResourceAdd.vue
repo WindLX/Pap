@@ -50,8 +50,8 @@ async function uploadFileAsync() {
     const loadingInstance = ElLoading.service({ target: "#cards-loader", fullscreen: true })
     const file = fileInputRef.value!.files![0];
     const formData = await createFormDataAsync(file)
-    loadingInstance.close()
     const newResource = await ResourceApi.uploadResource(formData)
+    loadingInstance.close()
     emits('upload', newResource)
 }
 </script>
