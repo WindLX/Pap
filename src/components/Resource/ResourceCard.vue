@@ -86,6 +86,7 @@ onMounted(async () => {
     position: relative;
     background-image: v-bind(background);
     background-size: cover;
+    user-select: all;
 }
 
 .card:hover {

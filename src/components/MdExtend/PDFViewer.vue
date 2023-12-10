@@ -29,6 +29,7 @@ const totalPages = ref(1)
 let currentPage = ref(1)
 let pdfDoc: pdfjs.PDFDocumentProxy | null = null
 let pdfScale = ref(500)
+let pdfRotation = ref(0)
 const canvasItem = ref<HTMLCanvasElement | null>(null)
 
 // callback function
@@ -48,6 +49,17 @@ async function handleScaleAsync(_val: Arrayable<number>) {
 
 async function handleScaleFitAsync() {
     pdfScale.value = 5
+    await nextTick(() => {
+        renderPageAsync(pdfDoc!, currentPage.value)
+    })
+}
+
+async function handleRotationAsync() {
+    if (pdfRotation.value < 270) {
+        pdfRotation.value += 90
+    } else {
+        pdfRotation.value = 0
+    }
     await nextTick(() => {
         renderPageAsync(pdfDoc!, currentPage.value)
     })
@@ -99,7 +111,7 @@ async function renderPageAsync(pdfDoc: pdfjs.PDFDocumentProxy, num: number) {
         if (canvas) {
             const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
             const scale = pdfScale.value / 100
-            const viewport = page.getViewport({ scale: scale })
+            const viewport = page.getViewport({ scale: scale, rotation: pdfRotation.value })
             canvas.height = Math.floor(viewport.height);
             canvas.width = Math.floor(viewport.width);
             const renderContext = {
@@ -161,6 +173,7 @@ onActivated(async () => {
         <div class="pdf-middle">
             <font-awesome-icon :icon="['fas', 'crop-simple']" class="icon" @click="handleScaleFitAsync" />
             <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @click="exportPdfAsync()" />
+            <font-awesome-icon :icon="['fas', 'rotate-right']" class="icon" @click="handleRotationAsync()" />
             <el-slider v-model="pdfScale" :min="100" :max="500" size="small" class="slider" @change="handleScaleAsync" />
         </div>
         <el-pagination v-model:current-page="currentPage" :page-size="10" :background="true" small hide-on-single-page
