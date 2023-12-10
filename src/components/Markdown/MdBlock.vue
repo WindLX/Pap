@@ -72,6 +72,13 @@ function handleEdit() {
     }
 }
 
+function handleTouchEdit(event: TouchEvent) {
+    if (!lock?.value && event.touches.length == 2) {
+        isEdit.value = true;
+        handleFocus();
+    }
+}
+
 function behaviorHandler(e: KeyboardEvent) {
     const selection = window.getSelection();
     const focusOffset = selection?.focusOffset;
@@ -242,7 +249,7 @@ onMounted(async () => {
 
 <template>
     <div v-if="block" class="md-block" :class="{ 'highlight': props.isHighlight }" @dblclick="handleEdit()"
-        :id="`md-block-${props.lineNum}`">
+        @touchstart="handleTouchEdit" :id="`md-block-${props.lineNum}`">
         <span v-show="isEdit || props.isHighlight" class="line-num" :class="{ 'focus-num': isEdit }">
             {{ props.lineNum }}
         </span>
