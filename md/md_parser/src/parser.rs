@@ -61,10 +61,6 @@ impl<'md> Parser {
             SplitBlock::MathBlock(mb) => {
                 Ok(Block::MathBlock(<MdChars as Into<&str>>::into(mb.clone())))
             }
-            #[cfg(feature = "table")]
-            SplitBlock::TableBlock(tb) => {
-                self.parse_table(<MdChars as Into<&str>>::into(tb.clone()))
-            }
         }
     }
 
@@ -486,12 +482,6 @@ impl<'md> Parser {
         } else {
             return Err(MdError::FooterError(String::from("expect ']: '")));
         }
-    }
-
-    #[cfg(feature = "table")]
-    fn parse_table(&mut self, _input: &'md str) -> Result<Block<'md>> {
-        // TODO
-        Ok(Block::TableBlock)
     }
 }
 

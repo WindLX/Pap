@@ -7,8 +7,6 @@ pub enum SplitBlock {
     Line,
     #[cfg(feature = "math")]
     MathBlock(MdChars),
-    #[cfg(feature = "extra")]
-    TableBlock(MdChars),
 }
 
 impl ToString for SplitBlock {
@@ -25,8 +23,6 @@ impl ToString for SplitBlock {
             SplitBlock::Line => "---".to_string(),
             #[cfg(feature = "math")]
             SplitBlock::MathBlock(s) => format!("$$\n{}\n$$", s.to_string()),
-            #[cfg(feature = "extra")]
-            SplitBlock::TableBlock(s) => format!(":::table\n{}\n:::", s.to_string()),
         }
     }
 }
@@ -42,8 +38,6 @@ pub enum Block<'md> {
     Line,
     #[cfg(feature = "math")]
     MathBlock(&'md str),
-    #[cfg(feature = "table")]
-    TableBlock,
     #[cfg(feature = "extra")]
     TodoItem(TodoItem<'md>),
     #[cfg(feature = "extra")]

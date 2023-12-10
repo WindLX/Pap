@@ -7,11 +7,9 @@ edition = "2021"
 
 [features]
 default = ["pap"]
-pap = ["math", "slide", "table", "extra"]
+pap = ["math", "extra"]
 extra = []
 math = []
-table = []
-slide = []
 parallel = ["rayon"]
 
 [dependencies]

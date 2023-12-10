@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElNotification } from 'element-plus';
 import { ResourceApi } from '@/api/resource';
@@ -48,11 +48,19 @@ function handleDelete() {
     })
 }
 
-onMounted(async () => {
+async function loadAsync() {
     if (props.url.endsWith('png') || props.url.endsWith('jpg') || props.url.endsWith('jpeg') || props.url.endsWith('gif')) {
         const url = await ResourceApi.getBlobUrl(props.url)
         background.value = `url("${url}")`
     }
+}
+
+watch(props, async () => {
+    await loadAsync()
+})
+
+onMounted(async () => {
+    await loadAsync()
 })
 </script>
 

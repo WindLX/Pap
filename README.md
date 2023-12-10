@@ -2,7 +2,7 @@
 
 ## 简介
 
-Pap 是一个pdf文件管理软件，提供了简洁的世界 Web 页面，通过标签对文件进行管理，可为托管文件自由添加 markdown 笔记.
+Pap 是一个 markdown 笔记软件，通过标签对笔记进行管理，自动生成引用关系网络.
 
 ## 安装
 
@@ -40,4 +40,4 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [x] Resource
 - [x] Pdf viewer
 - [x] Data Export
-- [ ] Table
+- [x] Grep

@@ -16,17 +16,6 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
                 continue;
             }
         }
-        #[cfg(feature = "table")]
-        {
-            if input.check_str(":::table") {
-                for _ in 0..9 {
-                    input.next();
-                }
-                let table = input.slice_to_str(":::");
-                blocks.push(SplitBlock::TableBlock(MdChars::new(table)));
-                continue;
-            }
-        }
         if input.check_str("```") {
             input.next();
             input.next();
@@ -50,7 +39,6 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
         let para = input.slice_to_byte(b'\n');
         if !matches!(blocks.last(), Some(SplitBlock::CodeBlock(_, _)))
             && !matches!(blocks.last(), Some(SplitBlock::MathBlock(_)))
-            && !matches!(blocks.last(), Some(SplitBlock::TableBlock(_)))
         {
             blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
         }
@@ -69,14 +57,6 @@ mod tests {
     #[test]
     fn test_split() {
         let input = read_to_string("../test/test.md").unwrap();
-        let result = split(&input);
-        dbg!(result);
-    }
-
-    #[test]
-    fn test_table() {
-        let input =
-            ":::table\n| 表头1 | 表头2 |\n| ----- | ----- |\n| 内容1 | 内容2 |\n| 内容3 | 内容4 |:::";
         let result = split(&input);
         dbg!(result);
     }

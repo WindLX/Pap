@@ -61,7 +61,7 @@ function handleCreateItemShow() {
     <el-popover placement="bottom" :visible="visible" :width="200">
         <p class="item-add title">{{ props.name }}名称</p>
         <div class="item-add group">
-            <el-input size="small" v-model="newItemName" class="item-add input" />
+            <el-input size="small" v-model="newItemName" class="item-add input" clearable placeholder="新笔记" />
             <el-button size="small" text @click="handleCreateItemCancel()">取消</el-button>
             <el-button size="small" type="primary" @click="handleCreateItemAsync()">确认</el-button>
         </div>

@@ -113,7 +113,7 @@ onActivated(async () => {
             {{ tag.name }}
         </tag>
         <span>
-            <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" class="item" size="small"
+            <el-input v-if="inputVisible" ref="InputRef" v-model="inputValue" placeholder="名称" class="item" size="small"
                 style="width: 48px;">
             </el-input>
             <el-color-picker v-if="inputVisible" size="small" ref="ColorRef" v-model="colorValue"

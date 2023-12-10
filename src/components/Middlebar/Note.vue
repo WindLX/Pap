@@ -71,7 +71,7 @@ onMounted(async () => {
     <div class="note">
         <middlebar-item-add :name="'笔记文件'" :create-item-func="NoteApi.createNote"
             @create-item="(newNote) => noteSet.push(newNote)" />
-        <el-input class="filter-input" v-model="filterText">
+        <el-input class="filter-input" v-model="filterText" placeholder="查找" clearable>
             <template #append>
                 <el-button @click="handleShowTag">
                     <font-awesome-icon :icon="['fas', 'tag']" class="icon" />

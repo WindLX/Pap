@@ -37,11 +37,9 @@ function lock() {
                 @click="select(SidebarIndex.Note)" />
             <font-awesome-icon :icon="['fas', 'circle-nodes']" class="icon button" :class="stateStore.isActive(1)"
                 @click="select(SidebarIndex.Net)" />
-            <font-awesome-icon :icon="['fas', 'gift']" class="icon button" :class="stateStore.isActive(2)"
+            <font-awesome-icon :icon="['fas', 'database']" class="icon button" :class="stateStore.isActive(2)"
                 @click=select(SidebarIndex.Resource) />
-            <font-awesome-icon :icon="['fas', 'database']" class="icon button" :class="stateStore.isActive(3)"
-                @click=select(SidebarIndex.Database) />
-            <font-awesome-icon :icon="['fas', 'gear']" class="icon button" :class="stateStore.isActive(4)"
+            <font-awesome-icon :icon="['fas', 'gear']" class="icon button" :class="stateStore.isActive(3)"
                 @click="select(SidebarIndex.Setting)" />
         </div>
         <div class="menu">

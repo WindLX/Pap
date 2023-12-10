@@ -12,6 +12,7 @@ import MdParagraph from './MdParagraph.vue';
 const props = defineProps<{
     lineNum: number,
     rawData: string,
+    isHighlight?: boolean,
 }>();
 
 const emits = defineEmits<{
@@ -143,7 +144,9 @@ function behaviorHandler(e: KeyboardEvent) {
             }
             break;
         case 'ArrowUp':
-            if ((block.value?.tag === BlockTag.CodeBlock || block.value?.tag === BlockTag.MathBlock) && selection?.anchorOffset != 0) {
+            if ((block.value?.tag === BlockTag.CodeBlock
+                || block.value?.tag === BlockTag.MathBlock)
+                && selection?.anchorOffset != 0) {
                 break;
             } else {
                 e.preventDefault()
@@ -151,7 +154,9 @@ function behaviorHandler(e: KeyboardEvent) {
             }
             break;
         case 'ArrowDown':
-            if ((block.value?.tag === BlockTag.CodeBlock || block.value?.tag === BlockTag.MathBlock) && selection?.focusOffset != (raw.value?.innerText.length!)) {
+            if ((block.value?.tag === BlockTag.CodeBlock
+                || block.value?.tag === BlockTag.MathBlock)
+                && selection?.focusOffset != (raw.value?.innerText.length!)) {
                 break;
             } else {
                 e.preventDefault()
@@ -236,8 +241,9 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="block" class="md-block" @dblclick="handleEdit()">
-        <span v-show="isEdit" class="line-num" :class="{ 'focus-num': isEdit }">
+    <div v-if="block" class="md-block" :class="{ 'highlight': props.isHighlight }" @dblclick="handleEdit()"
+        :id="`md-block-${props.lineNum}`">
+        <span v-show="isEdit || props.isHighlight" class="line-num" :class="{ 'focus-num': isEdit }">
             {{ props.lineNum }}
         </span>
         <span v-show="isEdit" class="edit" ref="raw" @focusout="isEdit = false" @keydown="behaviorHandler"
@@ -328,6 +334,14 @@ onMounted(async () => {
     margin-left: 12px;
     margin-right: 12px;
     word-break: break-all;
+}
+
+.md-block.highlight .edit {
+    border: 2px solid #409eff;
+}
+
+.md-block.highlight .line-num {
+    color: #409eff;
 }
 
 .md-block-skeleton {

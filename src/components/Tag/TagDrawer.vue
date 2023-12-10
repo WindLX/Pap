@@ -147,7 +147,7 @@ onMounted(() => {
             </div>
         </template>
         <template #default>
-            <el-input v-model="inputValue" clearable />
+            <el-input v-model="inputValue" clearable placeholder="查找" />
             <el-collapse>
                 <el-collapse-item v-for="tag in filterTags" :key="tag.id" :name="tag.id">
                     <template #title>

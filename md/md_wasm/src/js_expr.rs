@@ -11,7 +11,6 @@ pub enum JsBlock {
     Image(JsImage),
     Line,
     MathBlock(String),
-    TableBlock,
     TodoItem(JsTodoItem),
     Footer(JsFooter),
 }
@@ -134,7 +133,6 @@ impl ToString for JsBlock {
                 }
             }
             JsBlock::Line => String::from("---"),
-            JsBlock::TableBlock => String::from(":::table\n:::\n"),
         }
     }
 }

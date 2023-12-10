@@ -148,7 +148,6 @@ impl SingleGenerator<Result<JsBlock, JsError>> for JsGenerator {
                 Block::Footer(footer) => JsBlock::Footer(self.generate_footer(footer)),
                 Block::ListItem(list_item) => JsBlock::ListItem(self.generate_list_item(list_item)),
                 Block::TodoItem(todo_item) => JsBlock::TodoItem(self.generate_todo_item(todo_item)),
-                Block::TableBlock => JsBlock::TableBlock,
             },
             Err(err) => return Err(JsError::new(&err.to_string())),
         };

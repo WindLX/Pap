@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, provide } from 'vue';
+import { nextTick, onMounted, ref, provide, reactive } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElLoading, ElSkeleton } from "element-plus";
 import { NoteApi } from '@/api/note';
@@ -8,6 +8,7 @@ import { downloadUrlAsync } from '@/utils';
 import Editor from './Editor.vue';
 import MdOutline from './MdOutline.vue';
 import TagList from '../Tag/TagList.vue';
+import Grep from './Grep.vue';
 
 // props
 const props = defineProps<{
@@ -24,8 +25,7 @@ let mdData = ref<string | null>(null);
 let name = ref<string>("");
 const editor = ref<InstanceType<typeof Editor> | null>(null);
 let lockState = ref<boolean>(false);
-let isTagListShow = ref<boolean>(false);
-let isRightbarShow = ref<boolean>(false);
+let isToolbarShow = reactive([false, false, false, false])
 let updateStatus = ref<number>(new Date().getTime())
 
 // inject
@@ -108,19 +108,56 @@ function exportPdf() {
     })
 }
 
-function handleShowTagList() {
-    isTagListShow.value = !isTagListShow.value
-    isRightbarShow.value = false
-}
-
-function handleShowOutline() {
-    isRightbarShow.value = !isRightbarShow.value
-    isTagListShow.value = false
+function handleShowToolbar(index: number) {
+    const s = isToolbarShow[index]
+    isToolbarShow.fill(false)
+    isToolbarShow[index] = !s
 }
 
 function handleLock() {
     lockState.value = !lockState.value;
     emits('lock', lockState.value)
+}
+
+function handleKeyDown(key: string) {
+    switch (key) {
+        case '1':
+            handleShowToolbar(0)
+            break;
+        case '2':
+            handleLock()
+            break;
+        case '4':
+            downloadMdData()
+            break;
+        case '5':
+            exportPdf()
+            break;
+        case '6':
+            handleShowToolbar(1)
+            break;
+        case '7':
+            handleShowToolbar(2)
+            break;
+        default:
+            break;
+    }
+}
+
+function handleGrep(regex: string) {
+    editor.value?.grep(regex)
+}
+
+function handleFocusLast() {
+    editor.value?.focusLast()
+}
+
+function handleFocusNext() {
+    editor.value?.focusNext()
+}
+
+function handleGrepClear() {
+    editor.value?.grepClear()
 }
 
 onMounted(async () => {
@@ -134,26 +171,31 @@ onMounted(async () => {
 <template>
     <div class="markdown" v-if="mdData !== null">
         <div class="markdown-tool">
-            <font-awesome-icon :icon="['fas', 'tags']" class="icon" :class="isTagListShow ? 'active' : ''"
-                @mousedown="handleShowTagList()" />
+            <font-awesome-icon :icon="['fas', 'tags']" class="icon" :class="isToolbarShow[0] ? 'active' : ''"
+                @mousedown="handleShowToolbar(0)" />
             <font-awesome-icon :icon="['fas', lockState ? 'lock' : 'lock-open']" class="icon"
                 :class="lockState ? 'active' : ''" @mousedown="handleLock()" />
             <font-awesome-icon :icon="['fas', 'floppy-disk']" class="icon" style="font-size: 22px;"
                 @mousedown="editor?.saveData()" />
             <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdData()" />
             <font-awesome-icon :icon="['fas', 'file-pdf']" class="icon" @mousedown="exportPdf()" />
-            <font-awesome-icon :icon="['fas', 'hashtag']" class="icon" :class="isRightbarShow ? 'active' : ''"
-                @mousedown="handleShowOutline()" style="font-size: 22px;" />
+            <font-awesome-icon :icon="['fas', 'hashtag']" class="icon" :class="isToolbarShow[1] ? 'active' : ''"
+                @mousedown="handleShowToolbar(1)" style="font-size: 22px;" />
+            <font-awesome-icon :icon="['fas', 'magnifying-glass']" class="icon" :class="isToolbarShow[2] ? 'active' : ''"
+                @mousedown="handleShowToolbar(2)" />
         </div>
         <Transition name="drag">
-            <TagList :id="props.id" v-show="isTagListShow" />
+            <TagList :id="props.id" v-show="isToolbarShow[0]" />
         </Transition>
         <Transition name="push">
-            <MdOutline :md-data="mdData" :name="name" v-show="isRightbarShow" :key="updateStatus" />
+            <MdOutline :md-data="mdData" :name="name" v-show="isToolbarShow[1]" :key="updateStatus" />
+        </Transition>
+        <Transition name="drag">
+            <Grep v-show="isToolbarShow[2]" @grep="handleGrep" @focus-last="handleFocusLast" @focus-next="handleFocusNext"
+                @clear="handleGrepClear" />
         </Transition>
         <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
-            @tag="handleShowTagList()" @lock="handleLock()" @export="downloadMdData()" @pdf="exportPdf()"
-            @outline="handleShowOutline()" ref="editor" />
+            @keyboard="handleKeyDown" ref="editor" />
     </div>
     <el-skeleton v-else :rows="10" class="md-block-skeleton" animated />
 </template>

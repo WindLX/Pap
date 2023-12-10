@@ -4,7 +4,6 @@ import { nextTick, onMounted, ref } from "vue";
 import { ElScrollbar } from "element-plus";
 import MdBlock from "./MdBlock.vue";
 
-
 const props = defineProps<{
     mdData: string,
 }>();
@@ -12,11 +11,7 @@ const props = defineProps<{
 const emits = defineEmits<{
     (e: 'update:mdData', value: string): void,
     (e: 'onEdit'): void,
-    (e: 'tag'): void,
-    (e: 'lock'): void,
-    (e: 'export'): void,
-    (e: 'pdf'): void,
-    (e: 'outline'): void,
+    (e: 'keyboard', key: string): void
 }>();
 
 defineExpose({
@@ -24,6 +19,49 @@ defineExpose({
         const newData = saveData()
         emits('update:mdData', newData)
     },
+    grep: (regexPattern: string) => {
+        if (regexPattern != '') {
+            try {
+                const regex = new RegExp(regexPattern, 'g');
+                const matchingIndexes: number[] = [];
+                rawDataSet.value.forEach((str, index) => {
+                    const match = str.match(regex);
+                    if (match && match.length > 0) {
+                        matchingIndexes.push(index);
+                    }
+                });
+                grepIndex.value = matchingIndexes
+            } catch (e) {
+            }
+        } else {
+            grepIndex.value = []
+            highlightIndex.value = null
+        }
+    },
+    focusLast: () => {
+        if (grepIndex.value.length > 0) {
+            if (highlightIndex.value === null) {
+                highlightIndex.value = 0
+            } else if (highlightIndex.value > 0) {
+                highlightIndex.value -= 1
+            }
+            document.getElementById(`md-block-${grepIndex.value[highlightIndex.value]}`)?.scrollIntoView({ behavior: "smooth" })
+        }
+    },
+    focusNext: () => {
+        if (grepIndex.value.length > 0) {
+            if (highlightIndex.value === null) {
+                highlightIndex.value = 0
+            } else if (highlightIndex.value < grepIndex.value.length) {
+                highlightIndex.value += 1
+            }
+            document.getElementById(`md-block-${grepIndex.value[highlightIndex.value]}`)?.scrollIntoView({ behavior: "smooth" })
+        }
+    },
+    grepClear: () => {
+        grepIndex.value = []
+        highlightIndex.value = null
+    }
 })
 
 const generator = JsGenerator.new();
@@ -34,31 +72,19 @@ const blocks = ref<Array<InstanceType<typeof MdBlock>>>([]);
 
 // data
 let rawDataSet = ref<Array<string>>([""])
+let grepIndex = ref<Array<number>>([])
+let highlightIndex = ref<number | null>(null)
 
 function handleKeyDown(event: KeyboardEvent) {
     if (event.ctrlKey) {
         event.preventDefault();
         switch (event.key) {
-            case '1':
-                emits('tag')
-                break;
-            case '2':
-                emits('lock')
-                break;
             case '3':
                 const newData = saveData();
                 emits('update:mdData', newData);
                 break;
-            case '4':
-                emits('export')
-                break;
-            case '5':
-                emits('pdf')
-                break;
-            case '6':
-                emits('outline')
-                break;
             default:
+                emits('keyboard', event.key)
                 break;
         }
     }
@@ -132,9 +158,9 @@ onMounted(async () => {
         <el-scrollbar>
             <div class="editor-content" ref="container" @keydown="handleKeyDown" id="md-print">
                 <MdBlock v-for="(rawData, index) in rawDataSet" :key="index" :raw-data="rawData" :line-num="index"
-                    ref="blocks" @update:raw-data="(newValue: string) => updateRawData(index, newValue)"
-                    @append-line="appendLine" @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine"
-                    @down-line="downLine">
+                    :is-highlight="grepIndex.includes(index)" ref="blocks"
+                    @update:raw-data="(newValue: string) => updateRawData(index, newValue)" @append-line="appendLine"
+                    @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine" @down-line="downLine">
                 </MdBlock>
             </div>
         </el-scrollbar>
