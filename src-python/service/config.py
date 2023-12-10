@@ -141,7 +141,7 @@ class SystemConfig(BaseConfig[SystemConfigSchema]):
 
     @property
     def host(self) -> str:
-        """frontend 监听的 host 地址
+        """服务运行的 host 地址
 
         Returns:
             str: 主机地址
@@ -154,7 +154,7 @@ class SystemConfig(BaseConfig[SystemConfigSchema]):
 
     @property
     def port(self) -> int:
-        """frontend 监听的 port 端口
+        """服务运行的 port 端口
 
         Returns:
             int: 端口
@@ -165,7 +165,35 @@ class SystemConfig(BaseConfig[SystemConfigSchema]):
     def port(self, value: int) -> None:
         self.set_property("port", value)
 
+    @property
+    def backend_host(self) -> str:
+        """frontend 监听的 host 地址
+
+        Returns:
+            str: 主机地址
+        """
+        return self.get_property("backend_host")
+
+    @backend_host.setter
+    def backend_host(self, value: str) -> None:
+        self.set_property("backend_host", value)
+
+    @property
+    def backend_port(self) -> int:
+        """frontend 监听的 port 端口
+
+        Returns:
+            int: 端口
+        """
+        return self.get_property("backend_port")
+
+    @backend_port.setter
+    def backend_port(self, value: int) -> None:
+        self.set_property("backend_port", value)
+
     def _create_schema_instance(self, data_dict) -> SystemConfigSchema:
+        data_dict.pop("host")
+        data_dict.pop("port")
         return SystemConfigSchema(**data_dict)
 
 

@@ -1,6 +1,8 @@
 [system]
 host = "127.0.0.1"
-port = 13956
+port = 13955
+backend_host = "127.0.0.1"
+backend_port = 13956
 
 [basic]
 title = "Pap"

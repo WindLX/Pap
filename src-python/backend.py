@@ -15,6 +15,8 @@ from starlette.requests import Request
 # system init
 host = system_config.host
 port = system_config.port
+backend_host = system_config.backend_host
+backend_port = system_config.backend_port
 
 # database ORM init
 Base.metadata.create_all(bind=engine)
@@ -29,6 +31,7 @@ templates = Jinja2Templates(directory="dist")
 origins = [
     f"http://{dev_config.dev_host}:{dev_config.dev_port}",
     f"http://{host}:{port}",
+    'http://127.0.0.1:13956'
     "http://localhost:6174",
 ]
 
@@ -95,4 +98,4 @@ def start_backend(is_dev: bool):
     """Start backend service
     """
     logger.info("start backend")
-    run(app='backend:app', host=host, port=port, reload=is_dev)
+    run(app='backend:app', host=backend_host, port=backend_port, reload=is_dev)
