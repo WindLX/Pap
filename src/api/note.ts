@@ -44,6 +44,7 @@ export class NoteApi extends BaseApi {
     public static async getNoteByTags(tagsId: TagSetSchema): Promise<Array<NoteRelationshipSchema>> {
         return new Promise(function (resolve, reject) {
             pFetch(`/note/get_note_by_tags`, {
+                method: 'POST',
                 body: JSON.stringify(tagsId),
             }).then(async res => {
                 const notes = await res.json() as Array<NoteRelationshipSchema>;

@@ -54,6 +54,12 @@ let filterTags: ComputedRef<Array<TagRelationshipSchema>> = computed(() => {
 })
 let targetTag: ReactiveVariable<TagSchema> = reactive(tagDefault())
 let inputValue: Ref<string> = ref("")
+let dialogWidth = computed(() => {
+    const w = window.screen.width
+    if (w < 540) return '90%'
+    else if (w < 900) return '50%'
+    else return '30%'
+})
 
 // callback function
 async function handleUpdateConfirmAsync() {
@@ -192,7 +198,7 @@ onMounted(() => {
             </el-collapse>
         </template>
     </el-drawer>
-    <el-dialog v-model="inputVisible" title="修改标签" width="30%">
+    <el-dialog v-model="inputVisible" title="修改标签" :width="dialogWidth">
         <el-form class="tag-new" :form="targetTag">
             <el-form-item label="名称">
                 <el-input v-model="targetTag.name">
@@ -219,7 +225,7 @@ onMounted(() => {
             </span>
         </template>
     </el-dialog>
-    <el-dialog v-model="chooseVisible" title="提示" width="30%">
+    <el-dialog v-model="chooseVisible" title="提示" :width="dialogWidth">
         <div style="display: flex; align-items: center; flex-direction: column;">
             <tag :color="targetTag?.color" :closable="false" :disable="false">
                 {{ targetTag?.name }}

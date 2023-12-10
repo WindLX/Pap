@@ -23,11 +23,11 @@ tagStore.$onAction(
         name: name,
         after: after,
     }) => {
-        after((result) => {
+        after(async (result) => {
             switch (name) {
                 case "onUpdate":
                     filterTags.value = []
-                    getNoteAsync()
+                    await getNoteAsync()
                     break;
                 case "onChoose":
                     const e = result as TagEvent
@@ -35,6 +35,7 @@ tagStore.$onAction(
                         filterTags.value = filterTags.value.filter((t) => t.id !== e.tag.id)
                         filterTags.value.push(e.tag)
                     }
+                    await getNoteByTagsAsync()
                     break;
             }
         })
@@ -49,6 +50,12 @@ const { filterText, filterName } = useFilterName();
 // load function
 async function getNoteAsync() {
     const newData = await NoteApi.getNotes()
+    noteSet.value = newData
+}
+
+async function getNoteByTagsAsync() {
+    const tagSet = { tags_id: filterTags.value.map((t) => t.id) }
+    const newData = await NoteApi.getNoteByTags(tagSet)
     noteSet.value = newData
 }
 

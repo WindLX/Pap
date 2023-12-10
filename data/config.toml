@@ -6,7 +6,7 @@ backend_port = 13956
 
 [basic]
 title = "Pap"
-log_level = "WARNING"
+log_level = "INFO"
 
 [path]
 note_dir = "./data/note/"

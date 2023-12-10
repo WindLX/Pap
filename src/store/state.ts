@@ -19,6 +19,7 @@ export enum ContentIndex {
 }
 
 const sideIndexes = [SidebarIndex.Note, SidebarIndex.Net, SidebarIndex.Resource, SidebarIndex.Setting]
+const contentIndexes = [ContentIndex.Note, ContentIndex.Net, ContentIndex.Resource]
 
 export const useStateStore = defineStore('states', {
     state: () => {
@@ -39,6 +40,9 @@ export const useStateStore = defineStore('states', {
         },
         select(index: number) {
             this.sidebarIndex = sideIndexes[index]
+            if (index != 3) {
+                this.contentIndex = contentIndexes[index]
+            }
         },
         ownMiddlebar(): boolean {
             let a = this.sidebarIndex != SidebarIndex.Net
