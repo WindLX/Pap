@@ -77,9 +77,10 @@ let highlightIndex = ref<number | null>(null)
 
 function handleKeyDown(event: KeyboardEvent) {
     if (event.ctrlKey) {
-        event.preventDefault();
+        if (['1', '2', 's', '4', '5', '6', '7'].includes(event.key))
+            event.preventDefault()
         switch (event.key) {
-            case '3':
+            case 's':
                 const newData = saveData();
                 emits('update:mdData', newData);
                 break;
