@@ -315,7 +315,7 @@ onMounted(async () => {
         <span v-show="!isEdit" class="render" :class="{ 'inline': calcuateInline(block.tag) }">
             <span v-if="block.tag === BlockTag.Title" class="title" :class="(block.content as Title).level"
                 :id="`md-title-${$props.lineNum}`">
-                <!-- <span class="title-tip">{{ (block.content as Title).level }}</span> -->
+                <span class="title-tip">{{ (block.content as Title).level }}</span>
                 <MdParagraph :paragraph="(block.content as Title).content"></MdParagraph>
             </span>
             <span v-else-if="block.tag === BlockTag.Paragraph" class="paragraph">
