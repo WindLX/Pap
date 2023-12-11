@@ -46,6 +46,7 @@ pack() {
     cp libmd_net.so PapPack/
     cp md_net.dll PapPack/
     cp data/config.toml PapPack/data/ -r
+    cp data/emoji.db PapPack/data/ -r
     cp dist PapPack/dist -r
     cp src-python PapPack/src-python -r
     cp README.md PapPack/

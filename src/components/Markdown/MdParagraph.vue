@@ -137,6 +137,7 @@ watch(props, async () => {
 <style scoped>
 .sentence {
     display: inline-block;
+    white-space: pre;
 }
 
 .sentence .super {
