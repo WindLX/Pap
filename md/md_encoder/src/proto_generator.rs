@@ -104,10 +104,6 @@ impl ProtoGenerator {
         }
     }
 
-    fn generate_table_block(&self, _table_block: Option<()>) -> proto::TableBlock {
-        proto::TableBlock {}
-    }
-
     fn generate_todo_item(&self, todo_item: &TodoItem) -> proto::TodoItem {
         proto::TodoItem {
             is_finished: todo_item.is_finished,
@@ -192,9 +188,6 @@ impl ParaGenerator<proto::Block> for ProtoGenerator {
                 }
                 Block::TodoItem(todo_item) => {
                     proto::block::Block::TodoItem(self.generate_todo_item(todo_item))
-                }
-                Block::TableBlock => {
-                    proto::block::Block::TableBlock(self.generate_table_block(Some(())))
                 }
             },
             Err(err) => panic!("{:?}", err),

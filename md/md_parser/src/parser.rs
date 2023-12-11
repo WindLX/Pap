@@ -1,4 +1,4 @@
-use crate::{bytes::MdChars, err::MdError, expr::*, Result};
+use crate::{err::MdError, expr::*, Result};
 
 #[derive(Debug, Clone)]
 pub struct Parser {
@@ -24,10 +24,7 @@ impl<'md> Parser {
 
     pub fn process(&mut self, input: &'md SplitBlock) -> Result<Block<'md>> {
         match input {
-            SplitBlock::CodeBlock(lb, cb) => Ok(Block::CodeBlock(
-                lb.clone(),
-                <MdChars as Into<&str>>::into(cb.clone()),
-            )),
+            SplitBlock::CodeBlock(lb, cb) => Ok(Block::CodeBlock(lb.clone(), cb.clone())),
             SplitBlock::Paragraph(pa) => match pa.as_bytes().get(0) {
                 Some(b'#') => Ok(Block::Title(self.parse_title(&pa.as_bytes())?)),
                 Some(b'+' | b'0'..=b'9' | b'\t' | b'%') => {
@@ -58,9 +55,7 @@ impl<'md> Parser {
             },
             SplitBlock::Line => Ok(Block::Line),
             #[cfg(feature = "math")]
-            SplitBlock::MathBlock(mb) => {
-                Ok(Block::MathBlock(<MdChars as Into<&str>>::into(mb.clone())))
-            }
+            SplitBlock::MathBlock(mb) => Ok(Block::MathBlock(mb.clone())),
         }
     }
 
@@ -519,7 +514,10 @@ mod tests {
         let b = split(&input);
         let result: Vec<Result<Block>> = b.iter().map(|r| parser.process(r)).collect();
         dbg!(&result);
-        assert_eq!(result, vec![Ok(Block::CodeBlock(None, "let a = 10\n"))]);
+        assert_eq!(
+            result,
+            vec![Ok(Block::CodeBlock(None, String::from("let a = 10\n")))]
+        );
     }
 
     #[test]
@@ -828,7 +826,10 @@ mod tests {
         let b = split(&input);
         let result: Vec<Result<Block>> = b.iter().map(|r| parser.process(r)).collect();
         dbg!(&result);
-        assert_eq!(result, vec![Ok(Block::MathBlock("x_i = 10\n"))]);
+        assert_eq!(
+            result,
+            vec![Ok(Block::MathBlock(String::from("x_i = 10\n")))]
+        );
     }
 
     #[cfg(feature = "pap")]

@@ -3,10 +3,10 @@ use crate::bytes::MdChars;
 #[derive(Debug)]
 pub enum SplitBlock {
     Paragraph(MdChars),
-    CodeBlock(Option<String>, MdChars),
+    CodeBlock(Option<String>, String),
     Line,
     #[cfg(feature = "math")]
-    MathBlock(MdChars),
+    MathBlock(String),
 }
 
 impl ToString for SplitBlock {
@@ -33,11 +33,11 @@ pub enum Block<'md> {
     Paragraph(Paragraph<'md>),
     Quote(Paragraph<'md>),
     ListItem(ListItem<'md>),
-    CodeBlock(Option<String>, &'md str),
+    CodeBlock(Option<String>, String),
     Image(Image<'md>),
     Line,
     #[cfg(feature = "math")]
-    MathBlock(&'md str),
+    MathBlock(String),
     #[cfg(feature = "extra")]
     TodoItem(TodoItem<'md>),
     #[cfg(feature = "extra")]

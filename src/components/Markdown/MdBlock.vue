@@ -176,6 +176,7 @@ function handleFocus(pos: number) {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
+        raw.value?.focus()
         if (raw.value?.firstChild) {
             if (raw.value.innerText.length > pos)
                 rangePos.value = pos
@@ -198,6 +199,7 @@ function handleFocusEnd() {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
+        raw.value?.focus()
         if (raw.value?.firstChild) {
             rangePos.value = raw.value?.innerText.length!;
             range.setEnd(raw.value.firstChild, rangePos.value)
@@ -219,6 +221,7 @@ function handleFocusStart() {
     const selection = window.getSelection();
     window.setTimeout(() => {
         rangePos.value = 0;
+        raw.value?.focus()
         if (raw.value?.firstChild) {
             range.setEnd(raw.value.firstChild, 0)
             range.collapse();
@@ -289,6 +292,7 @@ watch(props, async (newValue) => {
     const selection = window.getSelection();
     const range = document.createRange();
     if (raw.value?.firstChild) {
+        raw.value?.focus()
         range.setStart(raw.value.firstChild, 0)
         range.setEnd(raw.value.firstChild, rangePos.value)
         range.collapse(false);

@@ -14,7 +14,12 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
                     input.next();
                 }
                 let math = input.slice_to_str("\n$$");
-                blocks.push(SplitBlock::MathBlock(MdChars::new(math)));
+                blocks.push(SplitBlock::MathBlock(
+                    std::str::from_utf8(math).unwrap().to_string(),
+                ));
+                if input.check(b'\n') {
+                    input.next();
+                }
                 continue;
             }
         }
@@ -27,7 +32,13 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
                 .to_string();
             let lang = if lang.is_empty() { None } else { Some(lang) };
             let code = input.slice_to_str("\n```");
-            blocks.push(SplitBlock::CodeBlock(lang, MdChars::new(code)));
+            blocks.push(SplitBlock::CodeBlock(
+                lang,
+                std::str::from_utf8(code).unwrap().to_string(),
+            ));
+            if input.check(b'\n') {
+                input.next();
+            }
             continue;
         }
         if input.check_str("---") {
@@ -39,11 +50,7 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
             continue;
         }
         let para = input.slice_to_byte(b'\n');
-        if !matches!(blocks.last(), Some(SplitBlock::CodeBlock(_, _)))
-            && !matches!(blocks.last(), Some(SplitBlock::MathBlock(_)))
-        {
-            blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
-        }
+        blocks.push(SplitBlock::Paragraph(MdChars::new(para)));
         if input.is_end() {
             break;
         }
