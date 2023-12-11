@@ -30,7 +30,7 @@ impl<'md> Parser {
             )),
             SplitBlock::Paragraph(pa) => match pa.as_bytes().get(0) {
                 Some(b'#') => Ok(Block::Title(self.parse_title(&pa.as_bytes())?)),
-                Some(b'+' | b'0'..=b'9' | b'\t') => {
+                Some(b'+' | b'0'..=b'9' | b'\t' | b'%') => {
                     Ok(Block::ListItem(self.parse_list(&pa.as_bytes())?))
                 }
                 Some(b'-') => {
@@ -149,7 +149,7 @@ impl<'md> Parser {
         let mut level = 0;
         loop {
             match input.get(0) {
-                Some(b'\t') => {
+                Some(b'\t' | b'%') => {
                     level += 1;
                     input = &input[1..];
                 }

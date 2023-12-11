@@ -12,6 +12,8 @@
   color: rgba(27, 27, 27, 0.87);
   background-color: #fff;
 
+  --code-font: 'Source Code Pro', 'Hack Nerd Font', 'Consolas', 'Droid Sans Mono', 'Monaco', 'Menlo', 'Courier New', Courier, monospace;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

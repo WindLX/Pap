@@ -7,10 +7,12 @@ pub fn split(input: &str) -> Vec<SplitBlock> {
     loop {
         #[cfg(feature = "math")]
         {
-            if input.check_str("$$\n") {
+            if input.check_str("$$") {
                 input.next();
                 input.next();
-                input.next();
+                if input.check(b'\n') {
+                    input.next();
+                }
                 let math = input.slice_to_str("\n$$");
                 blocks.push(SplitBlock::MathBlock(MdChars::new(math)));
                 continue;

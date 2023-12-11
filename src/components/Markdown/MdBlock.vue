@@ -27,15 +27,23 @@ const emits = defineEmits<{
 }>()
 
 defineExpose({
-    focus: () => {
+    focus: (pos: number) => {
         isEdit.value = true;
-        handleFocus()
+        handleFocus(pos)
+    },
+    focusEnd: () => {
+        isEdit.value = true;
+        handleFocusEnd()
+    },
+    focusStart: () => {
+        isEdit.value = true;
+        handleFocusStart()
     }
 })
 
 // data
 const generator = JsGenerator.new();
-
+const rangePos = ref(0)
 const raw: Ref<HTMLSpanElement | null> = ref(null);
 const math: Ref<HTMLDivElement | null> = ref(null);
 let isEdit = ref(false);
@@ -61,6 +69,8 @@ async function serializeAsync(rawData: string): Promise<Block> {
 function handleInput() {
     if (raw.value) {
         emits('update:rawData', raw.value.innerText);
+        const selection = window.getSelection();
+        rangePos.value = selection!.getRangeAt(0).startOffset;
         emits("updateStatus")
     }
 }
@@ -68,14 +78,14 @@ function handleInput() {
 function handleEdit() {
     if (!lock?.value) {
         isEdit.value = true;
-        handleFocus();
+        handleFocusEnd();
     }
 }
 
 function handleTouchEdit(event: TouchEvent) {
     if (!lock?.value && event.touches.length == 2) {
         isEdit.value = true;
-        handleFocus();
+        handleFocusEnd();
     }
 }
 
@@ -90,20 +100,11 @@ function behaviorHandler(e: KeyboardEvent) {
                 && focusOffset !== raw.value?.innerText.length) {
                 selection?.getRangeAt(0).insertNode(document.createTextNode('\n'));
                 emits('update:rawData', raw.value?.innerText!);
-                let pos = selection?.getRangeAt(0).startOffset;
-                nextTick(async () => {
-                    const range = document.createRange();
-                    if (raw.value?.firstChild && pos) {
-                        range.setStart(raw.value.firstChild, 0)
-                        range.setEnd(raw.value.firstChild, pos + 1)
-                        range.collapse(false);
-                        selection?.removeAllRanges();
-                        selection?.addRange(range);
-                    }
-                })
+                rangePos.value = selection!.getRangeAt(0).startOffset + 1;
             } else {
                 const remainData = props.rawData.slice(0, focusOffset)
                 const sliceData = props.rawData.slice(focusOffset)
+                rangePos.value = focusOffset!
                 emits('update:rawData', remainData);
                 emits('appendLine', props.lineNum, sliceData);
             }
@@ -114,16 +115,11 @@ function behaviorHandler(e: KeyboardEvent) {
                 const oldRange = selection.getRangeAt(0);
                 const end = oldRange.endOffset
                 raw.value.innerText =
-                    raw.value.innerText.slice(0, oldRange.endOffset)
+                    raw.value.innerText.slice(0, end)
                     + '\t'
-                    + raw.value.innerText.slice(oldRange.endOffset);
+                    + raw.value.innerText.slice(end);
                 emits('update:rawData', raw.value.innerText);
-                if (end !== 0) {
-                    oldRange.setEnd(raw.value?.firstChild!, end + 1)
-                } else {
-                    oldRange.setEndAfter(raw.value?.firstChild!)
-                }
-                oldRange.collapse()
+                rangePos.value = end + 1
             }
             break;
         case 'Backspace':
@@ -173,13 +169,60 @@ function behaviorHandler(e: KeyboardEvent) {
     }
 }
 
-function handleFocus() {
+function handleFocus(pos: number) {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
-        raw.value?.focus();
         if (raw.value?.firstChild) {
-            range.setEnd(raw.value.firstChild, raw.value.innerText.length)
+            if (raw.value.innerText.length > pos)
+                rangePos.value = pos
+            else
+                rangePos.value = raw.value.innerText.length
+            range.setEnd(raw.value.firstChild, rangePos.value)
+            range.collapse();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        } else {
+            range.setEnd(raw.value!.parentNode!.childNodes[1], 0)
+            range.collapse();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        }
+    }, 0)
+}
+
+function handleFocusEnd() {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    window.setTimeout(() => {
+        if (raw.value?.firstChild) {
+            rangePos.value = raw.value?.innerText.length!;
+            range.setEnd(raw.value.firstChild, rangePos.value)
+            range.collapse();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        } else {
+            rangePos.value = 0
+            range.setEnd(raw.value!.parentNode!.childNodes[1], 0)
+            range.collapse();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        }
+    }, 0)
+}
+
+function handleFocusStart() {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    window.setTimeout(() => {
+        rangePos.value = 0;
+        if (raw.value?.firstChild) {
+            range.setEnd(raw.value.firstChild, 0)
+            range.collapse();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+        } else {
+            range.setEnd(raw.value!.parentNode!.childNodes[1], 0)
             range.collapse();
             selection?.removeAllRanges();
             selection?.addRange(range);
@@ -240,6 +283,15 @@ async function load(rawData: string) {
 
 watch(props, async (newValue) => {
     await load(newValue.rawData)
+    const selection = window.getSelection();
+    const range = document.createRange();
+    if (raw.value?.firstChild) {
+        range.setStart(raw.value.firstChild, 0)
+        range.setEnd(raw.value.firstChild, rangePos.value)
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+    }
 })
 
 onMounted(async () => {
@@ -396,14 +448,14 @@ onMounted(async () => {
 
 .md-block .edit.CodeBlock {
     white-space: pre-wrap;
-    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: var(--code-font);
     margin-top: 22px;
     margin-bottom: 15px;
 }
 
 .md-block .edit.MathBlock {
     white-space: pre-wrap;
-    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: var(--code-font);
     margin-top: 22px;
     margin-bottom: 15px;
 }
@@ -538,7 +590,7 @@ onMounted(async () => {
 }
 
 .md-block .render .code-block {
-    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: var(--code-font);
 }
 
 .md-block .render .code-block .code {

@@ -102,7 +102,7 @@ function appendLine(lineNum: number, data: string) {
         rawDataSet.value.push(data);
     }
     nextTick(() => {
-        blocks.value[lineNum + 1].focus()
+        blocks.value[lineNum + 1].focusStart()
     })
 }
 
@@ -111,7 +111,7 @@ function deleteLine(lineNum: number) {
         rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
         nextTick(() => {
             if (lineNum !== 0) {
-                blocks.value[lineNum - 1].focus()
+                blocks.value[lineNum - 1].focusEnd()
             }
         })
     }
@@ -119,24 +119,24 @@ function deleteLine(lineNum: number) {
 
 function combineLine(lineNum: number, data: string) {
     if (lineNum !== 0) {
+        const lineLength = rawDataSet.value[lineNum - 1].length
         rawDataSet.value[lineNum - 1] = rawDataSet.value[lineNum - 1] + data
         rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
         nextTick(() => {
-            blocks.value[lineNum - 1].focus()
+            blocks.value[lineNum - 1].focus(lineLength)
         })
     }
-
 }
 
 function upLine(lineNum: number) {
     if (lineNum > 0) {
-        blocks.value[lineNum - 1].focus()
+        blocks.value[lineNum - 1].focusEnd()
     }
 }
 
 function downLine(lineNum: number) {
     if (lineNum < blocks.value.length - 1) {
-        blocks.value[lineNum + 1].focus()
+        blocks.value[lineNum + 1].focusEnd()
     }
 }
 

@@ -139,7 +139,6 @@ watch(props, async () => {
     display: inline;
 }
 
-
 .sentence .super {
     font-size: 12px;
     vertical-align: super;
@@ -172,7 +171,7 @@ watch(props, async () => {
     border-radius: 5px;
     padding: 0 5px;
     color: #6D7D8D;
-    font-family: 'Source Code Pro', 'Hack Nerd Font', 'Droid Sans Mono', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: var(--code-font);
 }
 
 .sentence .link {
