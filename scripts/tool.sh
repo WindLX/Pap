@@ -44,6 +44,7 @@ pack() {
     mkdir PapPack
     mkdir PapPack/data
     cp libmd_net.so PapPack/
+    cp md_net.dll PapPack/
     cp data/config.toml PapPack/data/ -r
     cp dist PapPack/dist -r
     cp src-python PapPack/src-python -r

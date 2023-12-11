@@ -63,11 +63,12 @@ if ($Update -eq $true) {
     Move-Item .\PapPack\requirements_release.txt .\requirements_release.txt
 
     Remove-Item .\PapPack -Recurse -Force
-    Remove-Item .\PapPack.tar.gz -Force
 
     if (Test-Path -Path ".venv") {
         Remove-Item .\.venv -Recurse -Force
     }
+    
+    exit 1
 }
 
 Open-Venv

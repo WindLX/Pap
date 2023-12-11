@@ -54,9 +54,13 @@ if [ "$Update" = true ]; then
     mv ./PapPack/libmd_net.so ./libmd_net.so
     mv ./PapPack/requirements_release.txt ./requirements_release.txt
 
+    rm ./PapPack -r
+
     if [ -d ".venv" ]; then
         rm .venv -r
     fi
+    
+    exit 1
 fi
 
 activate_venv
