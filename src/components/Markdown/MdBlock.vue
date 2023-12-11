@@ -27,6 +27,9 @@ const emits = defineEmits<{
 }>()
 
 defineExpose({
+    rangePos: (pos: number) => {
+        rangePos.value = pos;
+    },
     focus: (pos: number) => {
         isEdit.value = true;
         handleFocus(pos)
@@ -130,7 +133,7 @@ function behaviorHandler(e: KeyboardEvent) {
                     const f = selection.focusOffset;
                     s = Math.abs(a - f) == raw.value?.innerText.length && a !== f;
                 }
-                if (raw.value?.innerText.length === 1 || s) {
+                if (raw.value?.innerText.length === 1 && s) {
                     const newValue = "";
                     raw.value.innerText = newValue;
                     emits('update:rawData', newValue);

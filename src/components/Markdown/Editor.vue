@@ -121,11 +121,14 @@ function deleteLine(lineNum: number) {
 function combineLine(lineNum: number, data: string) {
     if (lineNum !== 0) {
         const lineLength = rawDataSet.value[lineNum - 1].length
-        rawDataSet.value[lineNum - 1] = rawDataSet.value[lineNum - 1] + data
-        rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
-        nextTick(() => {
-            blocks.value[lineNum - 1].focus(lineLength)
-        })
+        blocks.value[lineNum - 1].rangePos(0)
+        setTimeout(() => {
+            rawDataSet.value[lineNum - 1] = rawDataSet.value[lineNum - 1] + data
+            rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
+            setTimeout(() => {
+                blocks.value[lineNum - 1].focus(lineLength)
+            }, 0)
+        }, 0)
     }
 }
 
