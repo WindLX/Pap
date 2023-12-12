@@ -167,7 +167,7 @@ async function handleBehaviorAsync(e: KeyboardEvent) {
                         console.log(oldRange.endOffset)
                         const rangePos = oldRange.endOffset
                         setTimeout(() => {
-                            handleFocus(rangePos)
+                            handleFocus(rangePos - 1)
                         }, 50)
                     }
                 }
