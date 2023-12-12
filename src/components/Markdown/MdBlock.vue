@@ -1,34 +1,29 @@
 <script setup lang="ts">
 import katex from "katex";
 import { JsGenerator } from "md_wasm";
-import { Ref, nextTick, onMounted, ref, watch, inject } from 'vue';
+import { Ref, nextTick, onMounted, ref, inject } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ElImage, ElSkeleton } from "element-plus";
 import type { Block, Paragraph, Title, ListItem, TodoItem, Footer, Image } from "@/md/mdexpr";
 import { BlockTag } from "@/md/mdexpr";
 import { ResourceApi } from "@/api/resource";
+import { useMarkdownStore } from "@/store/markdown";
 import MdParagraph from './MdParagraph.vue';
 
 const props = defineProps<{
+    id: number,
     lineNum: number,
-    rawData: string,
     isHighlight?: boolean,
 }>();
 
 const emits = defineEmits<{
-    (e: 'update:rawData', value: string): void,
-    (e: 'appendLine', value: number, data: string): void;
-    (e: 'deleteLine', value: number): void;
-    (e: 'combineLine', value: number, data: string): void;
-    (e: 'edit'): void;
     (e: 'upLine', value: number): void;
     (e: 'downLine', value: number): void;
-    (e: 'updateStatus'): void;
 }>()
 
 defineExpose({
-    rangePos: (pos: number) => {
-        rangePos.value = pos;
+    update: async () => {
+        await updateLineAsync()
     },
     focus: (pos: number) => {
         isEdit.value = true;
@@ -45,14 +40,15 @@ defineExpose({
 })
 
 // data
-const generator = JsGenerator.new();
-const rangePos = ref(0)
+const markdownStore = useMarkdownStore()
+const splitData = ref('')
+const block = ref<Block>()
 const raw: Ref<HTMLSpanElement | null> = ref(null);
 const math: Ref<HTMLDivElement | null> = ref(null);
 let isEdit = ref(false);
 let src = ref<string>('');
-let block: Ref<Block | null> = ref(null)
 const lock = inject<Ref<boolean>>('lockState')
+const generator = JsGenerator.new()
 
 async function serializeAsync(rawData: string): Promise<Block> {
     var p = new Promise<Block>((resolve) => {
@@ -69,12 +65,11 @@ async function serializeAsync(rawData: string): Promise<Block> {
     return p
 }
 
-function handleInput() {
+async function handleInputAsync() {
     if (raw.value) {
-        emits('update:rawData', raw.value.innerText);
-        const selection = window.getSelection();
-        rangePos.value = selection!.getRangeAt(0).startOffset;
-        emits("updateStatus")
+        const data = raw.value.innerText
+        markdownStore.updateLine(props.id, props.lineNum, data);
+        await updateLineAsync()
     }
 }
 
@@ -92,7 +87,7 @@ function handleTouchEdit(event: TouchEvent) {
     }
 }
 
-function behaviorHandler(e: KeyboardEvent) {
+async function handleBehaviorAsync(e: KeyboardEvent) {
     const selection = window.getSelection();
     const focusOffset = selection?.focusOffset;
     switch (e.key) {
@@ -100,16 +95,23 @@ function behaviorHandler(e: KeyboardEvent) {
             e.preventDefault();
             if ((block.value?.tag === BlockTag.CodeBlock
                 || block.value?.tag === BlockTag.MathBlock)
-                && focusOffset !== raw.value?.innerText.length) {
-                selection?.getRangeAt(0).insertNode(document.createTextNode('\n'));
-                emits('update:rawData', raw.value?.innerText!);
-                rangePos.value = selection!.getRangeAt(0).startOffset + 1;
+                && focusOffset !== raw.value?.innerText.length && selection && raw.value) {
+                const oldRange = selection.getRangeAt(0);
+                const end = oldRange.endOffset
+                raw.value.innerText =
+                    raw.value.innerText.slice(0, end)
+                    + '\n'
+                    + raw.value.innerText.slice(end);
+                markdownStore.updateLine(props.id, props.lineNum, raw.value.innerText);
+                await updateLineAsync()
+                const rangePos = end + 1
+                handleFocus(rangePos)
             } else {
-                const remainData = props.rawData.slice(0, focusOffset)
-                const sliceData = props.rawData.slice(focusOffset)
-                rangePos.value = focusOffset!
-                emits('update:rawData', remainData);
-                emits('appendLine', props.lineNum, sliceData);
+                const remainData = splitData.value.slice(0, focusOffset)
+                const sliceData = splitData.value.slice(focusOffset)
+                markdownStore.updateLine(props.id, props.lineNum, remainData);
+                markdownStore.appendLine(props.id, props.lineNum, sliceData);
+                await updateLineAsync()
             }
             break;
         case 'Tab':
@@ -121,8 +123,10 @@ function behaviorHandler(e: KeyboardEvent) {
                     raw.value.innerText.slice(0, end)
                     + '\t'
                     + raw.value.innerText.slice(end);
-                emits('update:rawData', raw.value.innerText);
-                rangePos.value = end + 1
+                markdownStore.updateLine(props.id, props.lineNum, raw.value.innerText);
+                await updateLineAsync()
+                const rangePos = end + 1
+                handleFocus(rangePos)
             }
             break;
         case 'Backspace':
@@ -136,16 +140,25 @@ function behaviorHandler(e: KeyboardEvent) {
                 if (raw.value?.innerText.length === 1 && s) {
                     const newValue = "";
                     raw.value.innerText = newValue;
-                    emits('update:rawData', newValue);
+                    markdownStore.updateLine(props.id, props.lineNum, newValue);
+                    await updateLineAsync()
                     e.preventDefault();
                 } else if (raw.value?.innerText.length === 0) {
                     e.preventDefault();
-                    emits('deleteLine', props.lineNum);
+                    markdownStore.deleteLine(props.id, props.lineNum);
+                    await updateLineAsync()
                 } else if (selection) {
                     if (selection.anchorOffset == 0) {
                         e.preventDefault();
-                        emits('combineLine', props.lineNum, raw.value?.innerText);
+                        const data = raw.value.innerText!
+                        markdownStore.combineLine(props.id, props.lineNum, data);
+                        await updateLineAsync()
                     }
+                }
+                if (block.value?.tag === BlockTag.CodeBlock
+                    || block.value?.tag === BlockTag.MathBlock && selection) {
+                    const oldRange = selection!.getRangeAt(0);
+                    handleFocus(oldRange.startOffset)
                 }
             }
             break;
@@ -154,6 +167,16 @@ function behaviorHandler(e: KeyboardEvent) {
                 || block.value?.tag === BlockTag.MathBlock)
                 && selection?.anchorOffset != 0) {
                 break;
+            } else if (e.shiftKey) {
+                if (raw.value && raw.value.firstChild && selection) {
+                    const oldRange = selection.getRangeAt(0);
+                    const range = document.createRange();
+                    const rangePos = oldRange.startOffset;
+                    range.setStartAfter(raw.value.firstChild)
+                    range.setEnd(raw.value.firstChild, rangePos)
+                    selection?.removeAllRanges();
+                    selection?.addRange(range);
+                }
             } else {
                 e.preventDefault()
                 emits('upLine', props.lineNum);
@@ -164,11 +187,37 @@ function behaviorHandler(e: KeyboardEvent) {
                 || block.value?.tag === BlockTag.MathBlock)
                 && selection?.focusOffset != (raw.value?.innerText.length!)) {
                 break;
+            } else if (e.shiftKey) {
+                if (raw.value && raw.value.firstChild && selection) {
+                    const oldRange = selection.getRangeAt(0);
+                    const range = document.createRange();
+                    const rangePos = oldRange.startOffset;
+                    range.setStart(raw.value.firstChild, rangePos)
+                    range.setEndAfter(raw.value.firstChild)
+                    selection?.removeAllRanges();
+                    selection?.addRange(range);
+                }
             } else {
                 e.preventDefault()
                 emits('downLine', props.lineNum);
             }
             break;
+    }
+}
+
+async function handlePasteAsync(event: ClipboardEvent) {
+    event.preventDefault();
+    if (event.clipboardData?.types.includes('text/plain')) {
+        const selection = window.getSelection();
+        const focusOffset = selection?.focusOffset;
+        const remainData = splitData.value.slice(0, focusOffset)
+        const sliceData = splitData.value.slice(focusOffset)
+        const parseData = event.clipboardData.getData('text/plain')
+        const r = markdownStore.paste(props.id, props.lineNum, parseData, remainData, sliceData)
+        if (r) {
+            splitData.value = markdownStore.getSplitData(props.id, props.lineNum)!
+            await loadAsync(splitData.value)
+        }
     }
 }
 
@@ -178,11 +227,12 @@ function handleFocus(pos: number) {
     window.setTimeout(() => {
         raw.value?.focus()
         if (raw.value?.firstChild) {
+            var rangePos
             if (raw.value.innerText.length > pos)
-                rangePos.value = pos
+                rangePos = pos
             else
-                rangePos.value = raw.value.innerText.length
-            range.setEnd(raw.value.firstChild, rangePos.value)
+                rangePos = raw.value.innerText.length
+            range.setEnd(raw.value.firstChild, rangePos)
             range.collapse();
             selection?.removeAllRanges();
             selection?.addRange(range);
@@ -201,13 +251,12 @@ function handleFocusEnd() {
     window.setTimeout(() => {
         raw.value?.focus()
         if (raw.value?.firstChild) {
-            rangePos.value = raw.value?.innerText.length!;
-            range.setEnd(raw.value.firstChild, rangePos.value)
+            const rangePos = raw.value?.innerText.length!;
+            range.setEnd(raw.value.firstChild, rangePos)
             range.collapse();
             selection?.removeAllRanges();
             selection?.addRange(range);
         } else {
-            rangePos.value = 0
             range.setEnd(raw.value!.parentNode!.childNodes[1], 0)
             range.collapse();
             selection?.removeAllRanges();
@@ -220,7 +269,6 @@ function handleFocusStart() {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
-        rangePos.value = 0;
         raw.value?.focus()
         if (raw.value?.firstChild) {
             range.setEnd(raw.value.firstChild, 0)
@@ -256,7 +304,7 @@ function calcuateMargin(level: number): string {
 }
 
 function calcuateRows(): number {
-    const l = Math.min(props.rawData.length / 100, 10)
+    const l = Math.min(splitData.value.length / 100, 10)
     return Math.max(l, 4)
 }
 
@@ -273,7 +321,7 @@ async function getImage(url: string | undefined): Promise<string> {
     }
 }
 
-async function load(rawData: string) {
+async function loadAsync(rawData: string) {
     const data = await serializeAsync(rawData)
     block.value = data
     nextTick(async () => {
@@ -287,22 +335,18 @@ async function load(rawData: string) {
     })
 }
 
-watch(props, async (newValue) => {
-    await load(newValue.rawData)
-    const selection = window.getSelection();
-    const range = document.createRange();
-    if (raw.value?.firstChild) {
-        raw.value?.focus()
-        range.setStart(raw.value.firstChild, 0)
-        range.setEnd(raw.value.firstChild, rangePos.value)
-        range.collapse(false);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+async function updateLineAsync() {
+    const data = markdownStore.getSplitData(props.id, props.lineNum)
+    if (data != undefined) {
+        splitData.value = data
+        await loadAsync(splitData.value)
     }
-})
+}
 
 onMounted(async () => {
-    await load(props.rawData)
+    if (markdownStore.existLine(props.id, props.lineNum)) {
+        await updateLineAsync()
+    }
 })
 </script>
 
@@ -312,9 +356,10 @@ onMounted(async () => {
         <span v-show="isEdit || props.isHighlight" class="line-num" :class="{ 'focus-num': isEdit }">
             {{ props.lineNum }}
         </span>
-        <span v-show="isEdit" class="edit" ref="raw" @focusout="isEdit = false" @keydown="behaviorHandler"
-            @input="handleInput()" :class="[calcuateClass(block), isEdit ? 'focus-line' : '']" contenteditable="true">
-            {{ props.rawData }}
+        <span v-show="isEdit" class="edit" ref="raw" @focusout="isEdit = false" @keydown="handleBehaviorAsync"
+            @paste="handlePasteAsync" @input="handleInputAsync()"
+            :class="[calcuateClass(block), isEdit ? 'focus-line' : '']" contenteditable="true">
+            {{ splitData }}
         </span>
         <span v-show="!isEdit" class="render" :class="{ 'inline': calcuateInline(block.tag) }">
             <span v-if="block.tag === BlockTag.Title" class="title" :class="(block.content as Title).level"

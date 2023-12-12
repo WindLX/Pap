@@ -1,36 +1,34 @@
 <script setup lang="ts">
-import { JsGenerator } from "md_wasm";
 import { nextTick, onMounted, ref } from "vue";
 import { ElScrollbar } from "element-plus";
+import { useMarkdownStore } from "@/store/markdown";
 import MdBlock from "./MdBlock.vue";
 
 const props = defineProps<{
-    mdData: string,
+    id: number
 }>();
 
 const emits = defineEmits<{
-    (e: 'update:mdData', value: string): void,
     (e: 'onEdit'): void,
     (e: 'keyboard', key: string): void
 }>();
 
 defineExpose({
-    saveData: () => {
-        const newData = saveData()
-        emits('update:mdData', newData)
-    },
     grep: (regexPattern: string) => {
         if (regexPattern != '') {
             try {
-                const regex = new RegExp(regexPattern, 'g');
-                const matchingIndexes: number[] = [];
-                rawDataSet.value.forEach((str, index) => {
-                    const match = str.match(regex);
-                    if (match && match.length > 0) {
-                        matchingIndexes.push(index);
-                    }
-                });
-                grepIndex.value = matchingIndexes
+                const rawDataSet = markdownStore.getSplitDataSet(props.id);
+                if (rawDataSet) {
+                    const regex = new RegExp(regexPattern, 'g');
+                    const matchingIndexes: number[] = [];
+                    rawDataSet.forEach((str, index) => {
+                        const match = str.match(regex);
+                        if (match && match.length > 0) {
+                            matchingIndexes.push(index);
+                        }
+                    });
+                    grepIndex.value = matchingIndexes
+                }
             } catch (e) {
             }
         } else {
@@ -64,14 +62,66 @@ defineExpose({
     }
 })
 
-const generator = JsGenerator.new();
+
+const markdownStore = useMarkdownStore()
+
+markdownStore.$onAction(({
+    name,
+    args,
+    after
+}) => {
+    after((result) => {
+        switch (name) {
+            case 'updateLine':
+                emits('onEdit')
+                break;
+            case 'appendLine':
+                updateLines()
+                emits('onEdit')
+                nextTick(() => {
+                    blocks.value[args[1] + 1].focusStart()
+                })
+                break;
+            case 'deleteLine':
+                updateLines()
+                emits('onEdit')
+                nextTick(() => {
+                    if (args[1] !== 0) {
+                        blocks.value[args[1] - 1].focusEnd()
+                    }
+                })
+                break;
+            case 'combineLine':
+                updateLines()
+                emits('onEdit')
+                blocks.value[args[1] - 1].update()
+                nextTick(() => {
+                    if (result) {
+                        blocks.value[args[1] - 1].focus(result as number)
+                    }
+                })
+                break;
+            case 'paste':
+                updateLines()
+                emits('onEdit')
+                nextTick(() => {
+                    if (result) {
+                        blocks.value[(result as number[])[0]].focus((result as number[])[1])
+                    }
+                })
+                break;
+            default:
+                break;
+        }
+    })
+})
 
 // element
 const container = ref<HTMLDivElement | null>(null);
 const blocks = ref<Array<InstanceType<typeof MdBlock>>>([]);
 
 // data
-let rawDataSet = ref<Array<string>>([""])
+let lines = ref<Array<string>>([])
 let grepIndex = ref<Array<number>>([])
 let highlightIndex = ref<number | null>(null)
 
@@ -79,56 +129,7 @@ function handleKeyDown(event: KeyboardEvent) {
     if (event.ctrlKey) {
         if (['1', '2', 's', '4', '5', '6', '7'].includes(event.key))
             event.preventDefault()
-        switch (event.key) {
-            case 's':
-                const newData = saveData();
-                emits('update:mdData', newData);
-                break;
-            default:
-                emits('keyboard', event.key)
-                break;
-        }
-    }
-}
-
-function saveData(): string {
-    return rawDataSet.value.join('\n')
-}
-
-// edit    
-function appendLine(lineNum: number, data: string) {
-    if (lineNum + 1 < rawDataSet.value.length) {
-        rawDataSet.value.splice(lineNum + 1, 0, data);
-    } else {
-        rawDataSet.value.push(data);
-    }
-    nextTick(() => {
-        blocks.value[lineNum + 1].focusStart()
-    })
-}
-
-function deleteLine(lineNum: number) {
-    if (rawDataSet.value.length !== 1) {
-        rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
-        nextTick(() => {
-            if (lineNum !== 0) {
-                blocks.value[lineNum - 1].focusEnd()
-            }
-        })
-    }
-}
-
-function combineLine(lineNum: number, data: string) {
-    if (lineNum !== 0) {
-        const lineLength = rawDataSet.value[lineNum - 1].length
-        blocks.value[lineNum - 1].rangePos(0)
-        setTimeout(() => {
-            rawDataSet.value[lineNum - 1] = rawDataSet.value[lineNum - 1] + data
-            rawDataSet.value = rawDataSet.value.filter((_, index) => index !== lineNum)
-            setTimeout(() => {
-                blocks.value[lineNum - 1].focus(lineLength)
-            }, 0)
-        }, 0)
+        emits('keyboard', event.key)
     }
 }
 
@@ -144,16 +145,14 @@ function downLine(lineNum: number) {
     }
 }
 
-function updateRawData(lineNum: number, data: string) {
-    rawDataSet.value[lineNum] = data
-    emits("onEdit")
+function updateLines() {
+    if (markdownStore.exist(props.id)) {
+        lines.value = markdownStore.getSplitDataSet(props.id)!
+    }
 }
 
-onMounted(async () => {
-    rawDataSet.value = await Promise.resolve(generator.split(props.mdData))
-    if (rawDataSet.value.length === 0) {
-        rawDataSet.value = [''];
-    }
+onMounted(() => {
+    updateLines()
 })
 </script>
 
@@ -161,11 +160,10 @@ onMounted(async () => {
     <div class="editor">
         <el-scrollbar>
             <div class="editor-content" ref="container" @keydown="handleKeyDown" id="md-print">
-                <MdBlock v-for="(rawData, index) in rawDataSet" :key="index" :raw-data="rawData" :line-num="index"
-                    :is-highlight="grepIndex.includes(index)" ref="blocks"
-                    @update:raw-data="(newValue: string) => updateRawData(index, newValue)" @append-line="appendLine"
-                    @delete-line="deleteLine" @combine-line="combineLine" @up-line="upLine" @down-line="downLine">
+                <MdBlock v-for="(_d, index) in lines" :key="index" :id="props.id" :line-num="index"
+                    :is-highlight="grepIndex.includes(index)" ref="blocks" @up-line="upLine" @down-line="downLine">
                 </MdBlock>
+                <div class="blank" />
             </div>
         </el-scrollbar>
     </div>
@@ -182,5 +180,15 @@ onMounted(async () => {
 
 .editor-content {
     height: calc(100vh - 140px);
+}
+
+.editor .editor-content .blank {
+    max-width: 90%;
+    outline: none;
+    position: relative;
+    margin: 5px;
+    margin-left: 12px;
+    margin-right: 12px;
+    height: calc(100vh - 500px);
 }
 </style>

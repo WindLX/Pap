@@ -20,12 +20,15 @@ async function handleDragUploadAsync(event: DragEvent) {
     if (props.isCard) {
         event.preventDefault();
         if (event.dataTransfer && fileInputRef.value) {
-            const file = event.dataTransfer.files[0]
+            const files = event.dataTransfer.files
             const loadingInstance = ElLoading.service({ target: "#cards-loader", fullscreen: true })
-            const formData = await createFormDataAsync(file)
+            let fileArray = Array.from(files)
+            fileArray.forEach(async file => {
+                const formData = await createFormDataAsync(file)
+                const newResource = await ResourceApi.uploadResource(formData)
+                emits('upload', newResource)
+            })
             loadingInstance.close()
-            const newResource = await ResourceApi.uploadResource(formData)
-            emits('upload', newResource)
         }
         uploadRef.value?.classList.remove('active');
     }
@@ -48,11 +51,14 @@ async function createFormDataAsync(file: File): Promise<FormData> {
 
 async function uploadFileAsync() {
     const loadingInstance = ElLoading.service({ target: "#cards-loader", fullscreen: true })
-    const file = fileInputRef.value!.files![0];
-    const formData = await createFormDataAsync(file)
-    const newResource = await ResourceApi.uploadResource(formData)
+    const files = fileInputRef.value!.files!;
+    let fileArray = Array.from(files)
+    fileArray.forEach(async file => {
+        const formData = await createFormDataAsync(file)
+        const newResource = await ResourceApi.uploadResource(formData)
+        emits('upload', newResource)
+    })
     loadingInstance.close()
-    emits('upload', newResource)
 }
 </script>
 

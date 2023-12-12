@@ -2,9 +2,9 @@
 import { nextTick, onMounted, ref, provide, reactive } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { ElLoading, ElSkeleton } from "element-plus";
-import { NoteApi } from '@/api/note';
 import { ResourceApi } from '@/api/resource';
 import { downloadUrlAsync } from '@/utils';
+import { useMarkdownStore } from '@/store/markdown';
 import Editor from './Editor.vue';
 import MdOutline from './MdOutline.vue';
 import TagList from '../Tag/TagList.vue';
@@ -20,9 +20,11 @@ const emits = defineEmits<{
     (e: 'save', value: boolean): void,
 }>();
 
+const markdownStore = useMarkdownStore();
+
 // data
-let mdData = ref<string | null>(null);
 let name = ref<string>("");
+let url = ref<string>("");
 const editor = ref<InstanceType<typeof Editor> | null>(null);
 let lockState = ref<boolean>(false);
 let isToolbarShow = reactive([false, false, false, false])
@@ -33,77 +35,35 @@ provide('lockState', lockState);
 
 // load
 async function loadContentAsync() {
-    const data = await NoteApi.getNote(props.id);
-    name.value = data.name
-    mdData.value = await ResourceApi.getResource(data.url);
+    const note = await markdownStore.insertNewDataAsync(props.id)
+    name.value = note.name
+    url.value = note.url
 }
 
 // save
-async function createBlobAsync(newData: string): Promise<Blob> {
-    return new Promise((resolve) => {
-        const encoder = new TextEncoder();
-        const dataArrayBuffer = encoder.encode(newData);
-
-        const blobOptions = { type: "text/plain;charset=utf-8" };
-        const blob = new Blob([dataArrayBuffer], blobOptions);
-
-        resolve(blob);
-    });
-}
-
-async function createFormDataAsync(blob: Blob): Promise<FormData> {
-    return new Promise((resolve) => {
-        const formData = new FormData();
-        formData.append("file", blob);
-        resolve(formData);
-    });
-}
-
-async function saveContentAsync(newData: string) {
+async function saveContentAsync() {
     const loadingInstance = ElLoading.service({ target: "#md-loader", fullscreen: true })
-    mdData.value = newData
-    const blob = await createBlobAsync(newData)
-    const formData = await createFormDataAsync(blob)
+    await markdownStore.saveDataAsync(props.id)
     loadingInstance.close()
-    await NoteApi.saveNote(props.id, formData)
     emits('save', true)
     updateStatus.value = new Date().getTime()
 }
 
-async function downloadMdDataAsync(newData: string) {
-    const blob = await createBlobAsync(newData);
-    const url = window.URL.createObjectURL(blob);
-    await downloadUrlAsync(`${name.value}.md`, url)
-}
-
-function updateMdData(newData: string) {
-    saveContentAsync(newData)
-}
-
-function downloadMdData() {
-    if (editor.value) {
-        editor.value.saveData()
-        nextTick(() => {
-            if (mdData.value) {
-                downloadMdDataAsync(mdData.value)
-            }
-        })
-    }
+async function downloadMdDataAsync() {
+    await markdownStore.saveDataAsync(props.id)
+    const newUrl = await ResourceApi.getBlobUrl(url.value);
+    await downloadUrlAsync(`${name.value}.md`, newUrl)
 }
 
 function exportPdf() {
     nextTick(() => {
-        if (editor.value) {
-            if (mdData.value) {
-                let oldHTML = window.document.body.innerHTML;
-                var printHTML = document.getElementById("md-print")?.innerHTML;
-                if (printHTML) {
-                    window.document.body.innerHTML = printHTML;
-                    window.print();
-                    location.reload();
-                    window.document.body.innerHTML = oldHTML;
-                }
-            }
+        let oldHTML = window.document.body.innerHTML;
+        var printHTML = document.getElementById("md-print")?.innerHTML;
+        if (printHTML) {
+            window.document.body.innerHTML = printHTML;
+            window.print();
+            location.reload();
+            window.document.body.innerHTML = oldHTML;
         }
     })
 }
@@ -119,7 +79,7 @@ function handleLock() {
     emits('lock', lockState.value)
 }
 
-function handleKeyDown(key: string) {
+async function handleKeyDown(key: string) {
     switch (key) {
         case '1':
             handleShowToolbar(0)
@@ -127,8 +87,11 @@ function handleKeyDown(key: string) {
         case '2':
             handleLock()
             break;
+        case 's':
+            await saveContentAsync();
+            break;
         case '4':
-            downloadMdData()
+            await downloadMdDataAsync()
             break;
         case '5':
             exportPdf()
@@ -162,22 +125,22 @@ function handleGrepClear() {
 
 onMounted(async () => {
     await loadContentAsync()
-    window.onbeforeprint = () => {
-        editor.value?.saveData()
+    window.onbeforeprint = async () => {
+        await markdownStore.saveDataAsync(props.id)
     }
 })
 </script>
 
 <template>
-    <div class="markdown" v-if="mdData !== null">
+    <div class="markdown" v-if="markdownStore.exist(props.id)">
         <div class="markdown-tool">
             <font-awesome-icon :icon="['fas', 'tags']" class="icon" :class="isToolbarShow[0] ? 'active' : ''"
                 @mousedown="handleShowToolbar(0)" />
             <font-awesome-icon :icon="['fas', lockState ? 'lock' : 'lock-open']" class="icon"
                 :class="lockState ? 'active' : ''" @mousedown="handleLock()" />
             <font-awesome-icon :icon="['fas', 'floppy-disk']" class="icon" style="font-size: 22px;"
-                @mousedown="editor?.saveData()" />
-            <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdData()" />
+                @mousedown="saveContentAsync()" />
+            <font-awesome-icon :icon="['fas', 'file-export']" class="icon" @mousedown="downloadMdDataAsync()" />
             <font-awesome-icon :icon="['fas', 'file-pdf']" class="icon" @mousedown="exportPdf()" />
             <font-awesome-icon :icon="['fas', 'hashtag']" class="icon" :class="isToolbarShow[1] ? 'active' : ''"
                 @mousedown="handleShowToolbar(1)" style="font-size: 22px;" />
@@ -188,14 +151,13 @@ onMounted(async () => {
             <TagList :id="props.id" v-show="isToolbarShow[0]" />
         </Transition>
         <Transition name="push">
-            <MdOutline :md-data="mdData" :name="name" v-show="isToolbarShow[1]" :key="updateStatus" />
+            <MdOutline :id="props.id" :name="name" v-show="isToolbarShow[1]" :key="updateStatus" />
         </Transition>
         <Transition name="drag">
             <Grep v-show="isToolbarShow[2]" @grep="handleGrep" @focus-last="handleFocusLast" @focus-next="handleFocusNext"
                 @clear="handleGrepClear" />
         </Transition>
-        <Editor :md-data="mdData" :lock="lockState" @update:md-data="updateMdData" @on-edit="emits('save', false)"
-            @keyboard="handleKeyDown" ref="editor" />
+        <Editor :id="props.id" @on-edit="emits('save', false)" @keyboard="handleKeyDown" ref="editor" />
     </div>
     <el-skeleton v-else :rows="10" class="md-block-skeleton" animated />
 </template>

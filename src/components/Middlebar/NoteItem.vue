@@ -25,6 +25,7 @@ const emits = defineEmits<{
 const tabStore = useNoteTabStore()
 
 // data
+let noteName = ref(props.note.name)
 let renameNoteName = ref<string | null>(null)
 let renameVisible = ref<boolean>(false)
 
@@ -35,6 +36,7 @@ async function handleRenameNoteAsync() {
     }
     await NoteApi.renameNote(data)
     tabStore.updateTab(data)
+    noteName.value = data.name
     emits("update:item", data)
     handleNoteRenameCancel()
 }
@@ -47,12 +49,15 @@ async function handleDeleteNoteAsync() {
 }
 
 function handleNoteClick() {
-    tabStore.addTab(props.note)
+    tabStore.addTab({
+        id: props.note.id,
+        name: noteName.value
+    })
 }
 
 function handleNoteRename() {
     renameVisible.value = true
-    renameNoteName.value = props.note.name
+    renameNoteName.value = noteName.value
 }
 
 function handleNoteRenameCancel() {
@@ -63,11 +68,11 @@ function handleNoteRenameCancel() {
 
 <template>
     <span class="note-item">
-        <el-tooltip placement="bottom" :content="props.note.name" :hide-after="0">
+        <el-tooltip placement="bottom" :content="noteName" :hide-after="0">
             <div class="node">
                 <div class="label" @click="handleNoteClick()">
                     <font-awesome-icon :icon="['fas', 'file']" class="icon" />
-                    <el-text truncated style="max-width: 90%;">{{ props.note.name }}</el-text>
+                    <el-text truncated style="max-width: 90%;">{{ noteName }}</el-text>
                 </div>
                 <el-button-group>
                     <el-popover placement="bottom" :visible="renameVisible" :width="200" trigger="click">

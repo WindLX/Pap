@@ -13,6 +13,7 @@ pub enum JsBlock {
     MathBlock(String),
     TodoItem(JsTodoItem),
     Footer(JsFooter),
+    Error(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -133,6 +134,7 @@ impl ToString for JsBlock {
                 }
             }
             JsBlock::Line => String::from("---"),
+            JsBlock::Error(e) => e.clone(),
         }
     }
 }

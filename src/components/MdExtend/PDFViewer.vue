@@ -20,6 +20,8 @@ const props = defineProps<{
 
 interface Config {
     pages: number[]
+    scale: number
+    rotation: number
 }
 
 let url = ref<string | null>(null)
@@ -48,7 +50,7 @@ async function handleScaleAsync(_val: Arrayable<number>) {
 }
 
 async function handleScaleFitAsync() {
-    pdfScale.value = 5
+    pdfScale.value = 500
     await nextTick(() => {
         renderPageAsync(pdfDoc!, currentPage.value)
     })
@@ -88,12 +90,6 @@ async function loadFileAsync(url: string) {
             })
         }
     } catch (error) {
-        ElNotification({
-            title: '加载失败',
-            message: error as string,
-            type: 'error',
-            duration: 2000
-        })
     }
 }
 
@@ -122,7 +118,7 @@ async function renderPageAsync(pdfDoc: pdfjs.PDFDocumentProxy, num: number) {
         }
     } catch (error) {
         ElNotification({
-            title: '渲染失败',
+            title: '渲染PDF文件失败',
             message: error as string,
             type: 'error',
             duration: 2000
@@ -149,6 +145,8 @@ function loadConfig(newConfig: string | null) {
     if (newConfig) {
         const configJson = JSON.parse(newConfig) as Config
         config.value = configJson
+        pdfRotation.value = config.value.rotation
+        pdfScale.value = config.value.scale * 100
     }
 }
 

@@ -41,3 +41,5 @@ Pap 需要 Python 3.11.4 的运行环境. 所有脚本均可通过 `Get-Help scr
 - [x] Pdf viewer
 - [x] Data Export
 - [x] Grep
+- [ ] Resource folder
+- [ ] Note folder

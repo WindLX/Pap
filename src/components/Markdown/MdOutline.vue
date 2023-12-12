@@ -2,14 +2,16 @@
 import { onActivated, onMounted, ref } from 'vue';
 import { JsStatusGenerator } from 'md_wasm'
 import { RawTitle, TitleLevel } from '@/md/mdexpr';
+import { useMarkdownStore } from '@/store/markdown';
 import type { TreeCreateNode } from '../Utils/Tree.vue';
 import Tree from '../Utils/Tree.vue';
 
 const props = defineProps<{
     name: string,
-    mdData: string
+    id: number
 }>()
 
+const markdownStore = useMarkdownStore()
 const generator = JsStatusGenerator.new()
 const titles = ref<Array<TreeCreateNode>>([])
 
@@ -30,14 +32,17 @@ function levelToNumber(level: TitleLevel): number {
 }
 
 async function loadTitleAsync() {
-    let t = await Promise.resolve<Array<RawTitle>>(generator.get_js_titles(props.mdData))
-    titles.value = t.map((t) => {
-        return {
-            id: t.line,
-            level: levelToNumber(t.level),
-            data: t.content
-        }
-    })
+    const d = markdownStore.getRawData(props.id)
+    if (d) {
+        let t = await Promise.resolve<Array<RawTitle>>(generator.get_js_titles(d))
+        titles.value = t.map((t) => {
+            return {
+                id: t.line,
+                level: levelToNumber(t.level),
+                data: t.content
+            }
+        })
+    }
 }
 
 onMounted(async () => {

@@ -223,7 +223,7 @@ impl<'md> Parser {
                             return Err(MdError::ParagraphError(String::from("expect ']'")));
                         }
                     } else {
-                        let c = self.parse_plain(&input[1..]);
+                        let c = self.parse_special_plain(&input[1..], b']');
                         input = &input[c.0 + 1..];
                         if matches!(input.get(0), Some(b']')) && matches!(input.get(1), Some(b'('))
                         {
@@ -351,7 +351,7 @@ impl<'md> Parser {
     fn parse_image(&mut self, input: &'md [u8]) -> Result<Image<'md>> {
         let mut input = &input[1..];
         if matches!(input.get(0), Some(b'[')) {
-            let title = self.parse_plain(&input[1..]);
+            let title = self.parse_special_plain(&input[1..], b']');
             input = &input[title.0 + 1..];
             if matches!(input.get(0), Some(b']')) && matches!(input.get(1), Some(b'(')) {
                 input = &input[2..];
@@ -361,7 +361,7 @@ impl<'md> Parser {
                     let title = if title.1.len() == 0 {
                         None
                     } else {
-                        Some(String::from_utf8_lossy(&title.1.clone()).to_string())
+                        Some(String::from_utf8_lossy(&title.1).to_string())
                     };
                     let src = if src.1.len() == 0 {
                         None
@@ -386,15 +386,13 @@ impl<'md> Parser {
         while offset < input.len() {
             let byte = input[offset];
             match byte {
-                b'`' | b'_' | b'*' | b'[' | b']' | b'(' | b')' => break,
+                b'_' | b'*' => break,
                 b'\\' => {
                     skips.push(offset);
                     offset += 2
                 }
-                #[cfg(feature = "math")]
-                b'$' => break,
                 #[cfg(feature = "extra")]
-                b'~' | b'{' | b'}' | b':' => break,
+                b'~' => break,
                 _ => offset += 1,
             }
         }

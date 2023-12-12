@@ -1,6 +1,6 @@
 use crate::js_expr::*;
 use md_parser::expr::*;
-use md_parser::generator::{SingleGenerator, StatusGenerator};
+use md_parser::generator::{Generator, SingleGenerator, StatusGenerator};
 use md_parser::Result as MResult;
 use wasm_bindgen::prelude::*;
 
@@ -21,11 +21,11 @@ impl JsGenerator {
     }
 
     pub fn serialize(&self, input: String) -> Result<JsValue, JsError> {
-        let v = &self.process(input);
-        match v {
-            Ok(v) => Ok(serde_wasm_bindgen::to_value(&v).unwrap()),
-            Err(e) => Err(e.clone()),
-        }
+        SingleGenerator::process(self, input)
+    }
+
+    pub fn serialize_multi(&self, input: String) -> Vec<JsValue> {
+        Generator::process(self, input)
     }
 
     pub fn deserialize(self, js_expr: JsValue) -> String {
@@ -132,8 +132,8 @@ impl JsGenerator {
     }
 }
 
-impl SingleGenerator<Result<JsBlock, JsError>> for JsGenerator {
-    fn generate(&self, block: &MResult<Block>) -> Result<JsBlock, JsError> {
+impl SingleGenerator<Result<JsValue, JsError>> for JsGenerator {
+    fn generate(&self, block: &MResult<Block>) -> Result<JsValue, JsError> {
         let block = match block {
             Ok(block) => match block {
                 Block::Title(title) => JsBlock::Title(self.generate_title(title)),
@@ -151,7 +151,30 @@ impl SingleGenerator<Result<JsBlock, JsError>> for JsGenerator {
             },
             Err(err) => return Err(JsError::new(&err.to_string())),
         };
-        Ok(block)
+        Ok(serde_wasm_bindgen::to_value(&block).unwrap())
+    }
+}
+
+impl Generator<JsValue> for JsGenerator {
+    fn generate(&self, block: &MResult<Block>) -> JsValue {
+        let block = match block {
+            Ok(block) => match block {
+                Block::Title(title) => JsBlock::Title(self.generate_title(title)),
+                Block::Paragraph(paragraph) => {
+                    JsBlock::Paragraph(self.generate_paragraph(paragraph))
+                }
+                Block::Quote(paragraph) => JsBlock::Quote(self.generate_paragraph(paragraph)),
+                Block::Image(image) => JsBlock::Image(self.generate_image(image)),
+                Block::CodeBlock(lang, code) => JsBlock::CodeBlock(lang.clone(), code.to_string()),
+                Block::MathBlock(math) => JsBlock::MathBlock(math.to_string()),
+                Block::Line => JsBlock::Line,
+                Block::Footer(footer) => JsBlock::Footer(self.generate_footer(footer)),
+                Block::ListItem(list_item) => JsBlock::ListItem(self.generate_list_item(list_item)),
+                Block::TodoItem(todo_item) => JsBlock::TodoItem(self.generate_todo_item(todo_item)),
+            },
+            Err(err) => JsBlock::Error(err.to_string()),
+        };
+        serde_wasm_bindgen::to_value(&block).unwrap()
     }
 }
 
