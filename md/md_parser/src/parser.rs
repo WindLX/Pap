@@ -386,11 +386,13 @@ impl<'md> Parser {
         while offset < input.len() {
             let byte = input[offset];
             match byte {
-                b'_' | b'*' => break,
+                b'_' | b'*' | b'`' | b'[' => break,
                 b'\\' => {
                     skips.push(offset);
                     offset += 2
                 }
+                #[cfg(feature = "math")]
+                b'$'=> break,
                 #[cfg(feature = "extra")]
                 b'~' => break,
                 _ => offset += 1,

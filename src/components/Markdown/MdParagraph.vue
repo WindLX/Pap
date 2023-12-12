@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import katex from "katex";
 import { ElPopover, ElNotification, ElScrollbar } from 'element-plus';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -70,11 +70,11 @@ async function getEmojiAsync(emoji: string): Promise<Array<EmojiSchema>> {
     }
 }
 
-watch(props, async () => {
+async function renderAsync() {
     props.paragraph.map(async (sentence: Sentence, index: number, _) => {
         if (span.value && span.value[index]) {
             if (sentence.tag === SentenceTag.Math) {
-                await Promise.resolve(katex.render((sentence.content as string).replace(/[\t\r\f\n]*/g, ""), span.value[index].children[0] as HTMLDivElement, {
+                await Promise.resolve(katex.render((sentence.content as string).replace(/[\t\r\f\n]*/g, ""), span.value[index].children[0] as HTMLSpanElement, {
                     throwOnError: false, output: "html", errorColor: "#cc4d4d"
                 }))
             } else if (sentence.tag === SentenceTag.Emoji) {
@@ -88,6 +88,14 @@ watch(props, async () => {
             }
         }
     })
+}
+
+watch(props, async () => {
+    await renderAsync()
+})
+
+onMounted(async () => {
+    await renderAsync()
 })
 </script>
 
@@ -111,7 +119,7 @@ watch(props, async () => {
         <span v-else-if="sentence.tag === SentenceTag.Code" class="code">
             {{ sentence.content as string }}
         </span>
-        <div v-else-if="sentence.tag === SentenceTag.Math" class="math" />
+        <span v-else-if="sentence.tag === SentenceTag.Math" class="math" />
         <el-popover v-else-if="sentence.tag === SentenceTag.Emoji" :disabled="emojis.length <= 1" width="250"
             placement="bottom" trigger="hover">
             <el-scrollbar height="120">
@@ -136,8 +144,7 @@ watch(props, async () => {
 
 <style scoped>
 .sentence {
-    display: inline-block;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 .sentence .super {

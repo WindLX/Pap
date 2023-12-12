@@ -12,6 +12,7 @@ const props = defineProps<{
 }>()
 
 const markdownStore = useMarkdownStore()
+
 const generator = JsStatusGenerator.new()
 const titles = ref<Array<TreeCreateNode>>([])
 

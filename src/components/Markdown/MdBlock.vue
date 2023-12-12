@@ -69,7 +69,12 @@ async function handleInputAsync() {
     if (raw.value) {
         const data = raw.value.innerText
         markdownStore.updateLine(props.id, props.lineNum, data);
+        const selection = window.getSelection();
+        const endOffset = selection?.getRangeAt(0).endOffset
         await updateLineAsync()
+        if (endOffset) {
+            handleFocus(endOffset)
+        }
     }
 }
 
@@ -138,11 +143,11 @@ async function handleBehaviorAsync(e: KeyboardEvent) {
                     s = Math.abs(a - f) == raw.value?.innerText.length && a !== f;
                 }
                 if (raw.value?.innerText.length === 1 && s) {
+                    e.preventDefault();
                     const newValue = "";
                     raw.value.innerText = newValue;
                     markdownStore.updateLine(props.id, props.lineNum, newValue);
                     await updateLineAsync()
-                    e.preventDefault();
                 } else if (raw.value?.innerText.length === 0) {
                     e.preventDefault();
                     markdownStore.deleteLine(props.id, props.lineNum);
@@ -156,9 +161,15 @@ async function handleBehaviorAsync(e: KeyboardEvent) {
                     }
                 }
                 if (block.value?.tag === BlockTag.CodeBlock
-                    || block.value?.tag === BlockTag.MathBlock && selection) {
-                    const oldRange = selection!.getRangeAt(0);
-                    handleFocus(oldRange.startOffset)
+                    || block.value?.tag === BlockTag.MathBlock) {
+                    if (selection) {
+                        const oldRange = selection.getRangeAt(0);
+                        console.log(oldRange.endOffset)
+                        const rangePos = oldRange.endOffset
+                        setTimeout(() => {
+                            handleFocus(rangePos)
+                        }, 50)
+                    }
                 }
             }
             break;
@@ -215,8 +226,7 @@ async function handlePasteAsync(event: ClipboardEvent) {
         const parseData = event.clipboardData.getData('text/plain')
         const r = markdownStore.paste(props.id, props.lineNum, parseData, remainData, sliceData)
         if (r) {
-            splitData.value = markdownStore.getSplitData(props.id, props.lineNum)!
-            await loadAsync(splitData.value)
+            await updateLineAsync()
         }
     }
 }
@@ -225,7 +235,6 @@ function handleFocus(pos: number) {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
-        raw.value?.focus()
         if (raw.value?.firstChild) {
             var rangePos
             if (raw.value.innerText.length > pos)
@@ -249,7 +258,6 @@ function handleFocusEnd() {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
-        raw.value?.focus()
         if (raw.value?.firstChild) {
             const rangePos = raw.value?.innerText.length!;
             range.setEnd(raw.value.firstChild, rangePos)
@@ -269,7 +277,6 @@ function handleFocusStart() {
     const range = document.createRange();
     const selection = window.getSelection();
     window.setTimeout(() => {
-        raw.value?.focus()
         if (raw.value?.firstChild) {
             range.setEnd(raw.value.firstChild, 0)
             range.collapse();

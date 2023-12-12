@@ -1,7 +1,7 @@
 [system]
-host = "127.0.0.1"
+host = "192.168.10.19"
 port = 13956
-backend_host = "127.0.0.1"
+backend_host = "192.168.10.19"
 backend_port = 13956
 
 [basic]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onMounted, ref, getCurrentInstance } from "vue";
 import { ElScrollbar } from "element-plus";
 import { useMarkdownStore } from "@/store/markdown";
 import MdBlock from "./MdBlock.vue";
@@ -79,6 +79,9 @@ markdownStore.$onAction(({
                 updateLines()
                 emits('onEdit')
                 nextTick(() => {
+                    blocks.value.forEach((item) => {
+                        item.update()
+                    })
                     blocks.value[args[1] + 1].focusStart()
                 })
                 break;
@@ -87,6 +90,9 @@ markdownStore.$onAction(({
                 emits('onEdit')
                 nextTick(() => {
                     if (args[1] !== 0) {
+                        blocks.value.forEach((item) => {
+                            item.update()
+                        })
                         blocks.value[args[1] - 1].focusEnd()
                     }
                 })
@@ -94,8 +100,10 @@ markdownStore.$onAction(({
             case 'combineLine':
                 updateLines()
                 emits('onEdit')
-                blocks.value[args[1] - 1].update()
                 nextTick(() => {
+                    blocks.value.forEach((item) => {
+                        item.update()
+                    })
                     if (result) {
                         blocks.value[args[1] - 1].focus(result as number)
                     }
@@ -106,6 +114,9 @@ markdownStore.$onAction(({
                 emits('onEdit')
                 nextTick(() => {
                     if (result) {
+                        blocks.value.forEach((item) => {
+                            item.update()
+                        })
                         blocks.value[(result as number[])[0]].focus((result as number[])[1])
                     }
                 })
@@ -148,6 +159,8 @@ function downLine(lineNum: number) {
 function updateLines() {
     if (markdownStore.exist(props.id)) {
         lines.value = markdownStore.getSplitDataSet(props.id)!
+        const instance = getCurrentInstance();
+        instance?.proxy?.$forceUpdate();
     }
 }
 
