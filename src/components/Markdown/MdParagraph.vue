@@ -157,7 +157,7 @@ onMounted(async () => {
 }
 
 .sentence .italic {
-    font-style: italic;
+    font-style: oblique;
 }
 
 .sentence .strike {

@@ -33,6 +33,7 @@ origins = [
     f"http://{host}:{port}",
     'http://127.0.0.1:13956'
     "http://localhost:6174",
+    "http://localhost:3000",
 ]
 
 # middleware

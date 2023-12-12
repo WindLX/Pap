@@ -155,9 +155,16 @@ impl Node {
             dist = Vector::delta()
         }
         let distance = dist.norm();
-        dist.unit().cof_mul(
-            self.gravitation_weight * (self.mass * other.mass) * (distance - self.gravitation_bais),
-        )
+        if other.mass == self.mass {
+            dist.unit().cof_mul(
+                self.gravitation_weight * (distance - self.gravitation_bais),
+            )
+        } else {
+            VECTOR_ZERO
+            // dist.unit().cof_mul(
+            //     self.gravitation_weight * (distance - self.gravitation_bais / 5.0),
+            // )
+        }
     }
 }
 

@@ -77,10 +77,10 @@ onMounted(async () => {
         max_y,
         stiffness: 30,
         gravitation_weight: 1,
-        gravitation_bais: 150,
+        gravitation_bais: 300,
         md_mass: 5,
         res_mass: 1,
-        mu: 30
+        mu: 60
     }
     await loadNetAsync()
 })
