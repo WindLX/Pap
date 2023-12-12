@@ -74,19 +74,22 @@ impl<'md> Parser {
 
     pub fn parse_link_only(&mut self, input: &'md SplitBlock) -> Vec<RawLink> {
         match input {
-            SplitBlock::Paragraph(pa) => match self.parse_paragraph(pa.as_bytes()) {
-                Ok(p) => {
-                    let ll =
-                        p.0.iter()
-                            .filter(|s| matches!(s, Sentence::Link(_)))
-                            .map(|s| match s {
-                                Sentence::Link(l) => RawLink::from(l.clone()),
-                                _ => unreachable!(),
-                            })
-                            .collect();
-                    return ll;
-                }
-                _ => return Vec::new(),
+            SplitBlock::Paragraph(pa) => match pa.as_bytes().get(0) {
+                Some(b'!') => return Vec::new(),
+                _ => match self.parse_paragraph(pa.as_bytes()) {
+                    Ok(p) => {
+                        let ll =
+                            p.0.iter()
+                                .filter(|s| matches!(s, Sentence::Link(_)))
+                                .map(|s| match s {
+                                    Sentence::Link(l) => RawLink::from(l.clone()),
+                                    _ => unreachable!(),
+                                })
+                                .collect();
+                        return ll;
+                    }
+                    _ => return Vec::new(),
+                },
             },
             _ => Vec::new(),
         }
@@ -392,7 +395,7 @@ impl<'md> Parser {
                     offset += 2
                 }
                 #[cfg(feature = "math")]
-                b'$'=> break,
+                b'$' => break,
                 #[cfg(feature = "extra")]
                 b'~' => break,
                 _ => offset += 1,
